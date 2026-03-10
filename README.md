@@ -136,14 +136,31 @@ src/
 
 ---
 
+## 推荐模型：豆包 Doubao-Seed-2.0-pro
+
+本项目经过测试，推荐使用**字节跳动豆包**的 `Doubao-Seed-2.0-pro` 模型，生成质量最佳。
+
+### 配置步骤
+
+1. 访问 [火山引擎控制台](https://console.volcengine.com/ark/region:ark+cn-beijing/overview) 注册/登录
+2. 进入 **模型推理 → 接入点管理**，创建推理接入点，选择 `Doubao-Seed-2.0-pro` 模型
+3. 在 **API Key 管理** 页面创建 API Key
+4. 打开本项目，点击右上角 ⚙️ **API设置**：
+   - 平台选择：**豆包**
+   - API Key：填入火山引擎 API Key
+   - 模型：填入推理接入点 ID（格式为 `ep-xxxxxxxx-xxxxx`）
+   - API 地址：`https://ark.cn-beijing.volces.com/api/v3`
+
+---
+
 ## 支持的 AI 平台
 
 **文字生成**（支持 OpenAI 兼容接口）
 
 | 平台 | 推荐模型 |
 |------|---------|
+| **豆包（推荐）** | **Doubao-Seed-2.0-pro**（填推理接入点 ID） |
 | 通义千问 | qwen-max |
-| 豆包 | doubao-pro-32k |
 | DeepSeek | deepseek-chat |
 | Moonshot（月之暗面） | moonshot-v1-32k |
 | 智谱 GLM | glm-4-flash |
