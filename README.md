@@ -85,6 +85,14 @@ npm run build
 
 输出为 `dist/index.html` 单文件，可直接双击打开离线使用，无需任何服务器。
 
+### 本地预览构建产物
+
+```bash
+npm run preview
+```
+
+浏览器访问 `http://localhost:4173`，用于验证构建结果是否正常。
+
 ### API 配置
 
 本项目**不内置任何 API Key**，首次使用需点击右上角 ⚙️ 设置，选择 AI 平台并填入你自己的 API Key。支持所有 OpenAI 兼容接口。
