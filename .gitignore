@@ -22,3 +22,14 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Cursor
+.cursor/
+
+# Environment & secrets
+.env
+.env.*
+
+# OS files
+Thumbs.db
+Desktop.ini
