@@ -64,8 +64,8 @@
 ### 克隆与安装
 
 ```bash
-git clone https://github.com/你的用户名/moonaigc-react.git
-cd moonaigc-react
+git clone https://github.com/qinghui316/moonaigc.git
+cd moonaigc
 npm install
 ```
 
