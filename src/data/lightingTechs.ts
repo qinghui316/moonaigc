@@ -1,0 +1,20 @@
+// 光影技法列表（17项，对齐V5.1）
+export const LIGHTING_TECHS = [
+  { value: 'natural_free', label: '自然光（AI自由）', defaultOn: false },
+  { value: 'golden_hour', label: '黄金时刻暖光', defaultOn: false },
+  { value: 'blue_hour', label: '蓝调时刻冷光', defaultOn: false },
+  { value: 'hard_contrast', label: '硬光高对比', defaultOn: false },
+  { value: 'soft_diffused', label: '柔光低对比', defaultOn: false },
+  { value: 'neon_night', label: '霓虹灯光夜景', defaultOn: false },
+  { value: 'candlelight', label: '烛光/火光氛围', defaultOn: false },
+  { value: 'imax_wide', label: 'IMAX超广角自然光', defaultOn: false },
+  { value: 'chiaroscuro', label: '明暗强对比（Chiaroscuro）', defaultOn: false },
+  { value: 'backlight', label: '逆光剪影', defaultOn: false },
+  { value: 'rembrandt', label: '伦勃朗光', defaultOn: false },
+  { value: 'silhouette', label: '剪影轮廓光', defaultOn: false },
+  { value: 'volumetric', label: '体积光/丁达尔效应', defaultOn: false },
+  { value: 'neon_cyberpunk', label: '赛博朋克霓虹', defaultOn: false },
+  { value: 'overcast', label: '阴天漫射光', defaultOn: false },
+  { value: 'moonlight', label: '月光/夜蓝调', defaultOn: false },
+  { value: 'studio_three', label: '三点式影棚光', defaultOn: false },
+]

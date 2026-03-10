@@ -1,0 +1,23 @@
+// 运镜技法列表（20项，对齐V5.1）
+export const CAMERA_TECHS = [
+  { value: 'dolly_in', label: '缓慢推镜（Dolly In）', defaultOn: true },
+  { value: 'dolly_out', label: '缓慢拉镜（Dolly Out）', defaultOn: false },
+  { value: 'pan', label: '横摇（Pan）', defaultOn: false },
+  { value: 'tilt', label: '纵摇（Tilt）', defaultOn: false },
+  { value: 'tracking', label: '横移跟随（Tracking）', defaultOn: false },
+  { value: 'handheld', label: '手持晃动（Handheld）', defaultOn: false },
+  { value: 'steadicam', label: '稳定器平滑（Steadicam）', defaultOn: false },
+  { value: 'orbit', label: '绕轴环绕（Orbit）', defaultOn: false },
+  { value: 'crane', label: '摇臂升降（Crane）', defaultOn: false },
+  { value: 'drone_aerial', label: '无人机航拍（Drone Aerial）', defaultOn: false },
+  { value: 'drone_dive', label: '无人机俯冲（Drone Dive）', defaultOn: false },
+  { value: 'pov', label: '主观第一视角（POV）', defaultOn: false },
+  { value: 'dutch_angle', label: '斜角倾斜（Dutch Angle）', defaultOn: false },
+  { value: 'whip_pan', label: '甩镜（Whip Pan）', defaultOn: false },
+  { value: 'zoom', label: '光学变焦（Zoom）', defaultOn: false },
+  { value: 'push_in_extreme', label: '极速推进（Extreme Push In）', defaultOn: false },
+  { value: 'slow_dolly', label: '极慢推镜（Ultra Slow Dolly）', defaultOn: false },
+  { value: 'arc_shot', label: '弧线运镜（Arc Shot）', defaultOn: false },
+  { value: 'fixed', label: '固定机位（Fixed）', defaultOn: false },
+  { value: 'ai_free', label: '自由发挥（AI自由）', defaultOn: false },
+]
