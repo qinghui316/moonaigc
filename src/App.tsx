@@ -6,8 +6,10 @@ import SettingsPanel from './components/settings/SettingsPanel'
 import CreatePage from './components/create/CreatePage'
 import MaterialPage from './components/materials/MaterialPage'
 import HistoryPage from './components/history/HistoryPage'
+import ProjectPage from './components/projects/ProjectPage'
+import ScriptWorkPage from './components/scriptwork/ScriptWorkPage'
 import type { TabId } from './components/layout/TabNav'
-import type { HistoryRecord } from './types'
+import type { HistoryRecord, Episode } from './types'
 import { useSettingsStore } from './store/useSettingsStore'
 import { useMaterialStore } from './store/useMaterialStore'
 import { useThemeStore } from './store/useThemeStore'
@@ -16,6 +18,7 @@ const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabId>('create')
   const [showSettings, setShowSettings] = useState(false)
   const [loadedRecord, setLoadedRecord] = useState<HistoryRecord | null>(null)
+  const [loadedEpisode, setLoadedEpisode] = useState<Episode | null>(null)
   const { load: loadSettings } = useSettingsStore()
   const { load: loadMaterials } = useMaterialStore()
   const theme = useThemeStore(s => s.theme)
@@ -41,6 +44,13 @@ const App: React.FC = () => {
 
   const handleLoadHistory = (record: HistoryRecord) => {
     setLoadedRecord(record)
+    setLoadedEpisode(null)
+    setActiveTab('create')
+  }
+
+  const handleLoadEpisode = (episode: Episode) => {
+    setLoadedEpisode(episode)
+    setLoadedRecord(null)
     setActiveTab('create')
   }
 
@@ -50,8 +60,18 @@ const App: React.FC = () => {
       <TabNav activeTab={activeTab} onChange={setActiveTab} />
 
       <main className="flex-1 overflow-hidden">
+        {activeTab === 'projects' && (
+          <ProjectPage onNavigate={setActiveTab} />
+        )}
+        {activeTab === 'scriptwork' && (
+          <ScriptWorkPage onNavigate={setActiveTab} onLoadEpisode={handleLoadEpisode} />
+        )}
         {activeTab === 'create' && (
-          <CreatePage key={loadedRecord?.id} loadedRecord={loadedRecord} />
+          <CreatePage
+            key={loadedRecord?.id ?? loadedEpisode?.id}
+            loadedRecord={loadedRecord}
+            loadedEpisode={loadedEpisode}
+          />
         )}
         {activeTab === 'materials' && <MaterialPage />}
         {activeTab === 'history' && <HistoryPage onLoad={handleLoadHistory} />}

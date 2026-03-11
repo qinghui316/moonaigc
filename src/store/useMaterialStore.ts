@@ -9,11 +9,13 @@ const emptySlots = () => Array.from({ length: SLOT_COUNT }, () => ({ name: '', d
 interface MaterialState {
   materials: Materials
   tagMode: AssetTagMode
+  currentKey: string
   setSlot: (type: AssetType, index: number, data: Partial<Materials['character'][0]>) => void
   clearSlot: (type: AssetType, index: number) => void
   setTagMode: (type: AssetType, val: boolean) => void
   bulkFill: (type: AssetType, items: { name: string; desc: string }[]) => void
   load: () => Promise<void>
+  loadForProject: (projectId?: string) => Promise<void>
   persist: () => Promise<void>
   buildAssetMap: () => AssetMapEntry[]
   buildSystemPromptInfo: () => { assetLibraryInfo: string; assetCallRule: string; subjectTagHint: string; nameMappingInstruction: string; hasAnyTagAsset: boolean }
@@ -28,6 +30,7 @@ export const useMaterialStore = create<MaterialState>((set, get) => ({
     audio: [],
   },
   tagMode: { character: false, image: false, props: false },
+  currentKey: 'materials',
 
   setSlot: (type, index, data) => {
     set(state => {
@@ -66,10 +69,21 @@ export const useMaterialStore = create<MaterialState>((set, get) => ({
   },
 
   load: async () => {
+    await get().loadForProject(undefined)
+  },
+
+  loadForProject: async (projectId?: string) => {
+    const key = projectId ? `materials_project_${projectId}` : 'materials'
+    set({ currentKey: key })
     try {
-      const saved = await kvGet<{ materials?: Materials; tagMode?: AssetTagMode }>('materials')
+      const saved = await kvGet<{ materials?: Materials; tagMode?: AssetTagMode }>(key)
       if (saved?.materials) {
         set({ materials: saved.materials, tagMode: saved.tagMode ?? { character: false, image: false, props: false } })
+      } else {
+        set({
+          materials: { character: emptySlots(), image: emptySlots(), props: emptySlots(), video: [], audio: [] },
+          tagMode: { character: false, image: false, props: false },
+        })
       }
     } catch {
       // ignore
@@ -77,7 +91,7 @@ export const useMaterialStore = create<MaterialState>((set, get) => ({
   },
 
   persist: async () => {
-    const { materials, tagMode } = get()
+    const { materials, tagMode, currentKey } = get()
     // Serialize without File objects
     const serializeable = {
       character: materials.character.map(m => ({ name: m.name, desc: m.desc, file: null, url: m.url })),
@@ -86,7 +100,7 @@ export const useMaterialStore = create<MaterialState>((set, get) => ({
       video: materials.video,
       audio: materials.audio,
     }
-    await kvSet('materials', { materials: serializeable, tagMode })
+    await kvSet(currentKey, { materials: serializeable, tagMode })
   },
 
   buildAssetMap: () => {

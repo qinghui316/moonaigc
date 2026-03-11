@@ -1,6 +1,6 @@
 import React from 'react'
 
-export type TabId = 'create' | 'materials' | 'history'
+export type TabId = 'projects' | 'scriptwork' | 'create' | 'materials' | 'history'
 
 interface Tab {
   id: TabId
@@ -15,6 +15,24 @@ interface TabNavProps {
 
 const TabNav: React.FC<TabNavProps> = ({ activeTab, onChange }) => {
   const tabs: Tab[] = [
+    {
+      id: 'projects',
+      label: '项目管理',
+      icon: (
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V7z" />
+        </svg>
+      ),
+    },
+    {
+      id: 'scriptwork',
+      label: '剧本工作台',
+      icon: (
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+        </svg>
+      ),
+    },
     {
       id: 'create',
       label: '创建分镜',

@@ -142,6 +142,36 @@ export interface HistoryRecord {
   table: string
   markdown: string
   time: string
+  projectId?: string
+  episodeId?: string
+}
+
+// ===== Project / Episode Types =====
+export interface Project {
+  id: string
+  name: string
+  genre: string[]
+  audience: string
+  tone: string
+  endingType: string
+  totalEpisodes: number
+  worldSetting: string
+  creativePlan: string
+  characterDoc: string
+  createdAt: number
+  updatedAt: number
+}
+
+export interface Episode {
+  id: string
+  projectId: string
+  episodeNumber: number
+  title: string
+  summary: string
+  hookType: string
+  mark: string
+  script: string
+  status: 'outline' | 'scripted' | 'storyboarded'
 }
 
 // ===== Shot Data Types =====

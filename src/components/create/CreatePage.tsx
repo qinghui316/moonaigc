@@ -31,7 +31,8 @@ import {
   splitScript, buildInitialScenes, generateScene, extractBridge,
 } from '../../services/chainEngine'
 import { buildGenerateSystemPrompt, buildGenerateUserPrompt } from '../../prompts/generate'
-import type { Director, HistoryRecord, SafetyResult, AnalysisResult, ExtractionResult } from '../../types'
+import type { Director, HistoryRecord, SafetyResult, AnalysisResult, ExtractionResult, Episode } from '../../types'
+import { useProjectStore } from '../../store/useProjectStore'
 import type { Params } from './ParamPanel'
 
 const DEFAULT_PARAMS: Params = {
@@ -49,11 +50,12 @@ const DEFAULT_PARAMS: Params = {
   narrativeMode: 'mini',
 }
 
-const CreatePage: React.FC<{ loadedRecord?: HistoryRecord | null }> = ({ loadedRecord }) => {
+const CreatePage: React.FC<{ loadedRecord?: HistoryRecord | null; loadedEpisode?: Episode | null }> = ({ loadedRecord, loadedEpisode }) => {
   const { textSettings, autoSafety, autoSound, enableWordFilter, autoSaveHistory, setFlag } = useSettingsStore()
   const chainStore = useChainStore()
-  const { add: addHistory } = useHistoryStore()
+  const { add: addHistory, records: historyRecords } = useHistoryStore()
   const materialStore = useMaterialStore()
+  const { currentProject, currentEpisode, updateEpisodeStatus } = useProjectStore()
 
   const [plot, setPlot] = useState('')
   const [selectedDirector, setSelectedDirector] = useState<Director>(DIRECTORS[0])
@@ -116,6 +118,16 @@ const CreatePage: React.FC<{ loadedRecord?: HistoryRecord | null }> = ({ loadedR
     if (foundDirector) setSelectedDirector(foundDirector)
     chainStore.reset()
   }, [loadedRecord])
+
+  // Load episode script
+  useEffect(() => {
+    if (!loadedEpisode) return
+    setPlot(loadedEpisode.script || '')
+    chainStore.reset()
+    // 尝试恢复该集最近一次生成的分镜内容
+    const prevRecord = historyRecords.find(r => r.episodeId === loadedEpisode.id)
+    setStoryboard(prevRecord ? (prevRecord.table || prevRecord.markdown || '') : '')
+  }, [loadedEpisode])
 
   const buildSystemContext = useCallback(() => {
     const assetInfo = materialStore.buildSystemPromptInfo()
@@ -206,6 +218,8 @@ const CreatePage: React.FC<{ loadedRecord?: HistoryRecord | null }> = ({ loadedR
         setIsStreaming(false)
         if (autoSound) playCompletionSound()
         if (autoSaveHistory && md) {
+          const ep = useProjectStore.getState().currentEpisode
+          const proj = useProjectStore.getState().currentProject
           await addHistory({
             createdAt: Date.now(),
             plot: cleanPlot.slice(0, 200),
@@ -215,7 +229,10 @@ const CreatePage: React.FC<{ loadedRecord?: HistoryRecord | null }> = ({ loadedR
             table: md,
             markdown: md,
             time: new Date().toLocaleString('zh-CN'),
+            ...(proj ? { projectId: proj.id } : {}),
+            ...(ep ? { episodeId: ep.id } : {}),
           } as Omit<HistoryRecord, 'id'>)
+          if (ep) await updateEpisodeStatus(ep.id, 'storyboarded')
         }
       } else {
         // 链式模式
@@ -301,6 +318,8 @@ const CreatePage: React.FC<{ loadedRecord?: HistoryRecord | null }> = ({ loadedR
 
         if (autoSound && !useChainStore.getState().isCancelled) playCompletionSound()
         if (autoSaveHistory && allContent) {
+          const ep = useProjectStore.getState().currentEpisode
+          const proj = useProjectStore.getState().currentProject
           await addHistory({
             createdAt: Date.now(),
             plot: cleanPlot.slice(0, 200),
@@ -310,7 +329,10 @@ const CreatePage: React.FC<{ loadedRecord?: HistoryRecord | null }> = ({ loadedR
             table: allContent,
             markdown: allContent,
             time: new Date().toLocaleString('zh-CN'),
+            ...(proj ? { projectId: proj.id } : {}),
+            ...(ep ? { episodeId: ep.id } : {}),
           } as Omit<HistoryRecord, 'id'>)
+          if (ep) await updateEpisodeStatus(ep.id, 'storyboarded')
         }
       }
     } catch (e) {
@@ -569,6 +591,19 @@ const CreatePage: React.FC<{ loadedRecord?: HistoryRecord | null }> = ({ loadedR
 
         {/* Right Panel: Input + Output */}
         <div className="flex-1 flex flex-col overflow-hidden min-w-0">
+          {/* 项目面包屑导航 */}
+          {currentProject && currentEpisode && (
+            <div className="px-3 py-2 border-b border-gray-800 bg-amber-900/10 shrink-0 flex items-center gap-2">
+              <svg className="w-3.5 h-3.5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V7z" />
+              </svg>
+              <span className="text-xs text-amber-400 font-medium">{currentProject.name}</span>
+              <span className="text-gray-600">›</span>
+              <span className="text-xs text-gray-300">第{currentEpisode.episodeNumber}集：{currentEpisode.title}</span>
+              {currentEpisode.mark === 'fire' && <span className="text-xs">🔥</span>}
+              {currentEpisode.mark === 'money' && <span className="text-xs">💰</span>}
+            </div>
+          )}
           {/* Plot Input */}
           <div className="border-b border-gray-800 p-3 shrink-0">
             <div className="flex items-center gap-2 mb-2">
