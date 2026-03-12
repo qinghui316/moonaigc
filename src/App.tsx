@@ -59,22 +59,26 @@ const App: React.FC = () => {
       <Header onSettingsClick={() => setShowSettings(true)} />
       <TabNav activeTab={activeTab} onChange={setActiveTab} />
 
-      <main className="flex-1 overflow-hidden">
-        {activeTab === 'projects' && (
+      <main className="flex-1 overflow-hidden relative">
+        <div className="h-full" style={{ display: activeTab === 'projects' ? 'block' : 'none' }}>
           <ProjectPage onNavigate={setActiveTab} />
-        )}
-        {activeTab === 'scriptwork' && (
+        </div>
+        <div className="h-full" style={{ display: activeTab === 'scriptwork' ? 'block' : 'none' }}>
           <ScriptWorkPage onNavigate={setActiveTab} onLoadEpisode={handleLoadEpisode} />
-        )}
-        {activeTab === 'create' && (
+        </div>
+        <div className="h-full" style={{ display: activeTab === 'create' ? 'block' : 'none' }}>
           <CreatePage
             key={loadedRecord?.id ?? loadedEpisode?.id}
             loadedRecord={loadedRecord}
             loadedEpisode={loadedEpisode}
           />
-        )}
-        {activeTab === 'materials' && <MaterialPage />}
-        {activeTab === 'history' && <HistoryPage onLoad={handleLoadHistory} />}
+        </div>
+        <div className="h-full" style={{ display: activeTab === 'materials' ? 'block' : 'none' }}>
+          <MaterialPage />
+        </div>
+        <div className="h-full" style={{ display: activeTab === 'history' ? 'block' : 'none' }}>
+          <HistoryPage onLoad={handleLoadHistory} />
+        </div>
       </main>
 
       <Footer />

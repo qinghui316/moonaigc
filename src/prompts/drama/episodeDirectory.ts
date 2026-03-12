@@ -64,9 +64,12 @@ ${characterDoc.slice(0, 2000)}
 - 💰 付费卡点集
 - 无标记 = 常规推进集
 
-要求：
-- 前${q.earlyCount}集必须包含至少${q.earlyFire}个🔥和${q.earlyMoney}个💰
-- 全剧🔥集占比25-35%（约${q.fireMin}-${q.fireMax}集），💰集占比10-15%（约${q.moneyMin}-${q.moneyMax}集）
+**硬性要求（必须严格遵守）**：
+- 🔥标记：全剧必须有 ${q.fireMin}-${q.fireMax} 个🔥集，不能少于 ${q.fireMin} 个
+- 💰标记：全剧必须有 ${q.moneyMin}-${q.moneyMax} 个💰集，不能少于 ${q.moneyMin} 个
+- 前${q.earlyCount}集必须包含至少 ${q.earlyFire} 个🔥和 ${q.earlyMoney} 个💰
+- 💰集通常放在重大悬念未解、剧情高潮前夕的位置（如第3-5集、中段转折前、大结局前一集）
+- 不能所有集都标🔥，也不能没有💰，两种标记必须共存
 - 目录必须体现四阶段节奏变化
 
 ### 第二部分：结构化JSON（供系统解析，紧跟文本后输出）
@@ -127,7 +130,7 @@ ${prevList}
 
 请生成第 **${batchStart}-${batchEnd}** 集（共${batchEnd - batchStart + 1}集），当前处于「${stage}」。
 
-全剧标记配额参考：🔥约${q.fireMin}-${q.fireMax}集，💰约${q.moneyMin}-${q.moneyMax}集，按比例分配到本批次。
+**标记配额（硬性要求）**：全剧🔥必须 ${q.fireMin}-${q.fireMax} 集，💰必须 ${q.moneyMin}-${q.moneyMax} 集。本批次按比例分配，🔥和💰必须共存，💰放在悬念高潮前夕。
 
 **必须同时输出两个部分**：
 

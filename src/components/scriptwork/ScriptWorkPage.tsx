@@ -44,7 +44,7 @@ type RightTab = 'plan' | 'chars' | 'episode'
 const ScriptWorkPage: React.FC<ScriptWorkPageProps> = ({ onNavigate, onLoadEpisode }) => {
   const {
     currentProject, episodes, currentEpisode,
-    updateProject, batchAddEpisodes, updateEpisode, selectEpisode,
+    updateProject, batchAddEpisodes, updateEpisode, selectEpisode, deleteEpisode,
   } = useProjectStore()
   const materialStore = useMaterialStore()
   const { textSettings } = useSettingsStore()
@@ -189,6 +189,8 @@ const ScriptWorkPage: React.FC<ScriptWorkPageProps> = ({ onNavigate, onLoadEpiso
   // 生成分集目录（流式单次）
   const handleGenDirectory = async (editInstruction?: string) => {
     if (!textSettings || !currentProject.creativePlan || !currentProject.characterDoc) return
+    // 清除旧集数
+    for (const ep of episodes) await deleteEpisode(ep.id)
     setGenerating('dir')
     setStreamText('')
     abortRef.current = new AbortController()
@@ -237,6 +239,8 @@ const ScriptWorkPage: React.FC<ScriptWorkPageProps> = ({ onNavigate, onLoadEpiso
   // 生成分集目录（链式分批）
   const handleGenDirectoryChain = async (editInstruction?: string) => {
     if (!textSettings || !currentProject.creativePlan || !currentProject.characterDoc) return
+    // 清除旧集数
+    for (const ep of episodes) await deleteEpisode(ep.id)
     const BATCH_SIZE = 5
     const total = currentProject.totalEpisodes
     const totalBatches = Math.ceil(total / BATCH_SIZE)
@@ -310,6 +314,7 @@ const ScriptWorkPage: React.FC<ScriptWorkPageProps> = ({ onNavigate, onLoadEpiso
     let result = ''
     const sortedEps = [...episodes].sort((a, b) => a.episodeNumber - b.episodeNumber)
     const prevEp = sortedEps.find(e => e.episodeNumber === ep.episodeNumber - 1)
+    const nextEp = sortedEps.find(e => e.episodeNumber === ep.episodeNumber + 1)
     try {
       await streamGenerate(
         [
@@ -324,6 +329,8 @@ const ScriptWorkPage: React.FC<ScriptWorkPageProps> = ({ onNavigate, onLoadEpiso
               characterDoc: currentProject.characterDoc,
               creativePlan: currentProject.creativePlan,
               prevEpisodeHook: prevEp?.summary,
+              prevEpisodeScript: prevEp?.script || undefined,
+              nextEpisodeBrief: nextEp ? `第${nextEp.episodeNumber}集「${nextEp.title}」—— ${nextEp.summary}` : undefined,
               totalEpisodes: currentProject.totalEpisodes,
             })
           },
@@ -360,6 +367,7 @@ const ScriptWorkPage: React.FC<ScriptWorkPageProps> = ({ onNavigate, onLoadEpiso
         setStreamText('')
         const freshEps = useProjectStore.getState().episodes
         const prevEp = freshEps.find(e => e.episodeNumber === ep.episodeNumber - 1)
+        const nextEp = freshEps.find(e => e.episodeNumber === ep.episodeNumber + 1)
         let result = ''
         await streamGenerate(
           [
@@ -374,6 +382,8 @@ const ScriptWorkPage: React.FC<ScriptWorkPageProps> = ({ onNavigate, onLoadEpiso
                 characterDoc: currentProject.characterDoc,
                 creativePlan: currentProject.creativePlan,
                 prevEpisodeHook: prevEp?.summary,
+                prevEpisodeScript: prevEp?.script || undefined,
+                nextEpisodeBrief: nextEp ? `第${nextEp.episodeNumber}集「${nextEp.title}」—— ${nextEp.summary}` : undefined,
                 totalEpisodes: currentProject.totalEpisodes,
               })
             },
@@ -616,54 +626,49 @@ const ScriptWorkPage: React.FC<ScriptWorkPageProps> = ({ onNavigate, onLoadEpiso
           )}
 
           {/* 创作方案 Tab */}
-          {rightTab === 'plan' && (
-            <div className="h-full flex flex-col overflow-hidden">
-              {generating === 'plan' ? (
-                <div className="flex-1 overflow-y-auto p-4">
-                  <div className="flex items-center gap-2 mb-3">
-                    <div className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
-                    <span className="text-xs text-amber-400">正在生成创作方案…</span>
-                    <button onClick={abort} className="ml-auto text-xs text-red-400 hover:text-red-300">停止</button>
-                  </div>
-                  <pre className="text-sm text-gray-300 whitespace-pre-wrap leading-relaxed">{streamText}</pre>
+          <div className="h-full flex flex-col overflow-hidden" style={{ display: rightTab === 'plan' ? 'flex' : 'none' }}>
+            {generating === 'plan' ? (
+              <div className="flex-1 overflow-y-auto p-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+                  <span className="text-xs text-amber-400">正在生成创作方案…</span>
+                  <button onClick={abort} className="ml-auto text-xs text-red-400 hover:text-red-300">停止</button>
                 </div>
-              ) : (
-                <textarea
-                  value={localPlan}
-                  onChange={e => handlePlanChange(e.target.value)}
-                  placeholder="点击左侧「生成创作方案」按钮开始生成，或直接在此手动填写…&#10;&#10;创作方案 → 角色体系 → 分集目录 → 单集剧本"
-                  className="w-full flex-1 resize-none bg-transparent text-sm text-gray-200 p-4 focus:outline-none leading-relaxed placeholder-gray-700"
-                />
-              )}
-            </div>
-          )}
+                <pre className="text-sm text-gray-300 whitespace-pre-wrap leading-relaxed">{streamText}</pre>
+              </div>
+            ) : (
+              <textarea
+                value={localPlan}
+                onChange={e => handlePlanChange(e.target.value)}
+                placeholder="点击左侧「生成创作方案」按钮开始生成，或直接在此手动填写…&#10;&#10;创作方案 → 角色体系 → 分集目录 → 单集剧本"
+                className="w-full flex-1 resize-none bg-transparent text-sm text-gray-200 p-4 focus:outline-none leading-relaxed placeholder-gray-700"
+              />
+            )}
+          </div>
 
           {/* 角色档案 Tab */}
-          {rightTab === 'chars' && (
-            <div className="h-full flex flex-col overflow-hidden">
-              {generating === 'chars' ? (
-                <div className="flex-1 overflow-y-auto p-4">
-                  <div className="flex items-center gap-2 mb-3">
-                    <div className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
-                    <span className="text-xs text-amber-400">正在生成角色体系…</span>
-                    <button onClick={abort} className="ml-auto text-xs text-red-400 hover:text-red-300">停止</button>
-                  </div>
-                  <pre className="text-sm text-gray-300 whitespace-pre-wrap leading-relaxed">{streamText}</pre>
+          <div className="h-full flex flex-col overflow-hidden" style={{ display: rightTab === 'chars' ? 'flex' : 'none' }}>
+            {generating === 'chars' ? (
+              <div className="flex-1 overflow-y-auto p-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+                  <span className="text-xs text-amber-400">正在生成角色体系…</span>
+                  <button onClick={abort} className="ml-auto text-xs text-red-400 hover:text-red-300">停止</button>
                 </div>
-              ) : (
-                <textarea
-                  value={localChars}
-                  onChange={e => handleCharsChange(e.target.value)}
-                  placeholder="点击左侧「生成角色体系」按钮开始生成，或直接在此手动填写…"
-                  className="w-full flex-1 resize-none bg-transparent text-sm text-gray-200 p-4 focus:outline-none leading-relaxed placeholder-gray-700"
-                />
-              )}
-            </div>
-          )}
+                <pre className="text-sm text-gray-300 whitespace-pre-wrap leading-relaxed">{streamText}</pre>
+              </div>
+            ) : (
+              <textarea
+                value={localChars}
+                onChange={e => handleCharsChange(e.target.value)}
+                placeholder="点击左侧「生成角色体系」按钮开始生成，或直接在此手动填写…"
+                className="w-full flex-1 resize-none bg-transparent text-sm text-gray-200 p-4 focus:outline-none leading-relaxed placeholder-gray-700"
+              />
+            )}
+          </div>
 
           {/* 当前集 Tab */}
-          {rightTab === 'episode' && (
-            <div className="h-full flex flex-col overflow-hidden">
+          <div className="h-full flex flex-col overflow-hidden" style={{ display: rightTab === 'episode' ? 'flex' : 'none' }}>
               {activeEp ? (
                 <>
                   {/* 集标题栏 */}
@@ -733,10 +738,9 @@ const ScriptWorkPage: React.FC<ScriptWorkPageProps> = ({ onNavigate, onLoadEpiso
                 </div>
               )}
             </div>
-          )}
+          </div>
         </div>
       </div>
-    </div>
 
     {regenTarget && (
       <RegenConfirmModal

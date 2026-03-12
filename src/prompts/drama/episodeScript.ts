@@ -11,6 +11,8 @@ interface EpisodeScriptInput {
   characterDoc: string
   creativePlan: string
   prevEpisodeHook?: string
+  prevEpisodeScript?: string
+  nextEpisodeBrief?: string
   totalEpisodes: number
 }
 
@@ -33,9 +35,31 @@ ${SATISFACTION_MATRIX}`
 export const buildEpisodeScriptUserPrompt = (input: EpisodeScriptInput): string => {
   const isPaywall = input.mark === 'money'
   const isKeyEpisode = input.mark === 'fire'
-  const prevHookSection = input.prevEpisodeHook
-    ? `**上集结尾钩子：** ${input.prevEpisodeHook}`
-    : '（本集为第一集）'
+
+  // 叙事阶段
+  const progress = input.episodeNumber / input.totalEpisodes
+  const storyStage = progress <= 0.25 ? '起势阶段（建立世界观、引入主要矛盾）'
+    : progress <= 0.5 ? '攀升阶段（矛盾升级、角色成长）'
+    : progress <= 0.75 ? '风暴阶段（节奏最快、高潮密集）'
+    : '决战阶段（终极对决、情感爆发、收束伏笔）'
+
+  // 前一集信息
+  let prevSection: string
+  if (input.prevEpisodeScript) {
+    const trimmed = input.prevEpisodeScript.length > 3000
+      ? '...（前文省略）\n' + input.prevEpisodeScript.slice(-2000)
+      : input.prevEpisodeScript
+    prevSection = `## 前一集完整剧本（请衔接对白风格、情绪和伏笔）\n${trimmed}`
+  } else if (input.prevEpisodeHook) {
+    prevSection = `**上集结尾钩子：** ${input.prevEpisodeHook}`
+  } else {
+    prevSection = '（本集为第一集）'
+  }
+
+  // 下一集预告
+  const nextSection = input.nextEpisodeBrief
+    ? `\n## 下一集预告（请在结尾为此埋下伏笔）\n${input.nextEpisodeBrief}`
+    : ''
 
   return `请根据以下信息，生成第${input.episodeNumber}集的完整剧本。
 
@@ -44,8 +68,11 @@ export const buildEpisodeScriptUserPrompt = (input: EpisodeScriptInput): string 
 - **标题：** ${input.title}
 - **本集摘要：** ${input.summary}
 - **钩子类型：** ${input.hookType}
+- **叙事阶段：** ${storyStage}
 - **集数标记：** ${isPaywall ? '💰 付费卡点集（结尾必须制造强悬念，不付费看不到下集）' : isKeyEpisode ? '🔥 关键剧情集（必须有重大转折或揭秘）' : '常规推进集'}
-- ${prevHookSection}
+
+${prevSection}
+${nextSection}
 
 ## 角色档案（参考）
 ${input.characterDoc.slice(0, 1500)}

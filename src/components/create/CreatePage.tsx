@@ -852,12 +852,15 @@ const CreatePage: React.FC<{ loadedRecord?: HistoryRecord | null; loadedEpisode?
           shotIndex={editModal.index}
           onClose={() => setEditModal(null)}
           onApply={(newRow, index) => {
+            let fixed = newRow.split('\n').find(l => l.trim().startsWith('|')) || newRow.trim()
+            if (!fixed.startsWith('|')) fixed = '| ' + fixed
+            if (!fixed.endsWith('|')) fixed = fixed + ' |'
             const lines = storyboard.split('\n')
             let dataRowCount = 0
             const newLines = lines.map(line => {
               if (line.trim().startsWith('|') && !line.includes('---') &&
                 !line.includes('景别') && !line.includes('时间段')) {
-                if (dataRowCount === index) { dataRowCount++; return newRow }
+                if (dataRowCount === index) { dataRowCount++; return fixed }
                 dataRowCount++
               }
               return line
