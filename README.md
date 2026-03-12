@@ -190,8 +190,8 @@ src/
 | 通义千问 | `qwen-max` | 阿里云百炼 |
 | DeepSeek | `deepseek-chat`（V3） | 性价比首选 |
 | Kimi | `moonshot-v1-128k` | 月之暗面，长文本 |
-| 智谱 AI | `glm-4-plus` | GLM 旗舰，也有免费的 glm-4-flash |
-| Gemini | `gemini-2.0-flash` | Google AI Studio 免费额度 |
+| 智谱 AI | `glm-4.7-flash`（免费） | 旗舰 GLM-5，高性价比 GLM-4.5-Air |
+| Gemini | `gemini-2.5-flash` | Google AI Studio 免费额度 |
 | OpenAI | `gpt-4o` | 需境外网络 |
 | SiliconFlow | `deepseek-ai/DeepSeek-V3` | 国内多模型聚合，有免费额度 |
 | OpenRouter | `anthropic/claude-sonnet-4-5` | 聚合 Claude / GPT / Gemini 等 |
@@ -203,7 +203,7 @@ src/
 | --- | --- |
 | Claude | `claude-sonnet-4-5-20251001` |
 | GPT-4o | `gpt-4o` |
-| Gemini | `gemini-1.5-pro`（支持视频） |
+| Gemini | `gemini-2.5-flash`（支持视频） |
 | OpenRouter | `anthropic/claude-sonnet-4-5` |
 | 自定义端点 | — |
 

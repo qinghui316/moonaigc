@@ -208,12 +208,10 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ onClose }) => {
 
         <div className="p-4 pt-0 space-y-2">
           <button
-            onClick={async () => {
-              if (!confirm('⚠️ 确认清除所有已保存的 API Key 和设置？\n\n此操作不可恢复。')) return
-              const { setTextSettings, setVisionSettings } = useSettingsStore.getState()
-              setTextSettings({ key: '' })
-              setVisionSettings({ key: '' })
-              alert('✅ 已清除所有 API Key')
+            onClick={() => {
+              if (!confirm('⚠️ 确认清除所有已保存的 API Key 和设置？\n\n此操作将清除所有平台的 Key，不可恢复。')) return
+              useSettingsStore.getState().clearAllKeys()
+              alert('✅ 已清除所有平台的 API Key')
             }}
             className="w-full py-2 text-sm text-red-400 border border-red-800/30 bg-red-900/10 hover:bg-red-900/20 font-medium rounded-lg transition-colors"
           >

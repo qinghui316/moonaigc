@@ -1,5 +1,7 @@
 import React from 'react'
 import { useThemeStore } from '../../store/useThemeStore'
+import { useSettingsStore } from '../../store/useSettingsStore'
+import { TEXT_PLATFORMS } from '../../data/platforms'
 
 interface HeaderProps {
   onSettingsClick: () => void
@@ -7,6 +9,13 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({ onSettingsClick }) => {
   const { theme, toggle: toggleTheme } = useThemeStore()
+  const { textSettings } = useSettingsStore()
+  const activePlatform = TEXT_PLATFORMS.find(p => p.id === textSettings.platformId)
+
+  const modelShort = textSettings.model.length > 24
+    ? textSettings.model.slice(0, 22) + '…'
+    : textSettings.model
+
   return (
     <header className="bg-gray-950 border-b border-amber-900/30 px-4 py-3 flex items-center justify-between shrink-0">
       <div className="flex items-center gap-3">
@@ -23,6 +32,29 @@ const Header: React.FC<HeaderProps> = ({ onSettingsClick }) => {
 
       <div className="flex items-center gap-2">
         <span className="hidden sm:inline text-gray-600 text-xs">Save the Cat BS2 · 五维视听叙事</span>
+
+        {activePlatform && (
+          <button
+            onClick={onSettingsClick}
+            className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 text-xs text-gray-400 bg-gray-800/60 border border-gray-700/50 rounded-lg hover:border-amber-800/50 hover:text-gray-300 transition-colors cursor-pointer"
+            title={`当前平台：${activePlatform.name}\n模型：${textSettings.model}\n点击修改`}
+          >
+            <span>{activePlatform.icon}</span>
+            <span className="font-medium">{activePlatform.name}</span>
+            {modelShort && (
+              <>
+                <span className="text-gray-600">·</span>
+                <span className="text-gray-500 max-w-[140px] truncate">{modelShort}</span>
+              </>
+            )}
+            {textSettings.key ? (
+              <span className="w-1.5 h-1.5 rounded-full bg-green-500 shrink-0" title="Key 已配置" />
+            ) : (
+              <span className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0" title="未配置 Key" />
+            )}
+          </button>
+        )}
+
         <button
           onClick={toggleTheme}
           className="p-1.5 text-gray-400 hover:text-amber-400 bg-gray-900/60 hover:bg-gray-800/80 border border-gray-800/50 rounded-lg transition-colors"
