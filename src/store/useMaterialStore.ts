@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import type { Materials, AssetType, AssetTagMode, AssetMapEntry } from '../types'
-import { kvGet, kvSet } from '../services/db'
+import { materialsGet, materialsSave } from '../services/db'
 
 const SLOT_COUNT = 10
 
@@ -9,7 +9,7 @@ const emptySlots = () => Array.from({ length: SLOT_COUNT }, () => ({ name: '', d
 interface MaterialState {
   materials: Materials
   tagMode: AssetTagMode
-  currentKey: string
+  currentProjectId: string | null
   setSlot: (type: AssetType, index: number, data: Partial<Materials['character'][0]>) => void
   clearSlot: (type: AssetType, index: number) => void
   setTagMode: (type: AssetType, val: boolean) => void
@@ -30,7 +30,7 @@ export const useMaterialStore = create<MaterialState>((set, get) => ({
     audio: [],
   },
   tagMode: { character: false, image: false, props: false },
-  currentKey: 'materials',
+  currentProjectId: null,
 
   setSlot: (type, index, data) => {
     set(state => {
@@ -73,10 +73,10 @@ export const useMaterialStore = create<MaterialState>((set, get) => ({
   },
 
   loadForProject: async (projectId?: string) => {
-    const key = projectId ? `materials_project_${projectId}` : 'materials'
-    set({ currentKey: key })
+    const pid = projectId ?? null
+    set({ currentProjectId: pid })
     try {
-      const saved = await kvGet<{ materials?: Materials; tagMode?: AssetTagMode }>(key)
+      const saved = await materialsGet<{ materials?: Materials; tagMode?: AssetTagMode }>(pid)
       if (saved?.materials) {
         set({ materials: saved.materials, tagMode: saved.tagMode ?? { character: false, image: false, props: false } })
       } else {
@@ -91,7 +91,7 @@ export const useMaterialStore = create<MaterialState>((set, get) => ({
   },
 
   persist: async () => {
-    const { materials, tagMode, currentKey } = get()
+    const { materials, tagMode, currentProjectId } = get()
     // Serialize without File objects
     const serializeable = {
       character: materials.character.map(m => ({ name: m.name, desc: m.desc, file: null, url: m.url })),
@@ -100,7 +100,7 @@ export const useMaterialStore = create<MaterialState>((set, get) => ({
       video: materials.video,
       audio: materials.audio,
     }
-    await kvSet(currentKey, { materials: serializeable, tagMode })
+    await materialsSave(currentProjectId, { materials: serializeable, tagMode })
   },
 
   buildAssetMap: () => {

@@ -1,0 +1,147 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String?  @unique
+  password  String?
+  name      String?
+  createdAt DateTime @default(now())
+
+  settings     UserSettings?
+  projects     Project[]
+  history      HistoryRecord[]
+  materialSets MaterialSet[]
+}
+
+model UserSettings {
+  id     Int    @id @default(autoincrement())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Active platform settings (JSON)
+  textSettings   Json @default("{}")
+  visionSettings Json @default("{}")
+
+  // Per-platform dictionaries (JSON)
+  platformKeys          Json @default("{}")
+  visionPlatformKeys    Json @default("{}")
+  platformModels        Json @default("{}")
+  visionPlatformModels  Json @default("{}")
+  platformEndpoints     Json @default("{}")
+  visionPlatformEndpoints Json @default("{}")
+
+  // Feature flags
+  autoSafety      Boolean @default(false)
+  autoSound       Boolean @default(true)
+  enableWordFilter Boolean @default(true)
+  autoSaveHistory Boolean @default(true)
+}
+
+model Project {
+  id            String   @id
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name          String
+  genre         Json     @default("[]")
+  audience      String   @default("")
+  tone          String   @default("")
+  endingType    String   @default("")
+  totalEpisodes Int      @default(0)
+  worldSetting  String   @default("")
+  creativePlan  String   @default("")
+  characterDoc  String   @default("")
+  createdAt     DateTime
+  updatedAt     DateTime
+
+  episodes     Episode[]
+  history      HistoryRecord[]
+  materialSets MaterialSet[]
+}
+
+model Episode {
+  id            String   @id
+  projectId     String
+  project       Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  episodeNumber Int
+  title         String   @default("")
+  summary       String   @default("")
+  hookType      String   @default("")
+  mark          String   @default("")
+  script        String   @default("")
+  status        String   @default("outline")
+
+  history HistoryRecord[]
+}
+
+model HistoryRecord {
+  id         Int      @id @default(autoincrement())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  projectId  String?
+  project    Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  episodeId  String?
+  episode    Episode? @relation(fields: [episodeId], references: [id], onDelete: SetNull)
+  createdAt  DateTime
+  plot       String   @default("")
+  fullPlot   String   @default("")
+  director   String   @default("")
+  directorId String   @default("")
+  storyboard String   @default("")
+  time       String   @default("")
+
+  shots Shot[]
+}
+
+model MaterialSet {
+  id        Int     @id @default(autoincrement())
+  userId    String
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  projectId String?
+  project   Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  data      Json    @default("{}")
+
+  @@unique([userId, projectId])
+}
+
+model Shot {
+  id        Int    @id @default(autoincrement())
+  historyId Int
+  history   HistoryRecord @relation(fields: [historyId], references: [id], onDelete: Cascade)
+  sortOrder Int
+  timeRange String @default("")
+  shotType  String @default("")
+  camera    String @default("")
+  scene     String @default("")
+  lighting  String @default("")
+  drama     String @default("")
+  prompt    String @default("")
+  genParams Json?
+
+  imageFile MediaFile? @relation("ShotImage", fields: [imageFileId], references: [id])
+  imageFileId Int?
+  videoFile MediaFile? @relation("ShotVideo", fields: [videoFileId], references: [id])
+  videoFileId Int?
+}
+
+model MediaFile {
+  id        Int      @id @default(autoincrement())
+  userId    String
+  refType   String
+  refId     String
+  filePath  String
+  fileName  String
+  mimeType  String
+  fileSize  Int
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  shotImages Shot[] @relation("ShotImage")
+  shotVideos Shot[] @relation("ShotVideo")
+}

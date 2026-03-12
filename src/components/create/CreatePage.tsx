@@ -113,7 +113,7 @@ const CreatePage: React.FC<{ loadedRecord?: HistoryRecord | null; loadedEpisode?
   useEffect(() => {
     if (!loadedRecord) return
     setPlot(loadedRecord.fullPlot || loadedRecord.plot || '')
-    setStoryboard(loadedRecord.table || loadedRecord.markdown || '')
+    setStoryboard(loadedRecord.storyboard || '')
     const foundDirector = DIRECTORS.find(d => d.id === loadedRecord.directorId)
     if (foundDirector) setSelectedDirector(foundDirector)
     chainStore.reset()
@@ -126,7 +126,7 @@ const CreatePage: React.FC<{ loadedRecord?: HistoryRecord | null; loadedEpisode?
     chainStore.reset()
     // 尝试恢复该集最近一次生成的分镜内容
     const prevRecord = historyRecords.find(r => r.episodeId === loadedEpisode.id)
-    setStoryboard(prevRecord ? (prevRecord.table || prevRecord.markdown || '') : '')
+    setStoryboard(prevRecord ? (prevRecord.storyboard || '') : '')
   }, [loadedEpisode])
 
   const buildSystemContext = useCallback(() => {
@@ -226,8 +226,7 @@ const CreatePage: React.FC<{ loadedRecord?: HistoryRecord | null; loadedEpisode?
             fullPlot: cleanPlot,
             director: selectedDirector.name,
             directorId: selectedDirector.id,
-            table: md,
-            markdown: md,
+            storyboard: md,
             time: new Date().toLocaleString('zh-CN'),
             ...(proj ? { projectId: proj.id } : {}),
             ...(ep ? { episodeId: ep.id } : {}),
@@ -326,8 +325,7 @@ const CreatePage: React.FC<{ loadedRecord?: HistoryRecord | null; loadedEpisode?
             fullPlot: cleanPlot,
             director: selectedDirector.name,
             directorId: selectedDirector.id,
-            table: allContent,
-            markdown: allContent,
+            storyboard: allContent,
             time: new Date().toLocaleString('zh-CN'),
             ...(proj ? { projectId: proj.id } : {}),
             ...(ep ? { episodeId: ep.id } : {}),
@@ -449,8 +447,7 @@ const CreatePage: React.FC<{ loadedRecord?: HistoryRecord | null; loadedEpisode?
       fullPlot: plot,
       director: selectedDirector.name,
       directorId: selectedDirector.id,
-      table: storyboard,
-      markdown: storyboard,
+      storyboard: storyboard,
       time: new Date().toLocaleString('zh-CN'),
     } as Omit<HistoryRecord, 'id'>)
     alert('✅ 已保存到历史记录')

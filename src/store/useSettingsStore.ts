@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import type { ApiSettings } from '../types'
 import { TEXT_PLATFORMS, VISION_PLATFORMS } from '../data/platforms'
-import { kvGet, kvSet } from '../services/db'
+import { settingsGet, settingsSave } from '../services/db'
 
 type PlatformDict = Record<string, string>
 
@@ -133,7 +133,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
 
   load: async () => {
     try {
-      const saved = await kvGet<{
+      const saved = await settingsGet<{
         textSettings?: ApiSettings
         visionSettings?: ApiSettings
         platformKeys?: PlatformDict
@@ -146,7 +146,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
         autoSound?: boolean
         enableWordFilter?: boolean
         autoSaveHistory?: boolean
-      }>('settings')
+      }>()
       if (saved) {
         const pk = saved.platformKeys ?? {}
         const vpk = saved.visionPlatformKeys ?? {}
@@ -188,7 +188,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
 
   persist: async () => {
     const state = get()
-    await kvSet('settings', {
+    await settingsSave({
       textSettings: state.textSettings,
       visionSettings: state.visionSettings,
       platformKeys: state.platformKeys,

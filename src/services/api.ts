@@ -1,70 +1,6 @@
 import type { ApiSettings, ChatMessage } from '../types'
 
-// 构建请求体
-export const buildRequest = (
-  messages: ChatMessage[],
-  settings: ApiSettings,
-  stream = true
-): { url: string; options: RequestInit } => {
-  const { endpoint, model, mode, key } = settings
-
-  if (mode === 'anthropic') {
-    const systemMsg = messages.find(m => m.role === 'system')
-    const userMsgs = messages.filter(m => m.role !== 'system')
-    return {
-      url: endpoint,
-      options: {
-        method: 'POST',
-        headers: {
-          'x-api-key': key,
-          'anthropic-version': '2023-06-01',
-          'content-type': 'application/json',
-        },
-        body: JSON.stringify({
-          model,
-          max_tokens: 8192,
-          stream,
-          system: systemMsg?.content ?? '',
-          messages: userMsgs.map(m => ({ role: m.role, content: m.content })),
-        }),
-      },
-    }
-  }
-
-  if (mode === 'gemini') {
-    return {
-      url: `${endpoint}?key=${key}`,
-      options: {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({
-          model,
-          messages: messages.map(m => ({ role: m.role === 'assistant' ? 'assistant' : m.role, content: m.content })),
-          stream,
-          max_tokens: 8192,
-        }),
-      },
-    }
-  }
-
-  // openai mode (default)
-  return {
-    url: endpoint,
-    options: {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${key}`,
-        'content-type': 'application/json',
-      },
-      body: JSON.stringify({
-        model,
-        messages: messages.map(m => ({ role: m.role, content: m.content })),
-        stream,
-        max_tokens: 8192,
-      }),
-    },
-  }
-}
+const PROXY_BASE = '/api/ai'
 
 // 从响应中提取文本内容 (非流式)
 export const extractContent = (data: unknown, mode: ApiSettings['mode']): string => {
@@ -105,8 +41,12 @@ export const streamGenerate = async (
   onToken: (token: string) => void,
   signal?: AbortSignal
 ): Promise<string> => {
-  const { url, options } = buildRequest(messages, settings, true)
-  const response = await fetch(url, { ...options, signal })
+  const response = await fetch(`${PROXY_BASE}/stream`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ messages, settings }),
+    signal,
+  })
 
   if (!response.ok) {
     const text = await response.text()
@@ -146,8 +86,12 @@ export const generate = async (
   settings: ApiSettings,
   signal?: AbortSignal
 ): Promise<string> => {
-  const { url, options } = buildRequest(messages, settings, false)
-  const response = await fetch(url, { ...options, signal })
+  const response = await fetch(`${PROXY_BASE}/generate`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ messages, settings }),
+    signal,
+  })
 
   if (!response.ok) {
     const text = await response.text()

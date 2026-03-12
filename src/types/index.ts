@@ -139,8 +139,7 @@ export interface HistoryRecord {
   fullPlot: string
   director: string
   directorId: string
-  table: string
-  markdown: string
+  storyboard: string
   time: string
   projectId?: string
   episodeId?: string

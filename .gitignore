@@ -30,6 +30,12 @@ dist-ssr
 .env
 .env.*
 
+# Server
+server/node_modules
+server/dist
+server/uploads/*
+!server/uploads/.gitkeep
+
 # OS files
 Thumbs.db
 Desktop.ini
