@@ -184,24 +184,28 @@ src/
 
 **文字生成**（支持 OpenAI 兼容接口）
 
+| 平台 | 默认/推荐模型 | 说明 |
+| --- | --- | --- |
+| **豆包（推荐）** | `doubao-seed-2-0-pro-260215` | 模型填推理接入点 ID（ep-xxx） |
+| 通义千问 | `qwen-max` | 阿里云百炼 |
+| DeepSeek | `deepseek-chat`（V3） | 性价比首选 |
+| Kimi | `moonshot-v1-128k` | 月之暗面，长文本 |
+| 智谱 AI | `glm-4-plus` | GLM 旗舰，也有免费的 glm-4-flash |
+| Gemini | `gemini-2.0-flash` | Google AI Studio 免费额度 |
+| OpenAI | `gpt-4o` | 需境外网络 |
+| SiliconFlow | `deepseek-ai/DeepSeek-V3` | 国内多模型聚合，有免费额度 |
+| OpenRouter | `anthropic/claude-sonnet-4-5` | 聚合 Claude / GPT / Gemini 等 |
+| 自定义端点 | — | 任意兼容 OpenAI 格式的接口 |
 
-| 平台             | 推荐模型                    |
-| -------------- | ----------------------- |
-| **豆包（推荐）**     | **Doubao-Seed-2.0-pro** |
-| 通义千问           | qwen-max                |
-| DeepSeek       | deepseek-chat           |
-| Moonshot（月之暗面） | moonshot-v1-32k         |
-| 智谱 GLM         | glm-4-flash             |
-| Gemini         | gemini-2.0-flash        |
-| Claude         | claude-3-5-sonnet       |
-| OpenAI         | gpt-4o                  |
-| Grok           | grok-3                  |
-| 自定义端点          | —                       |
+**视觉分析**（需支持多模态输入）
 
-
-**视觉分析**（需支持多模态）
-
-通义千问VL、豆包视觉、GPT-4o、Claude 3.5、Gemini 等
+| 平台 | 默认/推荐模型 |
+| --- | --- |
+| Claude | `claude-sonnet-4-5-20251001` |
+| GPT-4o | `gpt-4o` |
+| Gemini | `gemini-1.5-pro`（支持视频） |
+| OpenRouter | `anthropic/claude-sonnet-4-5` |
+| 自定义端点 | — |
 
 ---
 
