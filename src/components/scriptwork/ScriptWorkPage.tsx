@@ -22,6 +22,12 @@ import {
   buildEpisodeScriptSystemPrompt,
   buildEpisodeScriptUserPrompt,
 } from '../../prompts/drama/episodeScript'
+import {
+  buildFaithfulEpisodeSystemPrompt,
+  buildFaithfulEpisodeUserPrompt,
+  buildBlockbusterEpisodeSystemPrompt,
+  buildBlockbusterEpisodeUserPrompt,
+} from '../../prompts/drama/importScript'
 import { GENRE_LIST } from '../../data/drama/genreGuide'
 import ChainProgressBar from '../common/ChainProgressBar'
 import type { TabId } from '../layout/TabNav'
@@ -305,7 +311,7 @@ const ScriptWorkPage: React.FC<ScriptWorkPageProps> = ({ onNavigate, onLoadEpiso
 
   // 生成单集剧本
   const handleGenScript = async (ep: Episode) => {
-    if (!textSettings || !currentProject.creativePlan) return
+    if (!textSettings) return
     selectEpisode(ep.id)
     setRightTab('episode')
     setGenerating(`script_${ep.id}`)
@@ -315,30 +321,60 @@ const ScriptWorkPage: React.FC<ScriptWorkPageProps> = ({ onNavigate, onLoadEpiso
     const sortedEps = [...episodes].sort((a, b) => a.episodeNumber - b.episodeNumber)
     const prevEp = sortedEps.find(e => e.episodeNumber === ep.episodeNumber - 1)
     const nextEp = sortedEps.find(e => e.episodeNumber === ep.episodeNumber + 1)
+
+    const isImported = currentProject.sourceMode === 'imported'
+    const adaptMode = currentProject.adaptMode as 'faithful' | 'blockbuster' | ''
+
+    let messages: Parameters<typeof streamGenerate>[0]
+    if (isImported && adaptMode === 'faithful') {
+      messages = [
+        { role: 'system', content: buildFaithfulEpisodeSystemPrompt() },
+        {
+          role: 'user', content: buildFaithfulEpisodeUserPrompt(
+            ep.episodeNumber, ep.title, ep.summary,
+            ep.sourceText || '',
+            currentProject.characterDoc,
+            prevEp ? `第${prevEp.episodeNumber}集结尾：${prevEp.summary}` : undefined
+          )
+        },
+      ]
+    } else if (isImported && adaptMode === 'blockbuster') {
+      messages = [
+        { role: 'system', content: buildBlockbusterEpisodeSystemPrompt() },
+        {
+          role: 'user', content: buildBlockbusterEpisodeUserPrompt(
+            ep.episodeNumber, ep.title, ep.summary,
+            currentProject.creativePlan, currentProject.characterDoc,
+            currentProject.totalEpisodes,
+            prevEp ? `第${prevEp.episodeNumber}集结尾：${prevEp.summary}` : undefined,
+            nextEp ? `第${nextEp.episodeNumber}集「${nextEp.title}」：${nextEp.summary}` : undefined
+          )
+        },
+      ]
+    } else {
+      if (!currentProject.creativePlan) { setGenerating(null); return }
+      messages = [
+        { role: 'system', content: buildEpisodeScriptSystemPrompt(ep.episodeNumber === 1) },
+        {
+          role: 'user', content: buildEpisodeScriptUserPrompt({
+            episodeNumber: ep.episodeNumber,
+            title: ep.title,
+            summary: ep.summary,
+            hookType: ep.hookType,
+            mark: ep.mark,
+            characterDoc: currentProject.characterDoc,
+            creativePlan: currentProject.creativePlan,
+            prevEpisodeHook: prevEp?.summary,
+            prevEpisodeScript: prevEp?.script || undefined,
+            nextEpisodeBrief: nextEp ? `第${nextEp.episodeNumber}集「${nextEp.title}」—— ${nextEp.summary}` : undefined,
+            totalEpisodes: currentProject.totalEpisodes,
+          })
+        },
+      ]
+    }
+
     try {
-      await streamGenerate(
-        [
-          { role: 'system', content: buildEpisodeScriptSystemPrompt(ep.episodeNumber === 1) },
-          {
-            role: 'user', content: buildEpisodeScriptUserPrompt({
-              episodeNumber: ep.episodeNumber,
-              title: ep.title,
-              summary: ep.summary,
-              hookType: ep.hookType,
-              mark: ep.mark,
-              characterDoc: currentProject.characterDoc,
-              creativePlan: currentProject.creativePlan,
-              prevEpisodeHook: prevEp?.summary,
-              prevEpisodeScript: prevEp?.script || undefined,
-              nextEpisodeBrief: nextEp ? `第${nextEp.episodeNumber}集「${nextEp.title}」—— ${nextEp.summary}` : undefined,
-              totalEpisodes: currentProject.totalEpisodes,
-            })
-          },
-        ],
-        textSettings,
-        (token) => { result += token; setStreamText(result) },
-        abortRef.current.signal,
-      )
+      await streamGenerate(messages, textSettings, (token) => { result += token; setStreamText(result) }, abortRef.current.signal)
       await updateEpisode(ep.id, { script: result, status: 'scripted' })
     } catch { /* ignore abort */ }
     setGenerating(null)
@@ -685,10 +721,14 @@ const ScriptWorkPage: React.FC<ScriptWorkPageProps> = ({ onNavigate, onLoadEpiso
                     <div className="flex gap-2 shrink-0">
                       <button
                         onClick={() => handleGenScript(activeEp)}
-                        disabled={isGenerating || !currentProject.creativePlan}
+                        disabled={isGenerating || (!currentProject.creativePlan && currentProject.sourceMode !== 'imported')}
                         className="text-xs px-3 py-1.5 bg-gray-800 border border-gray-700 text-gray-300 rounded-lg hover:border-amber-700 hover:text-amber-400 disabled:opacity-40 transition-colors"
                       >
-                        {generating === `script_${activeEp.id}` ? '生成中…' : activeEp.script ? '重新生成剧本' : 'AI 生成剧本'}
+                        {generating === `script_${activeEp.id}` ? '生成中…' :
+                          activeEp.script ?
+                            (currentProject.sourceMode === 'imported' ? `重写剧本（${currentProject.adaptMode === 'faithful' ? '忠实' : '爆款'}）` : '重新生成剧本') :
+                            (currentProject.sourceMode === 'imported' ? `生成剧本（${currentProject.adaptMode === 'faithful' ? '忠实改写' : '爆款改编'}）` : 'AI 生成剧本')
+                        }
                       </button>
                       {activeEp.script && (
                         <button

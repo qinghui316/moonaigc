@@ -4,10 +4,12 @@ import TabNav from './components/layout/TabNav'
 import Footer from './components/layout/Footer'
 import SettingsPanel from './components/settings/SettingsPanel'
 import CreatePage from './components/create/CreatePage'
+import ImageGenPage from './components/imagegen/ImageGenPage'
 import MaterialPage from './components/materials/MaterialPage'
 import HistoryPage from './components/history/HistoryPage'
 import ProjectPage from './components/projects/ProjectPage'
 import ScriptWorkPage from './components/scriptwork/ScriptWorkPage'
+import GalleryPage from './components/gallery/GalleryPage'
 import type { TabId } from './components/layout/TabNav'
 import type { HistoryRecord, Episode } from './types'
 import { useSettingsStore } from './store/useSettingsStore'
@@ -73,8 +75,14 @@ const App: React.FC = () => {
             loadedEpisode={loadedEpisode}
           />
         </div>
+        <div className="h-full" style={{ display: activeTab === 'imagegen' ? 'block' : 'none' }}>
+          <ImageGenPage />
+        </div>
         <div className="h-full" style={{ display: activeTab === 'materials' ? 'block' : 'none' }}>
           <MaterialPage />
+        </div>
+        <div className="h-full" style={{ display: activeTab === 'gallery' ? 'block' : 'none' }}>
+          <GalleryPage />
         </div>
         <div className="h-full" style={{ display: activeTab === 'history' ? 'block' : 'none' }}>
           <HistoryPage onLoad={handleLoadHistory} />

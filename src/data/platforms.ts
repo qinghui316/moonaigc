@@ -173,6 +173,167 @@ export const TEXT_PLATFORMS: Platform[] = [
   },
 ]
 
+// 图片生成平台
+export interface ImageModelDef {
+  value: string
+  label: string
+  /** 覆盖平台级别的支持比例（可选，未设置则使用平台默认） */
+  aspectRatios?: string[]
+  /** 覆盖平台级别的支持清晰度（可选，未设置则使用平台默认） */
+  resolutions?: { value: string; label: string }[]
+}
+
+export interface ImagePlatform {
+  id: string
+  name: string
+  sub: string
+  icon: string
+  endpoint: string
+  keyHint: string
+  keyLink?: string
+  models: ImageModelDef[]
+  defaultModel: string
+  mode: 'openai' | 'gemini' | 'custom'
+  aspectRatios: string[]
+  resolutions: { value: string; label: string }[]
+}
+
+export const IMAGE_PLATFORMS: ImagePlatform[] = [
+  {
+    id: 'doubao-image',
+    name: '豆包 Seedream',
+    sub: '字节跳动 · 支持参考图',
+    icon: '🫘',
+    endpoint: 'https://ark.cn-beijing.volces.com/api/v3/images/generations',
+    keyHint: '在火山引擎控制台获取 API Key；新版模型（5.0/4.5/4.0）直接填模型名，旧版填接入点 ID（ep-xxx）',
+    keyLink: 'https://console.volcengine.com/ark',
+    models: [
+      { value: 'doubao-seedream-5-0-lite', label: 'Seedream 5.0 Lite（推荐·最新）' },
+      { value: 'doubao-seedream-4-5', label: 'Seedream 4.5 · 高质量' },
+      { value: 'doubao-seedream-4-0', label: 'Seedream 4.0' },
+      { value: 'doubao-seedream-3-0-t2i-250415', label: 'Seedream 3.0 · 旧版' },
+      { value: 'custom', label: '自定义模型/接入点...' },
+    ],
+    defaultModel: 'doubao-seedream-5-0-lite',
+    mode: 'openai',
+    // 来自火山引擎官方文档的支持比例
+    aspectRatios: ['1:1', '16:9', '9:16', '4:3', '3:4', '3:2', '2:3', '21:9'],
+    // 5.0-lite 支持 2K/3K，4.5 支持 2K/4K，4.0 支持 1K/2K/4K；后端按模型自动降档
+    resolutions: [
+      { value: '1K', label: '1K 标准（4.0 专属）' },
+      { value: '2K', label: '2K 高清（推荐）' },
+      { value: '4K', label: '4K 超清（4.0/4.5）' },
+    ],
+  },
+  {
+    id: 'gemini-image',
+    name: 'Gemini 生图',
+    sub: 'Google · Nano Banana 系列',
+    icon: '♊',
+    // 后端会自动拼接 /{model}:generateContent
+    endpoint: 'https://generativelanguage.googleapis.com/v1beta/models',
+    keyHint: '在 Google AI Studio 获取免费 API Key（Bearer Token 鉴权）',
+    keyLink: 'https://aistudio.google.com/app/apikey',
+    models: [
+      { value: 'gemini-3.1-flash-image-preview', label: 'Nano Banana 2（推荐·2026最新）' },
+      { value: 'gemini-3-pro-image-preview', label: 'Nano Banana Pro · 专业级4K' },
+      { value: 'custom', label: '自定义模型...' },
+    ],
+    defaultModel: 'gemini-3.1-flash-image-preview',
+    mode: 'gemini',
+    // 来自 Gemini 官方文档支持的宽高比
+    aspectRatios: ['1:1', '16:9', '9:16', '4:3', '3:4'],
+    resolutions: [
+      { value: '1K', label: '1K 标准' },
+      { value: '2K', label: '2K 高清（推荐）' },
+      { value: '4K', label: '4K 超清' },
+    ],
+  },
+  {
+    id: 'runninghub',
+    name: 'RunningHub',
+    sub: '图生图 · 异步任务',
+    icon: '🏃',
+    // 基础域名，后端根据模型选择路径
+    endpoint: 'https://www.runninghub.cn',
+    keyHint: '在 runninghub.cn 注册获取 API Key（Bearer Token 鉴权）',
+    keyLink: 'https://www.runninghub.cn',
+    models: [
+      {
+        value: 'rhart-image-n-g31-flash',
+        label: '全能图片V2（Nano Banana 2 同款·低价）',
+        aspectRatios: ['1:1', '16:9', '9:16', '4:3', '3:4', '3:2', '2:3', '5:4', '4:5', '21:9', '1:4', '4:1', '1:8', '8:1'],
+        resolutions: [
+          { value: '1K', label: '1K 标准' },
+          { value: '2K', label: '2K 高清（推荐）' },
+          { value: '4K', label: '4K 超清' },
+        ],
+      },
+      {
+        value: 'rhart-image-n-pro',
+        label: '全能图片PRO（Nano Banana Pro 同款·低价）',
+        aspectRatios: ['1:1', '16:9', '9:16', '4:3', '3:4', '3:2', '2:3', '5:4', '4:5', '21:9'],
+        resolutions: [
+          { value: '1K', label: '1K 标准' },
+          { value: '2K', label: '2K 高清（推荐）' },
+          { value: '4K', label: '4K 超清' },
+        ],
+      },
+    ],
+    defaultModel: 'rhart-image-n-g31-flash',
+    mode: 'openai',
+    aspectRatios: ['1:1', '16:9', '9:16', '4:3', '3:4', '3:2', '2:3', '5:4', '4:5', '21:9', '1:4', '4:1', '1:8', '8:1'],
+    resolutions: [
+      { value: '1K', label: '1K 标准' },
+      { value: '2K', label: '2K 高清（推荐）' },
+      { value: '4K', label: '4K 超清' },
+    ],
+  },
+  {
+    id: 'image-custom',
+    name: '贞贞的AI工坊',
+    sub: '第三方 · Nano Banana 代理',
+    icon: '🏮',
+    // 固定端点，OpenAI DALL-E 兼容格式
+    endpoint: 'https://ai.t8star.cn/v1/images/generations',
+    keyHint: '在贞贞的AI工坊注册获取 API Key（ai.t8star.cn），Bearer Token 鉴权',
+    keyLink: 'https://ai.t8star.cn',
+    models: [
+      {
+        value: 'nano-banana-2',
+        label: 'Nano Banana Pro（推荐）',
+        aspectRatios: ['1:1', '16:9', '9:16', '4:3', '3:4', '3:2', '2:3', '4:5', '5:4', '21:9'],
+        resolutions: [
+          { value: '1K', label: '1K 标准' },
+          { value: '2K', label: '2K 高清（推荐）' },
+          { value: '4K', label: '4K 超清' },
+        ],
+      },
+      {
+        value: 'gemini-3.1-flash-image-preview',
+        label: 'Nano Banana 2（最新）',
+        aspectRatios: ['1:1', '16:9', '9:16', '4:3', '3:4', '3:2', '2:3', '4:5', '5:4', '21:9', '1:4', '4:1', '8:1', '1:8'],
+        resolutions: [
+          { value: '512px', label: '512px 预览' },
+          { value: '1K', label: '1K 标准' },
+          { value: '2K', label: '2K 高清（推荐）' },
+          { value: '4K', label: '4K 超清' },
+        ],
+      },
+    ],
+    defaultModel: 'nano-banana-2',
+    mode: 'openai',
+    // 平台级默认（兜底）：取最大集合
+    aspectRatios: ['1:1', '16:9', '9:16', '4:3', '3:4', '3:2', '2:3', '4:5', '5:4', '21:9', '1:4', '4:1', '8:1', '1:8'],
+    resolutions: [
+      { value: '512px', label: '512px 预览' },
+      { value: '1K', label: '1K 标准' },
+      { value: '2K', label: '2K 高清（推荐）' },
+      { value: '4K', label: '4K 超清' },
+    ],
+  },
+]
+
 // 视觉分析平台 (5个)
 export const VISION_PLATFORMS: Platform[] = [
   {

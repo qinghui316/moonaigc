@@ -31,12 +31,25 @@ export interface ApiSettings {
   enableWordFilter?: boolean
 }
 
+// ===== Image Generation Settings =====
+export interface ImageGenSettings {
+  platformId: string
+  endpoint: string
+  model: string
+  key: string
+  mode: 'openai' | 'gemini' | 'custom'
+  aspectRatio: '1:1' | '16:9' | '9:16' | '4:3' | '3:4' | '3:2' | '2:3' | '4:5' | '5:4' | '21:9' | '1:4' | '4:1' | '8:1' | '1:8'
+  imageResolution: '512px' | '1K' | '2K' | '4K'
+}
+
 // ===== Material / Asset Types =====
 export interface MaterialItem {
   name: string
   desc: string
   file: File | null
   url: string | null
+  imageFileId?: number     // 关联的 MediaFile ID（AI 生成的资产参考图）
+  imageUrl?: string        // 资产参考图的访问 URL（从 /api/media/:id/file 获取）
 }
 
 export interface Materials {
@@ -107,10 +120,11 @@ export interface Scene {
 }
 
 export interface BridgeState {
-  charPosition: string
-  lightPhase: string
-  environment: string
-  keyProp: string
+  lastShotDesc: string     // 最后一镜的完整画面动作描述
+  charState: string        // 角色精确位置/动作/神态/持有道具
+  environment: string      // 光影/天气/背景关键元素
+  cameraState: string      // 景别与运镜趋势
+  visualMomentum: string   // 动作动量
 }
 
 export interface ChainEngineState {
@@ -159,6 +173,15 @@ export interface Project {
   characterDoc: string
   createdAt: number
   updatedAt: number
+  // 导入剧本相关
+  sourceMode: 'ai' | 'imported'
+  adaptMode: '' | 'faithful' | 'blockbuster'
+  sourceScript: string
+  episodeCountMode: 'manual' | 'auto'
+  importStatus: 'idle' | 'splitting' | 'split_done' | 'plan_done' | 'character_done' | 'failed'
+  currentStep: number
+  lastCompletedStep: number
+  importError: string
 }
 
 export interface Episode {
@@ -171,6 +194,7 @@ export interface Episode {
   mark: string
   script: string
   status: 'outline' | 'scripted' | 'storyboarded'
+  sourceText: string
 }
 
 // ===== Shot Data Types =====
@@ -190,10 +214,13 @@ export interface SafetyResult {
   replaced: { bad: string; good: string }[]
   replacedRedZone: { bad: string; good: string }[]
   replacedYellowZone: { bad: string; good: string }[]
+  replacedCelebrity: { bad: string; good: string }[]
+  replacedIP: { bad: string; good: string }[]
   detectedRedZone: string[]
   detectedYellowZone: string[]
   detectedCelebrity: string[]
   detectedIP: string[]
+  detectedBrand: string[]
 }
 
 // ===== Vision Types =====
@@ -253,6 +280,8 @@ export interface SystemPromptContext {
   isSTC?: boolean
   cameraTechs?: string[]
   lightingTechs?: string[]
+  continuityIronRule?: string
+  consistencyAnchor?: string
 }
 
 // ===== STC QA =====

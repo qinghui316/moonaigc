@@ -44,6 +44,14 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
       id: crypto.randomUUID(),
       createdAt: now,
       updatedAt: now,
+      sourceMode: 'ai',
+      adaptMode: '',
+      sourceScript: '',
+      episodeCountMode: 'manual',
+      importStatus: 'idle',
+      currentStep: 0,
+      lastCompletedStep: 0,
+      importError: '',
       ...data,
     }
     await projectAdd(p)
@@ -99,14 +107,14 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
   },
 
   addEpisode: async (data) => {
-    const ep: Episode = { id: crypto.randomUUID(), ...data }
+    const ep: Episode = { id: crypto.randomUUID(), sourceText: '', ...data }
     await episodeAdd(ep)
     set(state => ({ episodes: [...state.episodes, ep].sort((a, b) => a.episodeNumber - b.episodeNumber) }))
     return ep
   },
 
   batchAddEpisodes: async (dataList) => {
-    const eps: Episode[] = dataList.map(d => ({ id: crypto.randomUUID(), ...d }))
+    const eps: Episode[] = dataList.map(d => ({ id: crypto.randomUUID(), sourceText: '', ...d }))
     await episodeBatchAdd(eps)
     set(state => ({
       episodes: [...state.episodes, ...eps].sort((a, b) => a.episodeNumber - b.episodeNumber),

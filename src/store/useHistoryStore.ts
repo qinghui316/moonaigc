@@ -6,7 +6,7 @@ interface HistoryState {
   records: HistoryRecord[]
   isLoading: boolean
   load: () => Promise<void>
-  add: (record: Omit<HistoryRecord, 'id'>) => Promise<void>
+  add: (record: Omit<HistoryRecord, 'id'>) => Promise<number>
   delete: (id: number) => Promise<void>
   clear: () => Promise<void>
 }
@@ -26,6 +26,7 @@ export const useHistoryStore = create<HistoryState>((set) => ({
     set(state => ({
       records: [{ ...record, id } as HistoryRecord, ...state.records],
     }))
+    return id
   },
 
   delete: async (id) => {

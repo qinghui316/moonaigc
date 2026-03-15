@@ -1,40 +1,16 @@
 import React, { useEffect, useRef } from 'react'
+import { parseTableRows, highlightAtTags } from '../../utils/parseTable'
 
 interface StoryboardTableProps {
   markdown: string
   isStreaming?: boolean
   onCopyShot?: (row: string) => void
   onEditShot?: (row: string, index: number) => void
+  onGenImage?: (rowIndex: number, row: string[]) => void
+  shotImages?: Record<number, { url: string }>
 }
 
-const parseTableRows = (markdown: string): { headers: string[]; rows: string[][] } => {
-  const lines = markdown.split('\n').filter(l => l.trim().startsWith('|'))
-  let headers: string[] = []
-  const rows: string[][] = []
-
-  for (const line of lines) {
-    if (line.includes('---')) continue
-    const cells = line.split('|').filter(Boolean).map(c => c.trim())
-    if (!headers.length) {
-      headers = cells
-    } else {
-      if (cells.length >= 2) rows.push(cells)
-    }
-  }
-  return { headers, rows }
-}
-
-const highlightAtTags = (text: string): string => {
-  const TAG_COLORS = ['#F59E0B', '#38BDF8', '#34D399', '#FB7185', '#A78BFA', '#22D3EE', '#FB923C', '#2DD4BF', '#F472B6', '#818CF8']
-  const tagMap = new Map<string, string>()
-  let idx = 0
-  return text.replace(/@([\w\u4e00-\u9fa5]+)/g, (_, tag) => {
-    if (!tagMap.has(tag)) { tagMap.set(tag, TAG_COLORS[idx % TAG_COLORS.length]); idx++ }
-    return `<span style="color:${tagMap.get(tag)};font-weight:600">@${tag}</span>`
-  })
-}
-
-const StoryboardTable: React.FC<StoryboardTableProps> = ({ markdown, isStreaming = false, onEditShot }) => {
+const StoryboardTable: React.FC<StoryboardTableProps> = ({ markdown, isStreaming = false, onEditShot, onGenImage, shotImages }) => {
   const tableRef = useRef<HTMLDivElement>(null)
   const { headers, rows } = parseTableRows(markdown)
 
@@ -57,7 +33,7 @@ const StoryboardTable: React.FC<StoryboardTableProps> = ({ markdown, isStreaming
   }
 
   return (
-    <div ref={tableRef} className="h-full overflow-auto">
+    <div ref={tableRef} className="overflow-auto">
       <table className="w-full text-xs border-collapse min-w-[900px]">
         <thead className="sticky top-0 z-10">
           <tr>
@@ -82,6 +58,13 @@ const StoryboardTable: React.FC<StoryboardTableProps> = ({ markdown, isStreaming
                 </td>
               ))}
               <td className="px-2 py-2">
+                {/* 已有图片的缩略图标记 */}
+                {shotImages?.[ri] && (
+                  <img src={shotImages[ri].url} alt="缩略图"
+                    className="w-8 h-8 object-cover rounded mb-1 cursor-pointer"
+                    onClick={() => onGenImage?.(ri, row)}
+                  />
+                )}
                 <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                   <button
                     onClick={() => navigator.clipboard.writeText(row[row.length - 1] || '')}
@@ -92,6 +75,15 @@ const StoryboardTable: React.FC<StoryboardTableProps> = ({ markdown, isStreaming
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
                     </svg>
                   </button>
+                  {onGenImage && (
+                    <button
+                      onClick={() => onGenImage(ri, row)}
+                      title="AI 生图"
+                      className="p-1 text-gray-500 hover:text-purple-400 rounded hover:bg-gray-700 transition-colors"
+                    >
+                      🖼️
+                    </button>
+                  )}
                   {onEditShot && (
                     <button
                       onClick={() => onEditShot(row.join(' | '), ri)}

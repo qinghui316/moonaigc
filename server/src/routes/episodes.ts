@@ -30,6 +30,7 @@ router.post('/projects/:pid/episodes', async (req, res) => {
         mark: (ep.mark as string) ?? '',
         script: (ep.script as string) ?? '',
         status: (ep.status as string) ?? 'outline',
+        sourceText: (ep.sourceText as string) ?? '',
       })),
       skipDuplicates: true,
     })
@@ -49,6 +50,7 @@ router.post('/projects/:pid/episodes', async (req, res) => {
       mark: body.mark ?? '',
       script: body.script ?? '',
       status: body.status ?? 'outline',
+      sourceText: body.sourceText ?? '',
     },
   })
   res.json(ep)
@@ -67,6 +69,7 @@ router.put('/episodes/:id', async (req, res) => {
       ...(data.script !== undefined && { script: data.script }),
       ...(data.status !== undefined && { status: data.status }),
       ...(data.episodeNumber !== undefined && { episodeNumber: data.episodeNumber }),
+      ...(data.sourceText !== undefined && { sourceText: data.sourceText }),
     },
   })
   res.json(ep)

@@ -16,40 +16,30 @@ router.get('/', async (req, res) => {
 })
 
 // PUT /api/settings
-// TODO: encrypt API keys before storing to DB (AES-256-GCM when multi-user is added)
 router.put('/', async (req, res) => {
   const data = req.body
+  const common = {
+    textSettings: data.textSettings ?? {},
+    visionSettings: data.visionSettings ?? {},
+    imageSettings: data.imageSettings ?? {},
+    platformKeys: data.platformKeys ?? {},
+    visionPlatformKeys: data.visionPlatformKeys ?? {},
+    imagePlatformKeys: data.imagePlatformKeys ?? {},
+    platformModels: data.platformModels ?? {},
+    visionPlatformModels: data.visionPlatformModels ?? {},
+    imagePlatformModels: data.imagePlatformModels ?? {},
+    platformEndpoints: data.platformEndpoints ?? {},
+    visionPlatformEndpoints: data.visionPlatformEndpoints ?? {},
+    imagePlatformEndpoints: data.imagePlatformEndpoints ?? {},
+    autoSafety: data.autoSafety ?? false,
+    autoSound: data.autoSound ?? true,
+    enableWordFilter: data.enableWordFilter ?? true,
+    autoSaveHistory: data.autoSaveHistory ?? true,
+  }
   const settings = await prisma.userSettings.upsert({
     where: { userId: req.userId },
-    update: {
-      textSettings: data.textSettings ?? {},
-      visionSettings: data.visionSettings ?? {},
-      platformKeys: data.platformKeys ?? {},
-      visionPlatformKeys: data.visionPlatformKeys ?? {},
-      platformModels: data.platformModels ?? {},
-      visionPlatformModels: data.visionPlatformModels ?? {},
-      platformEndpoints: data.platformEndpoints ?? {},
-      visionPlatformEndpoints: data.visionPlatformEndpoints ?? {},
-      autoSafety: data.autoSafety ?? false,
-      autoSound: data.autoSound ?? true,
-      enableWordFilter: data.enableWordFilter ?? true,
-      autoSaveHistory: data.autoSaveHistory ?? true,
-    },
-    create: {
-      userId: req.userId,
-      textSettings: data.textSettings ?? {},
-      visionSettings: data.visionSettings ?? {},
-      platformKeys: data.platformKeys ?? {},
-      visionPlatformKeys: data.visionPlatformKeys ?? {},
-      platformModels: data.platformModels ?? {},
-      visionPlatformModels: data.visionPlatformModels ?? {},
-      platformEndpoints: data.platformEndpoints ?? {},
-      visionPlatformEndpoints: data.visionPlatformEndpoints ?? {},
-      autoSafety: data.autoSafety ?? false,
-      autoSound: data.autoSound ?? true,
-      enableWordFilter: data.enableWordFilter ?? true,
-      autoSaveHistory: data.autoSaveHistory ?? true,
-    },
+    update: common,
+    create: { userId: req.userId, ...common },
   })
   res.json(settings)
 })

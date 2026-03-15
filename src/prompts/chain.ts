@@ -1,4 +1,5 @@
 // 链式引擎 Prompts
+import { buildSeedanceFormat } from './generate'
 
 // 原著保真切分 Prompt（STC关闭时使用）
 export const buildFaithfulSplitPrompt = (plot: string, sceneCount: number, scenesJson: string): string =>
@@ -81,20 +82,21 @@ export const buildSceneSystemPrompt = (params: {
   shotMax: number
   shotCountInstruction: string
   bridgeInstruction: string
+  isDonghuaDirector?: boolean
+  promptSuffix?: string
+  continuityIronRule?: string
+  consistencyAnchor?: string
 }): string => {
   const {
     directorBlock, assetInfo, assetCallRule, tagHint, nameMappingInstruction,
     enableBGM, enableSubtitle, isSTC, isMoodMode, hasAnyTagAsset,
     sceneId, totalScenes, globalOffset, estimatedDuration,
     beatTask, shotMin, shotMax, shotCountInstruction, bridgeInstruction,
+    selectedStyleDesc, isDonghuaDirector, promptSuffix,
+    continuityIronRule, consistencyAnchor,
   } = params
 
-  const bgmPart = enableBGM ? '+情绪背景音乐' : ''
-  const shootInstruction = (!enableBGM || !enableSubtitle)
-    ? ` 拍摄指令：[${enableBGM ? '' : '禁BGM'}${!enableBGM && !enableSubtitle ? ' ' : ''}${enableSubtitle ? '' : '禁字幕'}]`
-    : ''
-
-  const seedanceFormat = `镜头：【景别+运镜】 环境：在@图片N [背景静态描述] 角色分动：@人物N [外观] 正在 [肢体动作]（多人用；分隔） 细节：@人物N [微表情与情绪（禁止描述道具）] 光影：[光源方向+质感+色调] 台词(@人物N)："对白原文"（无对白省略此字段） 音效：[环境音+声响${bgmPart}]${shootInstruction}`
+  const seedanceFormat = buildSeedanceFormat(enableBGM, enableSubtitle)
 
   const tableHeader = isSTC
     ? '| 时间段 | 景别 | 运镜 | 画面描述 | 光影氛围 | 戏剧张力 | SEEDANCE提示词 |'
@@ -129,6 +131,25 @@ export const buildSceneSystemPrompt = (params: {
 
   const endTime = globalOffset + estimatedDuration
 
+  // 视觉风格植入规范
+  const styleDesc = isDonghuaDirector ? (promptSuffix ?? '') : selectedStyleDesc
+  const styleInjectionRule = styleDesc
+    ? `【视觉风格植入规范（必须遵守）】：每条「SEEDANCE提示词」末尾必须追加以下风格标识（中文，直接附加在音效字段之后${(!enableBGM || !enableSubtitle) ? '、[禁BGM][禁字幕]标记之前' : ''}）：${styleDesc}。不得省略，不得改写。\n`
+    : ''
+
+  // 视觉基调规则
+  const styleBaseToneRule = styleDesc
+    ? `6. 视觉基调：全片必须深度体现「${styleDesc}」的视觉风格特征，每一镜的光影、色调、构图都须体现该风格。\n`
+    : ''
+
+  // 动态铁律（新增叙事目的❻和衔接❼）
+  const hasMarker = !enableBGM || !enableSubtitle
+  const markerStr = (!enableBGM && !enableSubtitle) ? ' [禁BGM][禁字幕]' : (!enableBGM ? ' [禁BGM]' : ' [禁字幕]')
+  const markerRule = hasMarker
+    ? ` ❾【标记铁律】每条SEEDANCE提示词全部字段写完后在整行最末尾追加${markerStr}，不得插入字段中间，不得提前，不得省略`
+    : ''
+  const ironLawLabel = hasMarker ? '九维铁律' : '八维铁律'
+
   return `你是MoonAIGC首席导演与分镜师。这是【${isMoodMode ? '情绪意境' : '链式叙事'}分段生成】任务中的第 ${sceneId}/${totalScenes} 个场次。
 
 ${directorBlock}
@@ -136,7 +157,7 @@ ${assetInfo}
 ${assetCallRule}
 ${nameMappingInstruction}
 ${tagHint}
-${bridgeInstruction}
+${styleInjectionRule}${bridgeInstruction}
 【本场次时间段】：${globalOffset}s 到 ${endTime}s（场次内时长 ${estimatedDuration}s）
 【时间轴规则（铁律）】：
 - 第一镜时间戳从 ${globalOffset}s 开始，最后一镜结束时刻精确等于 ${endTime}s
@@ -150,7 +171,7 @@ ${shotCountInstruction}
 ✦ 超过 10 秒仅允许：大范围环境建立镜、高潮前极度静止镜、片头片尾仪式性构图
 ${dynamicsRule}
 
-【分镜生成规则（MoonAIGC 五维视听叙事）】：
+【分镜生成规则（MoonAIGC ${ironLawLabel}视听叙事）】：
 1. 输出标准Markdown表格：${tableHeader}
 ${dramaticTensionRule}
 2. 所有内容使用中文。
@@ -158,16 +179,16 @@ ${dramaticTensionRule}
    ${seedanceFormat}
 4. 「画面描述」列：自然语言可读描述，严禁出现任何 @标签。
 5. 「光影氛围」列：简短描述本镜整体光影色调。
-6. 严禁在 SEEDANCE提示词列 输出 --ar、--motion、--quality 等技术参数。
-7. ⚠️【五维铁律】：❶拒绝抽象（写"眼眶泛红"不写"她很伤心"）❷动词驱动（必须含"正在"）❸细节禁区（【细节】禁描述道具）❹ 台词铁律：有对白必须写「台词(@人物N)："原文"」置于音效字段之前，@人物N为说话者，原文逐字不改，无对白完全省略台词字段 ❺@标签全篇统一
+${styleBaseToneRule}6. 严禁在 SEEDANCE提示词列 输出 --ar、--motion、--quality 等技术参数。
+7. ⚠️【${ironLawLabel}】：❶拒绝抽象（写"眼眶泛红"不写"她很伤心"）❷动词驱动（必须含"正在"）❸细节禁区（【细节】禁描述道具）❹台词铁律：有台词填原文并标注开口时机（第Xs开口，X为整数秒），无台词省略整个字段（禁止空引号）；多人说话写多个台词字段 ❹-附【台词开口时机铁律】按本镜时长确定X值：≤5s→X=1, 6-8s→X=2, 9-12s→X=3, 13-20s→X=4, >20s→X=5；爆发型台词X-1；独白推迟至镜头40-50%处；对话接续X=1；最终校验：X+说话时长+1s余韵≤镜头总时长 ❺物体状态铁律（场景内正在使用的道具必须在【环境】字段注明当前物理状态，禁止将道具写为默认关闭状态） ❻叙事目的铁律（每镜必须写明推动情节的核心目标，5-12字，不得空填） ❼衔接铁律（每镜必须说明与上一镜的连接逻辑：承接动作末态/由视线切入/由声音切入等） ❽资产一致：全篇 @人物N/@图片N/@道具N 标签严格统一，不得忽而标签忽而文字描述${markerRule}
 8. 严禁出现任何明星、名人姓名或版权角色名。
 9. 【节拍任务】：${beatTask ? '本场次任务是：' + beatTask : '完成本场次的叙事目标。'}
 10. 【资产一致性】：${consistencyRule}
-
+${continuityIronRule ? '\n' + continuityIronRule : ''}${consistencyAnchor ? '\n' + consistencyAnchor : ''}
 只输出Markdown分镜表格，不要任何额外说明文字。`
 }
 
-// 场次生成 user prompt
+// 场次生成 user prompt（对齐 V6：含原始剧本全文 + 台词锁定块）
 export const buildSceneUserPrompt = (params: {
   beatName: string
   beatTask: string
@@ -178,10 +199,27 @@ export const buildSceneUserPrompt = (params: {
   chatHistory: string
   sceneIndex: number
   totalScenes: number
+  cleanPlot?: string
+  dialogueLockList?: string[]
 }): string => {
-  const { contentSummary } = params
+  const { contentSummary, cleanPlot, dialogueLockList = [] } = params
+
+  // 合并全文台词 + 当前场次额外台词，去重
+  const allDialogues = [...new Set(dialogueLockList)]
+
+  const dialogueLockBlock = allDialogues.length > 0
+    ? `\n🔒【台词原文锁定（分镜生成最高优先级）】：
+以下台词必须一字不差地出现在对应镜头的台词字段中，禁止任何改写、省略或意译：
+${allDialogues.map((d, i) => `  ${i + 1}. "${d}"`).join('\n')}
+↑ 每句台词都是原文，必须原样照搬进分镜台词字段。`
+    : ''
+
+  const cleanPlotBlock = cleanPlot
+    ? `\n\n【原始剧本全文（仅供台词核对，严禁超出本场次范围扩写）】\n${cleanPlot}`
+    : ''
+
   return `【本场次剧本（唯一依据，不得超出此范围）】
-${contentSummary}`
+${contentSummary}${dialogueLockBlock}${cleanPlotBlock}`
 }
 
 // 向后兼容（旧版链式引擎使用）

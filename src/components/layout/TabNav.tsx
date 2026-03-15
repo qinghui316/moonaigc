@@ -1,6 +1,6 @@
 import React from 'react'
 
-export type TabId = 'projects' | 'scriptwork' | 'create' | 'materials' | 'history'
+export type TabId = 'projects' | 'scriptwork' | 'create' | 'imagegen' | 'materials' | 'gallery' | 'history'
 
 interface Tab {
   id: TabId
@@ -43,11 +43,29 @@ const TabNav: React.FC<TabNavProps> = ({ activeTab, onChange }) => {
       ),
     },
     {
+      id: 'imagegen',
+      label: 'AI 生图',
+      icon: (
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14M6 10h.01M4 6h16a2 2 0 012 2v10a2 2 0 01-2 2H4a2 2 0 01-2-2V8a2 2 0 012-2z" />
+        </svg>
+      ),
+    },
+    {
       id: 'materials',
       label: '素材管理',
       icon: (
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        </svg>
+      ),
+    },
+    {
+      id: 'gallery',
+      label: '图片画廊',
+      icon: (
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h7v7H3V3zm11 0h7v7h-7V3zm0 11h7v7h-7v-7zM3 14h7v7H3v-7z" />
         </svg>
       ),
     },

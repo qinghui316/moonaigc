@@ -32,10 +32,16 @@ model UserSettings {
   // Per-platform dictionaries (JSON)
   platformKeys          Json @default("{}")
   visionPlatformKeys    Json @default("{}")
+  imagePlatformKeys     Json @default("{}")
   platformModels        Json @default("{}")
   visionPlatformModels  Json @default("{}")
+  imagePlatformModels   Json @default("{}")
   platformEndpoints     Json @default("{}")
   visionPlatformEndpoints Json @default("{}")
+  imagePlatformEndpoints  Json @default("{}")
+
+  // Image generation settings
+  imageSettings         Json @default("{}")
 
   // Feature flags
   autoSafety      Boolean @default(false)
@@ -60,9 +66,20 @@ model Project {
   createdAt     DateTime
   updatedAt     DateTime
 
+  // 导入剧本相关字段
+  sourceMode         String @default("ai")       // "ai" | "imported"
+  adaptMode          String @default("")          // "" | "faithful" | "blockbuster"
+  sourceScript       String @default("")          // 导入的完整原始文本
+  episodeCountMode   String @default("manual")    // "manual" | "auto"
+  importStatus       String @default("idle")      // "idle" | "splitting" | "split_done" | "plan_done" | "character_done" | "failed"
+  currentStep        Int    @default(0)
+  lastCompletedStep  Int    @default(0)
+  importError        String @default("")
+
   episodes     Episode[]
   history      HistoryRecord[]
   materialSets MaterialSet[]
+  mediaFiles   MediaFile[]
 }
 
 model Episode {
@@ -76,6 +93,7 @@ model Episode {
   mark          String   @default("")
   script        String   @default("")
   status        String   @default("outline")
+  sourceText    String   @default("")  // 该集对应的原始文本片段
 
   history HistoryRecord[]
 }
@@ -141,6 +159,13 @@ model MediaFile {
   fileSize  Int
   metadata  Json?
   createdAt DateTime @default(now())
+
+  // 项目级归属（用于画廊按项目筛选、资产图管理）
+  projectId  String?
+  project    Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  episodeId  String?
+  assetType  String?  // "character" | "scene" | "props" | "shot"
+  assetSlot  String?  // 素材槽位标识
 
   shotImages Shot[] @relation("ShotImage")
   shotVideos Shot[] @relation("ShotVideo")

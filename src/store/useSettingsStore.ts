@@ -1,6 +1,6 @@
 import { create } from 'zustand'
-import type { ApiSettings } from '../types'
-import { TEXT_PLATFORMS, VISION_PLATFORMS } from '../data/platforms'
+import type { ApiSettings, ImageGenSettings } from '../types'
+import { TEXT_PLATFORMS, VISION_PLATFORMS, IMAGE_PLATFORMS } from '../data/platforms'
 import { settingsGet, settingsSave } from '../services/db'
 
 type PlatformDict = Record<string, string>
@@ -8,12 +8,16 @@ type PlatformDict = Record<string, string>
 interface SettingsState {
   textSettings: ApiSettings
   visionSettings: ApiSettings
+  imageSettings: ImageGenSettings
   platformKeys: PlatformDict
   visionPlatformKeys: PlatformDict
+  imagePlatformKeys: PlatformDict
   platformModels: PlatformDict
   visionPlatformModels: PlatformDict
+  imagePlatformModels: PlatformDict
   platformEndpoints: PlatformDict
   visionPlatformEndpoints: PlatformDict
+  imagePlatformEndpoints: PlatformDict
   autoSafety: boolean
   autoSound: boolean
   enableWordFilter: boolean
@@ -21,11 +25,13 @@ interface SettingsState {
   isLoaded: boolean
   setTextSettings: (s: Partial<ApiSettings>) => void
   setVisionSettings: (s: Partial<ApiSettings>) => void
+  setImageSettings: (s: Partial<ImageGenSettings>) => void
   setFlag: (key: 'autoSafety' | 'autoSound' | 'enableWordFilter' | 'autoSaveHistory', val: boolean) => void
   load: () => Promise<void>
   persist: () => Promise<void>
   getActiveTextSettings: () => ApiSettings
   getActiveVisionSettings: () => ApiSettings
+  getActiveImageSettings: () => ImageGenSettings
   clearAllKeys: () => void
 }
 
@@ -43,6 +49,16 @@ const defaultVisionSettings: ApiSettings = {
   model: VISION_PLATFORMS[0].defaultModel,
   mode: VISION_PLATFORMS[0].mode,
   key: '',
+}
+
+const defaultImageSettings: ImageGenSettings = {
+  platformId: IMAGE_PLATFORMS[0].id,
+  endpoint: IMAGE_PLATFORMS[0].endpoint,
+  model: IMAGE_PLATFORMS[0].defaultModel,
+  mode: IMAGE_PLATFORMS[0].mode,
+  key: '',
+  aspectRatio: '1:1',
+  imageResolution: '2K',
 }
 
 function applyPlatformSwitch(
@@ -82,12 +98,16 @@ function applyPlatformSwitch(
 export const useSettingsStore = create<SettingsState>((set, get) => ({
   textSettings: defaultTextSettings,
   visionSettings: defaultVisionSettings,
+  imageSettings: defaultImageSettings,
   platformKeys: {},
   visionPlatformKeys: {},
+  imagePlatformKeys: {},
   platformModels: {},
   visionPlatformModels: {},
+  imagePlatformModels: {},
   platformEndpoints: {},
   visionPlatformEndpoints: {},
+  imagePlatformEndpoints: {},
   autoSafety: false,
   autoSound: true,
   enableWordFilter: true,
@@ -126,6 +146,30 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
     get().persist()
   },
 
+  setImageSettings: (s) => {
+    set(state => {
+      const cur = state.imageSettings
+      const nk = { ...state.imagePlatformKeys }
+      const nm = { ...state.imagePlatformModels }
+      const ne = { ...state.imagePlatformEndpoints }
+      const newSettings = { ...cur, ...s }
+      if (s.key !== undefined) nk[newSettings.platformId] = s.key
+      const isSwitching = s.platformId && s.platformId !== cur.platformId
+      if (isSwitching) {
+        nm[cur.platformId] = cur.model
+        ne[cur.platformId] = cur.endpoint
+        newSettings.key = nk[s.platformId!] ?? ''
+        if (nm[s.platformId!]) newSettings.model = nm[s.platformId!]
+        if (ne[s.platformId!]) newSettings.endpoint = ne[s.platformId!]
+      } else {
+        if (s.model !== undefined) nm[newSettings.platformId] = s.model
+        if (s.endpoint !== undefined) ne[newSettings.platformId] = s.endpoint
+      }
+      return { imageSettings: newSettings, imagePlatformKeys: nk, imagePlatformModels: nm, imagePlatformEndpoints: ne }
+    })
+    get().persist()
+  },
+
   setFlag: (key, val) => {
     set({ [key]: val })
     get().persist()
@@ -136,12 +180,16 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       const saved = await settingsGet<{
         textSettings?: ApiSettings
         visionSettings?: ApiSettings
+        imageSettings?: ImageGenSettings
         platformKeys?: PlatformDict
         visionPlatformKeys?: PlatformDict
+        imagePlatformKeys?: PlatformDict
         platformModels?: PlatformDict
         visionPlatformModels?: PlatformDict
+        imagePlatformModels?: PlatformDict
         platformEndpoints?: PlatformDict
         visionPlatformEndpoints?: PlatformDict
+        imagePlatformEndpoints?: PlatformDict
         autoSafety?: boolean
         autoSound?: boolean
         enableWordFilter?: boolean
@@ -150,10 +198,13 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       if (saved) {
         const pk = saved.platformKeys ?? {}
         const vpk = saved.visionPlatformKeys ?? {}
+        const ipk = saved.imagePlatformKeys ?? {}
         const pm = saved.platformModels ?? {}
         const vpm = saved.visionPlatformModels ?? {}
+        const ipm = saved.imagePlatformModels ?? {}
         const pe = saved.platformEndpoints ?? {}
         const vpe = saved.visionPlatformEndpoints ?? {}
+        const ipe = saved.imagePlatformEndpoints ?? {}
 
         const ts = { ...defaultTextSettings, ...saved.textSettings }
         if (ts.key && !pk[ts.platformId]) pk[ts.platformId] = ts.key
@@ -165,15 +216,24 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
         if (vs.model && !vpm[vs.platformId]) vpm[vs.platformId] = vs.model
         if (vs.endpoint && !vpe[vs.platformId]) vpe[vs.platformId] = vs.endpoint
 
+        const is = { ...defaultImageSettings, ...saved.imageSettings }
+        if (is.key && !ipk[is.platformId]) ipk[is.platformId] = is.key
+        if (is.model && !ipm[is.platformId]) ipm[is.platformId] = is.model
+        if (is.endpoint && !ipe[is.platformId]) ipe[is.platformId] = is.endpoint
+
         set({
           textSettings: ts,
           visionSettings: vs,
+          imageSettings: is,
           platformKeys: pk,
           visionPlatformKeys: vpk,
+          imagePlatformKeys: ipk,
           platformModels: pm,
           visionPlatformModels: vpm,
+          imagePlatformModels: ipm,
           platformEndpoints: pe,
           visionPlatformEndpoints: vpe,
+          imagePlatformEndpoints: ipe,
           autoSafety: saved.autoSafety ?? false,
           autoSound: saved.autoSound ?? true,
           enableWordFilter: saved.enableWordFilter ?? true,
@@ -191,12 +251,16 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
     await settingsSave({
       textSettings: state.textSettings,
       visionSettings: state.visionSettings,
+      imageSettings: state.imageSettings,
       platformKeys: state.platformKeys,
       visionPlatformKeys: state.visionPlatformKeys,
+      imagePlatformKeys: state.imagePlatformKeys,
       platformModels: state.platformModels,
       visionPlatformModels: state.visionPlatformModels,
+      imagePlatformModels: state.imagePlatformModels,
       platformEndpoints: state.platformEndpoints,
       visionPlatformEndpoints: state.visionPlatformEndpoints,
+      imagePlatformEndpoints: state.imagePlatformEndpoints,
       autoSafety: state.autoSafety,
       autoSound: state.autoSound,
       enableWordFilter: state.enableWordFilter,
@@ -208,12 +272,15 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
     set(state => ({
       textSettings: { ...state.textSettings, key: '' },
       visionSettings: { ...state.visionSettings, key: '' },
+      imageSettings: { ...state.imageSettings, key: '' },
       platformKeys: {},
       visionPlatformKeys: {},
+      imagePlatformKeys: {},
     }))
     get().persist()
   },
 
   getActiveTextSettings: () => get().textSettings,
   getActiveVisionSettings: () => get().visionSettings,
+  getActiveImageSettings: () => get().imageSettings,
 }))

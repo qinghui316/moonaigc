@@ -1,4 +1,4 @@
-// 18种视觉风格映射
+// 24种视觉风格映射
 export const STYLE_MAP: Record<string, string> = {
   cinematic: '电影写实，追求极致的真实感和电影质感',
   anime: '日式动漫，线条清晰，色彩明快，具有二次元感',
@@ -18,7 +18,46 @@ export const STYLE_MAP: Record<string, string> = {
   steampunk: '蒸汽朋克，齿轮机械，黄铜色调',
   donghua_xianxia: '中国3D修仙国漫风格，角色精细建模，东方仙侠美学，灵气流光粒子特效，仙山浮云宏大场景，飘逸发丝与华服',
   ink_wash: '中国传统水墨画风格，笔墨晕染，留白意境，山水写意，丹青设色，东方古典美学，如宋元山水意境',
+  // 新增 6 种
+  pixar_3d: '皮克斯3D动画风格，细腻的次表面散射皮肤，夸张友好的角色设计，温暖明亮的灯光',
+  kdrama: '韩式偶像剧风格，柔焦人像，清爽糖果色调，自然光晕散景',
+  documentary: '纪录片写实风格，手持摄影感，自然光源，真实纹理，高清细节',
+  concept_art: '科幻概念艺术风格，数字绘景，宏大环境，硬科幻未来感',
+  french_illus: '法式插画风格，Moebius线条，平涂色块，几何感轮廓，复古欧洲漫画美学',
+  paper_cut: '中国皮影剪纸风格，剪影轮廓，多层次纸艺，传统民间艺术，光影通透',
 }
+
+// 英文风格后缀映射（用于图片生成直接拼接回退模式）
+export const STYLE_MAP_EN: Record<string, string> = {
+  cinematic: 'cinematic film still, photorealistic, anamorphic lens, dramatic lighting',
+  anime: 'anime style, vibrant colors, cel shading, clean linework',
+  cyberpunk: 'cyberpunk aesthetic, neon lights, rain reflections, high contrast',
+  oil_painting: 'oil painting style, visible brushstrokes, rich impasto texture',
+  '3d_render': '3D render, Unreal Engine, hyperrealistic model, subsurface scattering',
+  vintage: 'vintage film, analog grain, nostalgic color grading, retro aesthetic',
+  watercolor: 'watercolor illustration, soft wash, bleeding edges, delicate transparency',
+  pixel_art: 'pixel art, retro game aesthetic, 8-bit, crisp pixels',
+  comic: 'comic book style, bold outlines, pop art, dynamic composition',
+  claymation: 'claymation, stop motion, handmade clay texture',
+  ukiyoe: 'ukiyo-e woodblock print, traditional japanese art, flat bold colors',
+  surreal: 'surrealist, dreamlike, impossible architecture, Salvador Dali influence',
+  minimalist: 'minimalist, negative space, simple forms, clean composition',
+  noir: 'film noir, black and white, deep shadows, high contrast chiaroscuro',
+  fantasy: 'fantasy art, magical atmosphere, ethereal glow, vivid colors',
+  steampunk: 'steampunk, brass gears, Victorian aesthetic, mechanical details',
+  donghua_xianxia: 'Chinese 3D animation, xianxia fantasy, flowing robes, qi particles, immortal mountain',
+  ink_wash: 'Chinese ink wash painting, sumi-e, misty mountains, poetic brushwork',
+  // 新增 6 种
+  pixar_3d: 'Pixar animation style, subsurface scattering skin, round friendly features, warm studio lighting, whimsical 3D',
+  kdrama: 'Korean drama aesthetic, soft bokeh portrait, candy-toned pastel, natural golden hour, clean beauty',
+  documentary: 'documentary photography, handheld camera, natural ambient light, raw authentic texture, high resolution',
+  concept_art: 'sci-fi concept art, digital matte painting, monumental environment, hard surface, cinematic scale',
+  french_illus: 'French graphic novel style, Moebius line art, flat color fills, geometric silhouettes, retro BD comics',
+  paper_cut: 'Chinese paper cut art, silhouette cutout layers, folk craft aesthetic, backlit translucent paper',
+}
+
+// 默认回退值（对齐 V6 的 Ft() 函数：un[n] || bs[n] || fallback）
+export const DEFAULT_STYLE_EN = 'cinematic film still, high quality, 8k'
 
 export const STYLE_OPTIONS = [
   { value: 'cinematic', label: '🎬 电影写实' },
@@ -39,4 +78,10 @@ export const STYLE_OPTIONS = [
   { value: 'steampunk', label: '⚙️ 蒸汽朋克' },
   { value: 'donghua_xianxia', label: '⚔️ 国漫修仙' },
   { value: 'ink_wash', label: '🖌 中国水墨' },
+  { value: 'pixar_3d', label: '🎪 皮克斯3D' },
+  { value: 'kdrama', label: '🌸 韩式偶像剧' },
+  { value: 'documentary', label: '📷 纪录片写实' },
+  { value: 'concept_art', label: '🚀 科幻概念艺术' },
+  { value: 'french_illus', label: '🥐 法式插画' },
+  { value: 'paper_cut', label: '✂️ 皮影剪纸' },
 ]

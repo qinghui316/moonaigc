@@ -23,15 +23,16 @@ function calcMarkQuota(totalEpisodes: number) {
   const fireMax = Math.ceil(totalEpisodes * 0.35)
   const moneyMin = Math.ceil(totalEpisodes * 0.10)
   const moneyMax = Math.ceil(totalEpisodes * 0.15)
-  const earlyCount = Math.min(10, totalEpisodes)
-  const earlyFire = Math.max(1, Math.ceil(earlyCount * 0.30))
-  const earlyMoney = Math.max(1, Math.ceil(earlyCount * 0.20))
+  // earlyCount 取前 35% 集数，确保早期要求随总集数等比例增长
+  const earlyCount = Math.max(3, Math.ceil(totalEpisodes * 0.35))
+  const earlyFire = Math.max(1, Math.ceil(earlyCount * 0.25))
+  const earlyMoney = Math.max(1, Math.ceil(earlyCount * 0.15))
   return { fireMin, fireMax, moneyMin, moneyMax, earlyCount, earlyFire, earlyMoney }
 }
 
 function getBatchStage(batchStart: number, totalEpisodes: number): string {
   const progress = batchStart / totalEpisodes
-  if (progress <= 0.25) return '起势阶段（建立世界观、引入主要矛盾，高密度钩子）'
+  if (progress <= 0.25) return '起势阶段（建立世界观、引入主要矛盾，适当设置钩子，避免过度集中标记）'
   if (progress <= 0.5) return '攀升阶段（矛盾升级、角色成长，保持紧张感）'
   if (progress <= 0.75) return '风暴阶段（节奏最快、高潮密集，每集必须有爆点）'
   return '决战阶段（终极对决、情感爆发、收束所有伏笔）'
@@ -65,6 +66,8 @@ ${characterDoc.slice(0, 2000)}
 - 无标记 = 常规推进集
 
 **硬性要求（必须严格遵守）**：
+- ⚡ **第1集必须标记🔥**（开场钩子，立即抓住观众，不可例外）
+- ⚡ **前3集内必须有至少1个💰**（早期付费卡点，先让观众上瘾再设门槛）
 - 🔥标记：全剧必须有 ${q.fireMin}-${q.fireMax} 个🔥集，不能少于 ${q.fireMin} 个
 - 💰标记：全剧必须有 ${q.moneyMin}-${q.moneyMax} 个💰集，不能少于 ${q.moneyMin} 个
 - 前${q.earlyCount}集必须包含至少 ${q.earlyFire} 个🔥和 ${q.earlyMoney} 个💰
@@ -130,7 +133,7 @@ ${prevList}
 
 请生成第 **${batchStart}-${batchEnd}** 集（共${batchEnd - batchStart + 1}集），当前处于「${stage}」。
 
-**标记配额（硬性要求）**：全剧🔥必须 ${q.fireMin}-${q.fireMax} 集，💰必须 ${q.moneyMin}-${q.moneyMax} 集。本批次按比例分配，🔥和💰必须共存，💰放在悬念高潮前夕。
+**标记配额（硬性要求）**：全剧🔥必须 ${q.fireMin}-${q.fireMax} 集，💰必须 ${q.moneyMin}-${q.moneyMax} 集。本批次按比例分配，🔥和💰必须共存，💰放在悬念高潮前夕。${batchStart === 1 ? '\n- ⚡ **第1集必须标记🔥**（开场钩子，不可例外）\n- ⚡ **前3集内必须有至少1个💰**（早期付费卡点）' : ''}
 
 **必须同时输出两个部分**：
 

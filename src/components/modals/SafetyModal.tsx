@@ -57,7 +57,37 @@ const SafetyModal: React.FC<SafetyModalProps> = ({ result, onApply, onClose }) =
             </div>
           )}
 
-          {result.detectedCelebrity.length > 0 && (
+          {result.replacedCelebrity && result.replacedCelebrity.length > 0 && (
+            <div className="bg-orange-900/20 border border-orange-700/50 rounded-lg p-3">
+              <div className="text-orange-400 text-xs font-semibold mb-2">👤 名人已气质化替换（{result.replacedCelebrity.length} 处）</div>
+              <div className="space-y-1">
+                {result.replacedCelebrity.map((r, i) => (
+                  <div key={i} className="text-xs flex items-center gap-2">
+                    <span className="text-orange-400 line-through">{r.bad}</span>
+                    <span className="text-gray-500">→</span>
+                    <span className="text-green-400">{r.good}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {result.replacedIP && result.replacedIP.length > 0 && (
+            <div className="bg-purple-900/20 border border-purple-700/50 rounded-lg p-3">
+              <div className="text-purple-400 text-xs font-semibold mb-2">©️ IP词已安全替换（{result.replacedIP.length} 处）</div>
+              <div className="space-y-1">
+                {result.replacedIP.map((r, i) => (
+                  <div key={i} className="text-xs flex items-center gap-2">
+                    <span className="text-purple-400 line-through">{r.bad}</span>
+                    <span className="text-gray-500">→</span>
+                    <span className="text-green-400">{r.good}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {result.detectedCelebrity.length > 0 && result.replacedCelebrity && result.replacedCelebrity.length === 0 && (
             <div className="bg-orange-900/20 border border-orange-700/50 rounded-lg p-3">
               <div className="text-orange-400 text-xs font-semibold mb-2">👤 检测到名人（注意肖像权）</div>
               <div className="flex flex-wrap gap-1.5">
@@ -68,7 +98,7 @@ const SafetyModal: React.FC<SafetyModalProps> = ({ result, onApply, onClose }) =
             </div>
           )}
 
-          {result.detectedIP.length > 0 && (
+          {result.detectedIP.length > 0 && result.replacedIP && result.replacedIP.length === 0 && (
             <div className="bg-purple-900/20 border border-purple-700/50 rounded-lg p-3">
               <div className="text-purple-400 text-xs font-semibold mb-2">©️ 检测到IP词（注意版权）</div>
               <div className="flex flex-wrap gap-1.5">

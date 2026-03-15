@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { useSettingsStore } from '../../store/useSettingsStore'
-import { TEXT_PLATFORMS, VISION_PLATFORMS } from '../../data/platforms'
+import { TEXT_PLATFORMS, VISION_PLATFORMS, IMAGE_PLATFORMS } from '../../data/platforms'
 import { generate } from '../../services/api'
 import type { Platform } from '../../types'
 
@@ -9,32 +9,45 @@ interface SettingsPanelProps {
 }
 
 const SettingsPanel: React.FC<SettingsPanelProps> = ({ onClose }) => {
-  const { textSettings, visionSettings, autoSafety, autoSound, enableWordFilter, autoSaveHistory,
-    setTextSettings, setVisionSettings, setFlag } = useSettingsStore()
-  const [activeTab, setActiveTab] = useState<'text' | 'vision'>('text')
+  const {
+    textSettings, visionSettings, imageSettings,
+    autoSafety, autoSound, enableWordFilter, autoSaveHistory,
+    setTextSettings, setVisionSettings, setImageSettings, setFlag,
+  } = useSettingsStore()
+  const [activeTab, setActiveTab] = useState<'text' | 'vision' | 'image'>('text')
   const [testing, setTesting] = useState(false)
   const [testResult, setTestResult] = useState<string | null>(null)
 
-  const platforms = activeTab === 'text' ? TEXT_PLATFORMS : VISION_PLATFORMS
-  const settings = activeTab === 'text' ? textSettings : visionSettings
-  const setSetting = activeTab === 'text' ? setTextSettings : setVisionSettings
+  const isImageTab = activeTab === 'image'
+  const platforms = activeTab === 'text' ? TEXT_PLATFORMS : activeTab === 'vision' ? VISION_PLATFORMS : IMAGE_PLATFORMS
+  const settings = activeTab === 'text' ? textSettings : activeTab === 'vision' ? visionSettings : imageSettings
+  const setSetting = activeTab === 'text' ? setTextSettings : activeTab === 'vision' ? setVisionSettings : (setImageSettings as (s: Record<string, unknown>) => void)
 
   const selectedPlatform = platforms.find(p => p.id === settings.platformId) ?? platforms[0]
 
-  const handlePlatformSelect = (platform: Platform) => {
-    setSetting({
-      platformId: platform.id,
-      endpoint: platform.endpoint,
-      model: platform.defaultModel,
-      mode: platform.mode,
-    })
+  const handlePlatformSelect = (platform: Platform | typeof IMAGE_PLATFORMS[0]) => {
+    if (isImageTab) {
+      setImageSettings({
+        platformId: platform.id,
+        endpoint: platform.endpoint,
+        model: platform.defaultModel,
+        mode: (platform as typeof IMAGE_PLATFORMS[0]).mode,
+      })
+    } else {
+      (setSetting as (s: Partial<typeof textSettings>) => void)({
+        platformId: platform.id,
+        endpoint: platform.endpoint,
+        model: platform.defaultModel,
+        mode: (platform as Platform).mode,
+      })
+    }
   }
 
   const handleModelChange = (value: string) => {
     if (value === 'custom') {
-      setSetting({ model: '' })
+      setSetting({ model: '' } as Record<string, unknown>)
     } else {
-      setSetting({ model: value })
+      setSetting({ model: value } as Record<string, unknown>)
     }
   }
 
@@ -43,11 +56,15 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ onClose }) => {
     setTesting(true)
     setTestResult(null)
     try {
-      const result = await generate(
-        [{ role: 'user', content: 'Reply with exactly: OK' }],
-        settings
-      )
-      setTestResult(result.toLowerCase().includes('ok') ? '✅ 连接成功' : `✅ 已响应: ${result.slice(0, 50)}`)
+      if (isImageTab) {
+        setTestResult('✅ API Key 已填写（图片生成需实际调用验证）')
+      } else {
+        const result = await generate(
+          [{ role: 'user', content: 'Reply with exactly: OK' }],
+          settings as typeof textSettings
+        )
+        setTestResult(result.toLowerCase().includes('ok') ? '✅ 连接成功' : `✅ 已响应: ${result.slice(0, 50)}`)
+      }
     } catch (e) {
       setTestResult(`❌ ${String(e)}`)
     }
@@ -65,12 +82,12 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ onClose }) => {
 
         {/* Tabs */}
         <div className="flex bg-gray-800 mx-4 mt-4 rounded-lg p-1 gap-1">
-          {(['text', 'vision'] as const).map(t => (
-            <button key={t} onClick={() => setActiveTab(t)}
+          {(['text', 'vision', 'image'] as const).map(t => (
+            <button key={t} onClick={() => { setActiveTab(t); setTestResult(null) }}
               className={`flex-1 py-1.5 text-sm font-medium rounded-md transition-colors ${
                 activeTab === t ? 'bg-amber-600 text-white' : 'text-gray-400 hover:text-white'
               }`}>
-              {t === 'text' ? '🔤 文字生成' : '👁️ 视觉分析'}
+              {t === 'text' ? '🔤 文字生成' : t === 'vision' ? '👁️ 视觉分析' : '🎨 图片生成'}
             </button>
           ))}
         </div>
@@ -96,7 +113,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ onClose }) => {
                       <div className="text-xs font-semibold">{platform.name}</div>
                       <div className="text-xs text-gray-500">{platform.sub}</div>
                     </div>
-                    {platform.badge && (
+                    {'badge' in platform && platform.badge && (
                       <span className="ml-auto text-xs bg-amber-600 text-white px-1 rounded">
                         {platform.badge}
                       </span>
@@ -110,19 +127,26 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ onClose }) => {
           {/* Endpoint */}
           <div>
             <label className="text-xs text-gray-500 mb-1.5 block">API 端点</label>
-            <input
-              type="text"
-              value={settings.endpoint}
-              onChange={e => setSetting({ endpoint: e.target.value })}
-              className="w-full bg-gray-800 border border-gray-700 text-gray-200 text-sm px-3 py-2 rounded-lg focus:outline-none focus:border-amber-500"
-              placeholder="https://api.example.com/v1/chat/completions"
-            />
+            {selectedPlatform.endpoint ? (
+              <div className="w-full bg-gray-800/50 border border-gray-700/50 text-gray-400 text-sm px-3 py-2 rounded-lg select-all truncate">
+                {selectedPlatform.endpoint}
+              </div>
+            ) : (
+              <input
+                type="text"
+                value={settings.endpoint}
+                onChange={e => setSetting({ endpoint: e.target.value } as Record<string, unknown>)}
+                className="w-full bg-gray-800 border border-gray-700 text-gray-200 text-sm px-3 py-2 rounded-lg focus:outline-none focus:border-amber-500"
+                placeholder="https://api.example.com/v1/..."
+              />
+            )}
           </div>
+
 
           {/* Model */}
           <div>
             <label className="text-xs text-gray-500 mb-1.5 block">模型</label>
-            {selectedPlatform.modelNote && (
+            {'modelNote' in selectedPlatform && selectedPlatform.modelNote && (
               <p className="text-xs text-amber-400 mb-1.5">{selectedPlatform.modelNote}</p>
             )}
             <select
@@ -138,12 +162,13 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ onClose }) => {
               <input
                 type="text"
                 value={settings.model}
-                onChange={e => setSetting({ model: e.target.value })}
+                onChange={e => setSetting({ model: e.target.value } as Record<string, unknown>)}
                 className="w-full mt-1.5 bg-gray-800 border border-gray-700 text-gray-200 text-sm px-3 py-2 rounded-lg focus:outline-none focus:border-amber-500"
                 placeholder="输入自定义模型名..."
               />
             )}
           </div>
+
 
           {/* API Key */}
           <div>
@@ -160,7 +185,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ onClose }) => {
             <input
               type="password"
               value={settings.key}
-              onChange={e => setSetting({ key: e.target.value })}
+              onChange={e => setSetting({ key: e.target.value } as Record<string, unknown>)}
               className="w-full bg-gray-800 border border-gray-700 text-gray-200 text-sm px-3 py-2 rounded-lg focus:outline-none focus:border-amber-500"
               placeholder="sk-..."
             />

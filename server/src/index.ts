@@ -11,6 +11,8 @@ import episodesRouter from './routes/episodes'
 import historyRouter from './routes/history'
 import materialsRouter from './routes/materials'
 import aiProxyRouter from './routes/aiProxy'
+import mediaRouter from './routes/media'
+import shotsRouter from './routes/shots'
 config()
 
 export const prisma = new PrismaClient()
@@ -37,6 +39,8 @@ app.use('/api', episodesRouter)
 app.use('/api/history', historyRouter)
 app.use('/api/materials', materialsRouter)
 app.use('/api/ai', aiProxyRouter)
+app.use('/api/media', mediaRouter)
+app.use('/api/shots', shotsRouter)
 // Production: serve built frontend
 if (process.env.NODE_ENV === 'production') {
   const distPath = path.resolve(__dirname, '../../dist')
