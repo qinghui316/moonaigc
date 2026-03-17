@@ -5,6 +5,7 @@ import { generate } from '../../services/api'
 import { callImageGenAPI, uploadExternalImageUrl } from '../../services/imageGen'
 import { EXTRACT_SYSTEM_PROMPT, buildExtractUserPrompt } from '../../prompts/extract'
 import { ASSET_IMAGE_PROMPTS } from '../../prompts/assetImage'
+import { STYLE_MAP, STYLE_OPTIONS } from '../../data/styleMap'
 import AssetImageGenModal from './AssetImageGenModal'
 import type { AssetType, ExtractionResult } from '../../types'
 
@@ -33,6 +34,7 @@ const MaterialPage: React.FC = () => {
   const [batchGenerating, setBatchGenerating] = useState(false)
   const [batchProgress, setBatchProgress] = useState('')
   const [lightboxSrc, setLightboxSrc] = useState<string | null>(null)
+  const [assetStyleKey, setAssetStyleKey] = useState('cinematic')
 
   const handleExtract = async () => {
     if (!extractPlot.trim()) return
@@ -66,7 +68,8 @@ const MaterialPage: React.FC = () => {
       if (!slot.name) continue
       setBatchProgress(`生成中 ${i + 1}/${slots.length}：${slot.name}`)
       try {
-        const prompt = ASSET_IMAGE_PROMPTS[activeType]?.(slot.name, slot.desc) ?? `${slot.desc}, concept art`
+        const styleDesc = STYLE_MAP[assetStyleKey] ?? '概念艺术风格'
+        const prompt = ASSET_IMAGE_PROMPTS[activeType]?.(slot.name, slot.desc, styleDesc) ?? `${slot.desc}, ${styleDesc}`
         const result = await callImageGenAPI(imageSettings, prompt)
         let url = result.url
         if (result.b64) {
@@ -149,6 +152,16 @@ const MaterialPage: React.FC = () => {
       <div className="flex items-center justify-between px-4 py-3 border-b border-gray-800 shrink-0">
         <h2 className="text-amber-400 font-semibold">素材资产库</h2>
         <div className="flex items-center gap-2">
+          <select
+            value={assetStyleKey}
+            onChange={e => setAssetStyleKey(e.target.value)}
+            className="px-2 py-1.5 bg-gray-800 text-gray-300 border border-gray-700 rounded-lg text-xs focus:outline-none focus:border-amber-500"
+            title="生图风格"
+          >
+            {STYLE_OPTIONS.map(s => (
+              <option key={s.value} value={s.value}>{s.label}</option>
+            ))}
+          </select>
           <button
             onClick={handleBatchGenImages}
             disabled={batchGenerating}
@@ -290,6 +303,7 @@ const MaterialPage: React.FC = () => {
           index={assetGenTarget.index}
           name={assetGenTarget.name}
           desc={assetGenTarget.desc}
+          styleKey={assetStyleKey}
           onClose={() => setAssetGenTarget(null)}
         />
       )}

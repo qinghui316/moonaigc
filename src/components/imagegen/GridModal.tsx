@@ -1,11 +1,14 @@
 import React, { useState, useRef, useCallback } from 'react'
 import { GRID_LAYOUTS, CELL_ASPECT_RATIOS, selectBestGridImageSize } from '../../data/gridConfig'
 import { selectShotsForGrid, buildGridDirectPrompt, GRID_NEGATIVE_PROMPT } from '../../services/gridGen'
-import { composeGridCanvas, downloadCanvas } from '../../utils/gridCanvas'
+import { composeGridCanvas } from '../../utils/gridCanvas'
 import { callImageGenAPI } from '../../services/imageGen'
+import { collectRefImages, loadRefImageBase64s } from '../../services/refImageCollector'
 import { STYLE_MAP_EN } from '../../data/styleMap'
 import { GLOBAL_NEGATIVE_PROMPT, STYLE_NEGATIVE_PROMPTS } from '../../data/negativePrompts'
 import { useSettingsStore } from '../../store/useSettingsStore'
+import { useMaterialStore } from '../../store/useMaterialStore'
+import { useShotStore } from '../../store/useShotStore'
 import type { ShotData } from '../../types'
 
 interface GridModalProps {
@@ -16,6 +19,8 @@ interface GridModalProps {
 
 const GridModal: React.FC<GridModalProps> = ({ shots, styleKey, onClose }) => {
   const { imageSettings } = useSettingsStore()
+  const { materials } = useMaterialStore()
+  const { shotImages } = useShotStore()
   const [layoutIdx, setLayoutIdx] = useState(0)
   const [cellAspect, setCellAspect] = useState('16:9')
   const [genMode, setGenMode] = useState<'direct' | 'compose'>('compose')
@@ -47,55 +52,60 @@ const GridModal: React.FC<GridModalProps> = ({ shots, styleKey, onClose }) => {
         : (isInline ? baseNeg : baseNeg)
 
       if (genMode === 'direct') {
-        // 单次直出
-        const prompt = buildGridDirectPrompt(selected, layout.cols, layout.rows, styleEN)
+        // 单次直出：传入素材库展开 @标签，并收集所有选中镜头的参考图
+        const prompt = buildGridDirectPrompt(selected, layout.cols, layout.rows, styleEN, materials)
         const gridSize = selectBestGridImageSize(layout.cols, layout.rows, cellAspect)
         const settingsForGrid = { ...imageSettings, imageResolution: gridSize, aspectRatio: cellAspect }
+
+        // 从所有选中镜头的 prompt 中收集有图的素材参考图（去重）
+        const seenIds = new Set<number>()
+        const allRefs = selected.flatMap(shot =>
+          collectRefImages(shot.prompt, materials).filter(r => {
+            if (seenIds.has(r.imageFileId)) return false
+            seenIds.add(r.imageFileId)
+            return true
+          })
+        )
         setProgress('🎨 单次直出生成中...')
-        const result = await callImageGenAPI(settingsForGrid, prompt, [], negativePrompt)
+        const refBase64s = await loadRefImageBase64s(allRefs)
+        const refImageIds = allRefs.map(r => r.imageFileId)
+        const result = await callImageGenAPI(settingsForGrid, prompt, refBase64s, negativePrompt, refImageIds)
         if (result.b64) {
           setResultUrl(`data:image/jpeg;base64,${result.b64}`)
         } else if (result.url) {
           setResultUrl(result.url)
         }
       } else {
-        // 逐格合成
+        // 逐格合成：使用 shotStore 中已生成的分镜图，不再重新调 API
         const [cw, ch] = cellAspect.split(':').map(Number)
         const cellPx = 512
         const cellW = cellPx
         const cellH = Math.round(cellPx * ch / cw)
-        const imageUrls: string[] = []
 
-        for (let i = 0; i < selected.length; i++) {
-          if (abortRef.current.signal.aborted) break
-          setProgress(`🎨 生成格子 ${i + 1}/${gridCount}...`)
-          const shot = selected[i]
-          const prompt = `${shot.scene}${shot.prompt ? ', ' + shot.prompt.slice(0, 120) : ''}, ${styleEN}`
-          try {
-            const result = await callImageGenAPI(imageSettings, prompt, [], negativePrompt)
-            if (result.b64) {
-              imageUrls.push(`data:image/jpeg;base64,${result.b64}`)
-            } else if (result.url) {
-              imageUrls.push(result.url)
-            } else {
-              imageUrls.push('')
-            }
-          } catch {
-            imageUrls.push('')
-          }
+        // 收集每格对应的已生成图片 URL（按 rowIndex 匹配）
+        const imageUrls: string[] = selected.map((shot) => {
+          // selected 镜头的 rowIndex 存在 shot 上（从 shots 数组的原始索引）
+          const originalIndex = shots.indexOf(shot)
+          const img = shotImages[originalIndex]
+          return img?.url ?? ''
+        })
+
+        const hasAnyImage = imageUrls.some(u => u !== '')
+        if (!hasAnyImage) {
+          setError('逐格合成模式需要已有分镜图，请先在 AI 生图页面生成分镜图后再使用')
+          setGenerating(false)
+          return
         }
 
-        if (!abortRef.current.signal.aborted) {
-          setProgress('🖼 合成画布中...')
-          const canvas = await composeGridCanvas(imageUrls, {
-            cols: layout.cols, rows: layout.rows,
-            cellWidth: cellW, cellHeight: cellH,
-            gap: 4, bgColor: '#000000', cornerRadius: 6,
-            showLabels: true,
-            labels: selected.map((s, i) => `#${i + 1}`),
-          })
-          setResultUrl(canvas.toDataURL('image/png'))
-        }
+        setProgress('🖼 合成画布中...')
+        const canvas = await composeGridCanvas(imageUrls, {
+          cols: layout.cols, rows: layout.rows,
+          cellWidth: cellW, cellHeight: cellH,
+          gap: 4, bgColor: '#000000', cornerRadius: 6,
+          showLabels: true,
+          labels: selected.map((_, i) => `#${i + 1}`),
+        })
+        setResultUrl(canvas.toDataURL('image/png'))
       }
     } catch (e) {
       setError(String(e))
@@ -157,7 +167,7 @@ const GridModal: React.FC<GridModalProps> = ({ shots, styleKey, onClose }) => {
                   onClick={() => setGenMode('compose')}
                   className={`flex-1 py-2 text-sm rounded-lg border transition-colors ${genMode === 'compose' ? 'bg-amber-600 border-amber-600 text-white' : 'bg-gray-800 border-gray-700 text-gray-400 hover:text-gray-200'}`}
                 >
-                  逐格合成（高质量）
+                  逐格合成
                 </button>
                 <button
                   onClick={() => setGenMode('direct')}
@@ -166,6 +176,9 @@ const GridModal: React.FC<GridModalProps> = ({ shots, styleKey, onClose }) => {
                   单次直出（快速）
                 </button>
               </div>
+              {genMode === 'compose' && (
+                <p className="text-xs text-gray-500 mt-1.5">使用已生成的分镜图合成，请先在 AI 生图页面生成分镜图</p>
+              )}
             </div>
           </div>
 

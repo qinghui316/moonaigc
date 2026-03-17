@@ -13,11 +13,15 @@ interface ShotStoreState {
   shotImages: Record<number, ShotImageInfo>
   // rowIndex -> shotId (DB id)
   shotIds: Record<number, number>
+  // 持久化每个镜头的已编辑提示词（AI精炼或手动修改后），切页面不丢失
+  editedPrompts: Record<number, string>
   parseFromMarkdown: (md: string) => ShotData[]
   loadShotsFromDB: (historyId: number) => Promise<void>
   saveShotsToDB: (historyId: number, shots: ShotData[]) => Promise<void>
   setShotImage: (rowIndex: number, info: ShotImageInfo) => void
   clearShotImage: (rowIndex: number) => void
+  setEditedPrompt: (rowIndex: number, prompt: string) => void
+  clearEditedPrompts: () => void
 }
 
 function mapRowToShot(headers: string[], row: string[]): ShotData {
@@ -40,6 +44,7 @@ export const useShotStore = create<ShotStoreState>((set) => ({
   shots: [],
   shotImages: {},
   shotIds: {},
+  editedPrompts: {},
 
   parseFromMarkdown: (md) => {
     const { headers, rows } = parseTableRows(md)
@@ -105,5 +110,13 @@ export const useShotStore = create<ShotStoreState>((set) => ({
       delete next[rowIndex]
       return { shotImages: next }
     })
+  },
+
+  setEditedPrompt: (rowIndex, prompt) => {
+    set(state => ({ editedPrompts: { ...state.editedPrompts, [rowIndex]: prompt } }))
+  },
+
+  clearEditedPrompts: () => {
+    set({ editedPrompts: {} })
   },
 }))

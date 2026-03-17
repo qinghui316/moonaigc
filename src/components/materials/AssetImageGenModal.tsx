@@ -3,6 +3,7 @@ import { useSettingsStore } from '../../store/useSettingsStore'
 import { useMaterialStore } from '../../store/useMaterialStore'
 import { callImageGenAPI, uploadExternalImageUrl } from '../../services/imageGen'
 import { ASSET_IMAGE_PROMPTS, ASSET_IMAGE_TYPE_LABELS } from '../../prompts/assetImage'
+import { STYLE_MAP } from '../../data/styleMap'
 import { IMAGE_PLATFORMS } from '../../data/platforms'
 import type { AssetType, ImageGenSettings } from '../../types'
 
@@ -11,10 +12,11 @@ interface Props {
   index: number
   name: string
   desc: string
+  styleKey?: string
   onClose: () => void
 }
 
-const AssetImageGenModal: React.FC<Props> = ({ type, index, name, desc, onClose }) => {
+const AssetImageGenModal: React.FC<Props> = ({ type, index, name, desc, styleKey = 'cinematic', onClose }) => {
   const { imageSettings } = useSettingsStore()
   const setSlot = useMaterialStore(s => s.setSlotImage)
   const currentProjectId = useMaterialStore(s => s.currentProjectId)
@@ -37,7 +39,8 @@ const AssetImageGenModal: React.FC<Props> = ({ type, index, name, desc, onClose 
     if (Object.keys(updates).length > 0) setImageSettings(updates)
   }, [imageSettings.platformId, imageSettings.model]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const defaultPrompt = ASSET_IMAGE_PROMPTS[type]?.(name, desc) ?? `${desc}, concept art, high quality`
+  const styleDesc = STYLE_MAP[styleKey] ?? '概念艺术风格'
+  const defaultPrompt = ASSET_IMAGE_PROMPTS[type]?.(name, desc, styleDesc) ?? `${desc}, ${styleDesc}, high quality`
   const [prompt, setPrompt] = useState(defaultPrompt)
   const [generating, setGenerating] = useState(false)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)

@@ -160,6 +160,10 @@ router.post('/image', async (req: Request, res: Response) => {
       'Authorization': `Bearer ${settings.key}`,
     }
 
+    // 有参考图时在 prompt 最前面拼接指令，提示模型严格遵循参考图
+    const hasRefImagesFlag = (refImages && refImages.length > 0) || (refImageIds && refImageIds.length > 0)
+    const basePrompt = hasRefImagesFlag ? `Strictly follow the reference images for character/scene/prop appearance. ${prompt}` : prompt
+
     // 豆包官方像素映射表（来源：火山引擎官方文档）
     // 包含 1K/2K/3K/4K 四档，覆盖全部宽高比
     const DOUBAO_PIXEL_MAP: Record<string, Record<string, string>> = {
@@ -199,7 +203,7 @@ router.post('/image', async (req: Request, res: Response) => {
       const is3dot0 = modelName.includes('3-0') || modelName.includes('3.0')
       body = {
         model: modelName,
-        prompt,
+        prompt: basePrompt,
         size: pixelSize,
         watermark: false,
         response_format: 'b64_json',
@@ -213,7 +217,7 @@ router.post('/image', async (req: Request, res: Response) => {
     } else if (settings.platformId === 'gemini-image') {
       // Google Nano Banana 官方格式（generateContent 原生格式）
       // Gemini 无独立负向词字段，将负向词拼接到 prompt 末尾
-      const finalPrompt = negativePrompt ? `${prompt}${negativePrompt}` : prompt
+      const finalPrompt = negativePrompt ? `${basePrompt}${negativePrompt}` : basePrompt
       const parts: unknown[] = []
       if (refImages && refImages.length > 0) {
         for (const img of refImages) {
@@ -262,7 +266,7 @@ router.post('/image', async (req: Request, res: Response) => {
 
       const submitBody: Record<string, unknown> = {
         ...(hasRefImages ? { imageUrls } : {}),
-        prompt,
+        prompt: basePrompt,
         aspectRatio: settings.aspectRatio,
         resolution,
       }
@@ -290,10 +294,10 @@ router.post('/image', async (req: Request, res: Response) => {
         return
       }
 
-      // Step2: 轮询 /openapi/v2/query 直到 SUCCESS/FAILED（最多 5min，5s/次）
+      // Step2: 轮询 /openapi/v2/query 直到 SUCCESS/FAILED（最多 7min，5s/次）
       const queryUrl = 'https://www.runninghub.cn/openapi/v2/query'
       const taskId = submitData.taskId
-      const maxRetries = 60
+      const maxRetries = 84
       let attempt = 0
       while (attempt < maxRetries) {
         await new Promise(r => setTimeout(r, 5000))
@@ -321,12 +325,12 @@ router.post('/image', async (req: Request, res: Response) => {
           return
         }
       }
-      res.status(504).json({ error: 'RunningHub 任务超时（5min），请稍后重试' })
+      res.status(504).json({ error: 'RunningHub 任务超时（7min），请稍后重试' })
       return
     } else if (settings.platformId === 'image-custom') {
       // 贞贞的AI工坊（OpenAI DALL-E 兼容格式）
       // 无独立负向词字段，将负向词拼接到 prompt 末尾
-      const finalPrompt = negativePrompt ? `${prompt}${negativePrompt}` : prompt
+      const finalPrompt = negativePrompt ? `${basePrompt}${negativePrompt}` : basePrompt
       body = {
         model: settings.model,
         prompt: finalPrompt,
@@ -343,6 +347,7 @@ router.post('/image', async (req: Request, res: Response) => {
       method: 'POST',
       headers,
       body: JSON.stringify(body),
+      signal: AbortSignal.timeout(7 * 60 * 1000), // 7分钟超时
     })
     if (!upstream.ok) {
       const text = await upstream.text()

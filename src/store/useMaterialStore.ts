@@ -32,7 +32,7 @@ export const useMaterialStore = create<MaterialState>((set, get) => ({
     video: [],
     audio: [],
   },
-  tagMode: { character: false, image: false, props: false },
+  tagMode: { character: true, image: true, props: true },
   currentProjectId: null,
 
   setSlot: (type, index, data) => {
@@ -85,11 +85,11 @@ export const useMaterialStore = create<MaterialState>((set, get) => ({
     try {
       const saved = await materialsGet<{ materials?: Materials; tagMode?: AssetTagMode }>(pid)
       if (saved?.materials) {
-        set({ materials: saved.materials, tagMode: saved.tagMode ?? { character: false, image: false, props: false } })
+        set({ materials: saved.materials, tagMode: saved.tagMode ?? { character: true, image: true, props: true } })
       } else {
         set({
           materials: { character: emptySlots(), image: emptySlots(), props: emptySlots(), video: [], audio: [] },
-          tagMode: { character: false, image: false, props: false },
+          tagMode: { character: true, image: true, props: true },
         })
       }
     } catch {

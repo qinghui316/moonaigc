@@ -73,21 +73,27 @@ export function cleanShootingMarks(text: string): string {
 }
 
 // 构建结构化输入（给 AI 精炼用，含回退逻辑）
+// materials 传入时，会先将各字段中的 @标签替换为素材库描述文字，再清洗符号
 export function buildStructuredInput(
   fields: Record<string, string>,
   styleCN: string,
   sceneDesc: string,
+  materials?: Materials,
 ): string {
+  // 有素材库时：先 expandAtTags（替换 @标签为描述），再 stripAtBrackets（清洗符号）
+  const expand = (text: string) =>
+    materials ? stripAtBrackets(expandAtTags(text, materials)) : stripAtBrackets(text)
+
   const parts: string[] = []
   if (fields['镜头']) parts.push(`景别与运镜：${fields['镜头']}`)
-  if (fields['叙事目的']) parts.push(`叙事意图：${fields['叙事目的']}`)
-  if (fields['衔接']) parts.push(`衔接方式：${fields['衔接']}`)
-  if (fields['角色分动']) parts.push(`角色动作：${stripAtBrackets(fields['角色分动'])}`)
-  if (fields['细节']) parts.push(`情绪细节：${stripAtBrackets(fields['细节'])}`)
-  if (fields['环境']) parts.push(`场景环境：${stripAtBrackets(fields['环境'])}`)
+  if (fields['叙事目的']) parts.push(`叙事意图：${expand(fields['叙事目的'])}`)
+  if (fields['衔接']) parts.push(`衔接方式：${expand(fields['衔接'])}`)
+  if (fields['角色分动']) parts.push(`角色动作：${expand(fields['角色分动'])}`)
+  if (fields['细节']) parts.push(`情绪细节：${expand(fields['细节'])}`)
+  if (fields['环境']) parts.push(`场景环境：${expand(fields['环境'])}`)
   if (fields['光影']) parts.push(`光影氛围：${fields['光影']}`)
-  if (fields['台词']) parts.push(`台词暗示：${fields['台词']}`)
-  if (fields['音效']) parts.push(`音效暗示：${cleanShootingMarks(fields['音效'])}`)
+  if (fields['台词']) parts.push(`台词暗示：${expand(fields['台词'])}`)
+  if (fields['音效']) parts.push(`音效暗示：${cleanShootingMarks(expand(fields['音效']))}`)
   if (sceneDesc) parts.push(`画面描述：${sceneDesc}`)
   if (styleCN) parts.push(`视觉风格：${styleCN}`)
   // 中文风格词自动识别：扫描场景描述，追加英文风格关键词（供 AI 精炼时参考）
@@ -145,10 +151,13 @@ export async function refinePromptViaAI(
 ): Promise<string> {
   const systemPrompt = `你是专业分镜插画师，精通将分镜描述转化为图像生成提示词。
 
+🔥【视觉连续性铁律（最高优先级）】：
+绝对优先遵守@标签括号内的描述（包含角色、道具、场景外观），这是保证全片一致性的核心锚点，必须完整体现在提示词中。
+
 铁律（违反则失败）：
-1. 推断道具-角色-环境的逻辑关联状态：角色手持游戏手柄 → 电视屏幕必须亮着显示游戏画面；角色看书 → 灯必须亮；角色喝水 → 杯子必须有水
-2. 【台词暗示】和【音效暗示】字段只提取场景状态信息，转化为视觉细节，不写进对话框
-3. 所有@标签括号内的描述是角色/道具/场景外观，必须完整体现在提示词中
+1. 每镜只描述一个决定性瞬间的静止画面，禁止描述动作过程（如"A做完X然后B做Y"），而是捕捉该过程中最具张力的一帧定格：所有角色的姿态、表情、身体位置应是同一时刻的状态
+2. 推断道具-角色-环境的逻辑关联状态：角色手持游戏手柄 → 电视屏幕必须亮着显示游戏画面；角色看书 → 灯必须亮；角色喝水 → 杯子必须有水
+3. 【台词暗示】和【音效暗示】字段只提取场景状态信息，转化为视觉细节，不写进对话框
 4. 禁止输出@符号、括号标签、字段名等结构化标记
 5. 叙事意图：从结构化输入中的【叙事意图】和【衔接方式】字段提取，转化为构图引导（如"推进情节"→构图向前聚焦，"场景切换"→广角建立全景）
 6. 输出不超过 200 词，格式：参考图声明 → 叙事意图与衔接 → 主体动作 → 场景环境状态 → 光影构图 → 风格

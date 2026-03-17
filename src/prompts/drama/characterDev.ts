@@ -48,13 +48,18 @@ ${creativePlan}
 \`\`\`json
 {
   "characters": [
-    {"name": "角色名", "visual_desc": "外貌视觉描述，用于AI绘图提示词"},
+    {"name": "角色名", "visual_desc": "固有外貌与服装描述，禁止包含场景位置、当前动作、手持道具等瞬时信息，只描述角色本身固有特征"},
     ...
   ],
   "scenes": [
     {"name": "场景名", "visual_desc": "场景视觉描述"},
     ...
+  ],
+  "props": [
+    {"name": "道具名", "visual_desc": "道具视觉描述（材质/颜色/形状/磨损程度/标志性特征）"},
+    ...
   ]
 }
-\`\`\`${editInstruction ? `\n\n## 特别修改要求\n${editInstruction}` : ''}`
+\`\`\`
+注意：props 只提取对剧情有实质推动作用或高度识别性的道具（如标志性武器、关键信物、特殊交通工具等），无需要可返回空数组 []${editInstruction ? `\n\n## 特别修改要求\n${editInstruction}` : ''}`
 }

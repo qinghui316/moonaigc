@@ -1,5 +1,5 @@
-import type { ShotData } from '../types'
-import type { Materials } from '../types'
+import type { ShotData, Materials } from '../types'
+import { parseSeedanceFields, buildStructuredInput } from './imagePrompt'
 
 // 从时间段字符串中提取结束秒数
 export function parseTimeRange(timeStr: string): number {
@@ -52,6 +52,7 @@ export function selectShotsForGrid(
 export const GRID_NEGATIVE_PROMPT = 'no text, no typography, no dialogue bubbles, no speech bubbles, no captions, no subtitles, Do not draw any text in image, no watermark, no label'
 
 // 单次直出模式：将所有格子描述拼成一个英文 prompt（对齐 6.5 格式）
+// 每格用 parseSeedanceFields + buildStructuredInput（含 @标签展开）生成结构化描述
 export function buildGridDirectPrompt(
   shots: ShotData[],
   cols: number,
@@ -64,34 +65,24 @@ export function buildGridDirectPrompt(
 
   const panelDescs = cells.map((shot, i) => {
     const timeStr = shot.time || `Panel ${i + 1}`
-    const sceneStr = shot.scene || ''
-    const promptExcerpt = shot.prompt ? shot.prompt.slice(0, 100) : ''
-    return `Panel ${i + 1}: ${timeStr} | ${sceneStr}${promptExcerpt ? ` | ${promptExcerpt}` : ''}`
+    const fields = parseSeedanceFields(shot.prompt, {
+      shotType: shot.shotType,
+      camera: shot.camera,
+      scene: shot.scene,
+      lighting: shot.lighting,
+    })
+    // 用 buildStructuredInput 展开 @标签，生成精简结构化描述（约150-200字/格）
+    const structured = buildStructuredInput(fields, '', shot.scene, materials)
+    // 截取前200字符避免单格过长
+    const desc = structured.replace(/\n/g, ' | ').slice(0, 200)
+    return `Panel ${i + 1} [${timeStr}]: ${desc}`
   }).join('\n')
-
-  // 从素材库提取角色/场景/道具约束
-  let constraintBlock = ''
-  if (materials) {
-    const constraints: string[] = []
-    materials.character.filter(m => m.name && m.desc).forEach(m => {
-      constraints.push(`Character "${m.name}": ${m.desc.slice(0, 60)}`)
-    })
-    materials.image.filter(m => m.name && m.desc).forEach(m => {
-      constraints.push(`Scene "${m.name}": ${m.desc.slice(0, 60)}`)
-    })
-    materials.props.filter(m => m.name && m.desc).forEach(m => {
-      constraints.push(`Prop "${m.name}": ${m.desc.slice(0, 60)}`)
-    })
-    if (constraints.length > 0) {
-      constraintBlock = `\nCharacter/scene/prop constraints:\n${constraints.join('\n')}`
-    }
-  }
 
   return `Create one single storyboard contact sheet in ${cols}x${rows} grid layout.
 Cinematic style should be consistent across all panels.
 Do not draw any text in image. ${GRID_NEGATIVE_PROMPT}.
 Each panel follows these shot briefs:
-${panelDescs}${constraintBlock}
+${panelDescs}
 Style: ${styleEN}
 IMPORTANT: Each cell must be a different cinematic moment. Maintain visual consistency in character appearance, costume, and environment across all panels. No grid lines visible, seamless layout.`
 }

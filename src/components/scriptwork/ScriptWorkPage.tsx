@@ -185,6 +185,11 @@ const ScriptWorkPage: React.FC<ScriptWorkPageProps> = ({ onNavigate, onLoadEpiso
               name: s.name, desc: s.visual_desc,
             })))
           }
+          if (parsed.props?.length) {
+            materialStore.bulkFill('props', parsed.props.map((p: { name: string; visual_desc: string }) => ({
+              name: p.name, desc: p.visual_desc,
+            })))
+          }
         } catch { /* ignore parse error */ }
       }
     } catch { /* ignore abort */ }

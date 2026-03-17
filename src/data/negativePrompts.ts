@@ -3,12 +3,15 @@ export const GLOBAL_NEGATIVE_PROMPT =
   'ugly, deformed, disfigured, poor quality, low quality, blurry, out of focus, bad anatomy, ' +
   'extra limbs, missing limbs, floating limbs, disconnected limbs, mutated hands, malformed hands, ' +
   'bad proportions, gross proportions, text, watermark, signature, username, ' +
+  'speech bubbles, dialogue bubbles, chinese characters, japanese characters, korean characters, ' +
+  'subtitles, captions, labels, typography, words, letters, numbers on image, ' +
   'cropped, out of frame, worst quality, jpeg artifacts, noisy, pixelated, ' +
   'nsfw, nude, naked, sexual content, violence, gore, disturbing content'
 
 // 用于拼接到正向 prompt 末尾（Gemini/Custom 平台无独立负向词字段）
 export const GLOBAL_NEGATIVE_PROMPT_INLINE =
-  ', no text, no watermark, no signature, no deformation, no ugly face, no bad anatomy, ' +
+  ', no text, no watermark, no signature, no speech bubbles, no chinese characters, ' +
+  'no subtitles, no captions, no typography, no deformation, no ugly face, no bad anatomy, ' +
   'no extra limbs, no missing limbs, no blurry, no low quality, no nsfw'
 
 // 风格特有负向词
