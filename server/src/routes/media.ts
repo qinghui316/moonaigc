@@ -121,11 +121,12 @@ router.post('/upload-from-url', async (req: Request, res: Response) => {
 // GET /api/media — 列表查询（用于画廊）
 router.get('/', async (req: Request, res: Response) => {
   try {
-    const { projectId, refType, page = '1', limit = '50', userId = 'default-user' } = req.query as Record<string, string>
+    const { projectId, episodeId, refType, page = '1', limit = '50', userId = 'default-user' } = req.query as Record<string, string>
     const pageNum = Math.max(1, parseInt(page))
     const limitNum = Math.min(100, Math.max(1, parseInt(limit)))
     const where: Record<string, unknown> = { userId }
     if (projectId) where.projectId = projectId
+    if (episodeId) where.episodeId = episodeId
     if (refType) where.refType = refType
 
     const [items, total] = await Promise.all([

@@ -87,6 +87,27 @@ Style: ${styleEN}
 IMPORTANT: Each cell must be a different cinematic moment. Maintain visual consistency in character appearance, costume, and environment across all panels. No grid lines visible, seamless layout.`
 }
 
+// 用已精炼的每格描述组装最终宫格提示词
+export function assembleGridPrompt(
+  refinedDescs: string[],
+  cols: number,
+  rows: number,
+  styleEN: string,
+): string {
+  const panelDescs = refinedDescs.map((desc, i) => {
+    const trimmed = desc.slice(0, 250)
+    return `Panel ${i + 1}: ${trimmed}`
+  }).join('\n')
+
+  return `Create one single storyboard contact sheet in ${cols}x${rows} grid layout.
+Cinematic style should be consistent across all panels.
+Do not draw any text in image. ${GRID_NEGATIVE_PROMPT}.
+Each panel follows these shot briefs:
+${panelDescs}
+Style: ${styleEN}
+IMPORTANT: Each cell must be a different cinematic moment. Maintain visual consistency in character appearance, costume, and environment across all panels. No grid lines visible, seamless layout.`
+}
+
 // 过渡帧 prompt
 export function buildTransitionPrompt(prevShot: ShotData, nextShot: ShotData, styleEN: string): string {
   return `Cinematic transition frame between two scenes.

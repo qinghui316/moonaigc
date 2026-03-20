@@ -18,7 +18,7 @@ const GalleryPage: React.FC = () => {
   const [total, setTotal] = useState(0)
   const [page, setPage] = useState(1)
   const [filterProject, setFilterProject] = useState('')
-  const [filterType, setFilterType] = useState<'all' | 'shot' | 'asset'>('all')
+  const [filterType, setFilterType] = useState<'all' | 'shot' | 'grid' | 'asset'>('all')
   const [loading, setLoading] = useState(false)
   const [lightboxSrc, setLightboxSrc] = useState<string | null>(null)
 
@@ -29,6 +29,7 @@ const GalleryPage: React.FC = () => {
     const params = new URLSearchParams({ page: String(p), limit: String(LIMIT) })
     if (projectId) params.set('projectId', projectId)
     if (type === 'shot') params.set('refType', 'shot')
+    else if (type === 'grid') params.set('refType', 'grid')
     else if (type === 'asset') params.set('refType', 'asset')
     try {
       const resp = await fetch(`/api/media?${params}`)
@@ -76,13 +77,13 @@ const GalleryPage: React.FC = () => {
           ))}
         </select>
         <div className="flex rounded-lg overflow-hidden border border-gray-700">
-          {(['all', 'shot', 'asset'] as const).map(t => (
+          {(['all', 'shot', 'grid', 'asset'] as const).map(t => (
             <button
               key={t}
               onClick={() => setFilterType(t)}
               className={`px-3 py-1.5 text-xs transition-colors ${filterType === t ? 'bg-amber-600 text-white' : 'bg-gray-800 text-gray-400 hover:text-gray-200'}`}
             >
-              {t === 'all' ? '全部' : t === 'shot' ? '分镜图' : '素材图'}
+              {t === 'all' ? '全部' : t === 'shot' ? '分镜图' : t === 'grid' ? '宫格图' : '素材图'}
             </button>
           ))}
         </div>
@@ -111,7 +112,7 @@ const GalleryPage: React.FC = () => {
                 loading="lazy"
               />
               <div className="absolute top-1 left-1 text-xs bg-black/60 text-gray-300 px-1 rounded opacity-0 group-hover:opacity-100">
-                {item.refType === 'shot' ? '镜' : '素'}
+                {item.refType === 'shot' ? '镜' : item.refType === 'grid' ? '宫' : '素'}
               </div>
               <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
               <div className="absolute bottom-1 right-1 flex gap-1 opacity-0 group-hover:opacity-100">

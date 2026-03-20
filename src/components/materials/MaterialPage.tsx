@@ -66,6 +66,7 @@ const MaterialPage: React.FC = () => {
     for (let i = 0; i < slots.length; i++) {
       const slot = materials[activeType][i]
       if (!slot.name) continue
+      if (slot.imageFileId) continue  // 已有图片，跳过
       setBatchProgress(`生成中 ${i + 1}/${slots.length}：${slot.name}`)
       try {
         const styleDesc = STYLE_MAP[assetStyleKey] ?? '概念艺术风格'
@@ -167,7 +168,7 @@ const MaterialPage: React.FC = () => {
             disabled={batchGenerating}
             className="flex items-center gap-1.5 px-3 py-1.5 bg-purple-600/20 text-purple-400 border border-purple-700/50 rounded-lg text-xs hover:bg-purple-600/30 transition-colors disabled:opacity-50"
           >
-            {batchGenerating ? batchProgress || '生成中...' : '🎨 批量生成资产图'}
+            {batchGenerating ? batchProgress || '生成中...' : '🎨 批量生成剩余素材图'}
           </button>
           <button
             onClick={() => setShowExtractModal(true)}

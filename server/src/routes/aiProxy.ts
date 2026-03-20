@@ -240,8 +240,35 @@ router.post('/image', async (req: Request, res: Response) => {
       url = `${settings.endpoint}/${settings.model}:generateContent`
     } else if (settings.platformId === 'runninghub') {
       // RunningHub：有参考图 → 图生图，无参考图 → 文生图，自动切换路径
-      const serverBase = `${req.protocol}://${req.get('host')}`
-      const imageUrls: string[] = (refImageIds ?? []).map(id => `${serverBase}/api/media/${id}/file`)
+      // 先将 base64 参考图上传到 RunningHub，获得其公开 download_url，避免 localhost 问题
+      const rhUploadHeaders = { 'Authorization': `Bearer ${settings.key}` }
+      const imageUrls: string[] = []
+      if (refImages && refImages.length > 0) {
+        for (const img of refImages) {
+          try {
+            const buf = Buffer.from(img.base64, 'base64')
+            const ext = img.mimeType === 'image/png' ? 'png' : img.mimeType === 'image/webp' ? 'webp' : 'jpg'
+            const formData = new FormData()
+            formData.append('file', new Blob([buf], { type: img.mimeType }), `ref.${ext}`)
+            const uploadResp = await fetch('https://www.runninghub.cn/openapi/v2/media/upload/binary', {
+              method: 'POST',
+              headers: rhUploadHeaders,
+              body: formData,
+            })
+            if (uploadResp.ok) {
+              const uploadData = await uploadResp.json() as { code: number; data?: { download_url: string } }
+              if (uploadData.code === 0 && uploadData.data?.download_url) {
+                imageUrls.push(uploadData.data.download_url)
+                console.log('[RunningHub] 参考图上传成功:', uploadData.data.download_url)
+              }
+            } else {
+              console.log('[RunningHub] 参考图上传失败:', await uploadResp.text())
+            }
+          } catch (e) {
+            console.log('[RunningHub] 参考图上传异常:', e)
+          }
+        }
+      }
       const hasRefImages = imageUrls.length > 0
 
       // 路径映射：每个模型各有文生图和图生图两条路径

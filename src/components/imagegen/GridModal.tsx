@@ -1,9 +1,10 @@
 import React, { useState, useRef, useCallback } from 'react'
 import { GRID_LAYOUTS, CELL_ASPECT_RATIOS, selectBestGridImageSize } from '../../data/gridConfig'
-import { selectShotsForGrid, buildGridDirectPrompt, GRID_NEGATIVE_PROMPT } from '../../services/gridGen'
+import { selectShotsForGrid, assembleGridPrompt, GRID_NEGATIVE_PROMPT } from '../../services/gridGen'
 import { composeGridCanvas } from '../../utils/gridCanvas'
-import { callImageGenAPI } from '../../services/imageGen'
-import { collectRefImages, loadRefImageBase64s } from '../../services/refImageCollector'
+import { callImageGenAPI, uploadExternalImageUrl } from '../../services/imageGen'
+import { collectRefImages, buildRefImageDescs, loadRefImageBase64s } from '../../services/refImageCollector'
+import { parseSeedanceFields, buildStructuredInput, refinePromptViaAI } from '../../services/imagePrompt'
 import { STYLE_MAP_EN } from '../../data/styleMap'
 import { GLOBAL_NEGATIVE_PROMPT, STYLE_NEGATIVE_PROMPTS } from '../../data/negativePrompts'
 import { useSettingsStore } from '../../store/useSettingsStore'
@@ -14,11 +15,14 @@ import type { ShotData } from '../../types'
 interface GridModalProps {
   shots: ShotData[]
   styleKey: string
+  projectId?: string
+  episodeId?: string
   onClose: () => void
+  onGridSaved?: (url: string) => void
 }
 
-const GridModal: React.FC<GridModalProps> = ({ shots, styleKey, onClose }) => {
-  const { imageSettings } = useSettingsStore()
+const GridModal: React.FC<GridModalProps> = ({ shots, styleKey, projectId, episodeId, onClose, onGridSaved }) => {
+  const { textSettings, imageSettings } = useSettingsStore()
   const { materials } = useMaterialStore()
   const { shotImages } = useShotStore()
   const [layoutIdx, setLayoutIdx] = useState(0)
@@ -52,9 +56,10 @@ const GridModal: React.FC<GridModalProps> = ({ shots, styleKey, onClose }) => {
         : (isInline ? baseNeg : baseNeg)
 
       if (genMode === 'direct') {
-        // 单次直出：传入素材库展开 @标签，并收集所有选中镜头的参考图
-        const prompt = buildGridDirectPrompt(selected, layout.cols, layout.rows, styleEN, materials)
-        const gridSize = selectBestGridImageSize(layout.cols, layout.rows, cellAspect)
+        // selectBestGridImageSize 返回豆包像素格式，只对豆包平台使用；其他平台保持原分辨率档位
+        const gridSize = imageSettings.platformId === 'doubao-image'
+          ? selectBestGridImageSize(layout.cols, layout.rows, cellAspect)
+          : imageSettings.imageResolution
         const settingsForGrid = { ...imageSettings, imageResolution: gridSize, aspectRatio: cellAspect }
 
         // 从所有选中镜头的 prompt 中收集有图的素材参考图（去重）
@@ -66,14 +71,91 @@ const GridModal: React.FC<GridModalProps> = ({ shots, styleKey, onClose }) => {
             return true
           })
         )
-        setProgress('🎨 单次直出生成中...')
         const refBase64s = await loadRefImageBase64s(allRefs)
         const refImageIds = allRefs.map(r => r.imageFileId)
+
+        // 1. 每格：优先用已精炼的提示词，未精炼的并发调 AI 精炼
+        const { editedPrompts } = useShotStore.getState()
+        const needRefineIndices: number[] = []
+        const preResults: (string | null)[] = selected.map((shot) => {
+          const originalIndex = shots.indexOf(shot)
+          const saved = editedPrompts[originalIndex]
+          if (saved) return saved
+          needRefineIndices.push(selected.indexOf(shot))
+          return null
+        })
+
+        if (needRefineIndices.length > 0 && textSettings.key) {
+          setProgress(`✨ AI并发精炼 ${needRefineIndices.length} 格提示词（${selected.length - needRefineIndices.length} 格已缓存）...`)
+          let doneCount = 0
+          const refineResults = await Promise.all(
+            needRefineIndices.map(async (idx) => {
+              const shot = selected[idx]
+              const fields = parseSeedanceFields(shot.prompt, {
+                shotType: shot.shotType, camera: shot.camera,
+                scene: shot.scene, lighting: shot.lighting,
+              })
+              const structured = buildStructuredInput(fields, '', shot.scene, materials)
+              const refs = collectRefImages(shot.prompt, materials)
+              const refDescs = buildRefImageDescs(refs)
+              try {
+                const refined = await refinePromptViaAI(structured, textSettings, refDescs)
+                doneCount++
+                setProgress(`✨ AI精炼 ${doneCount}/${needRefineIndices.length}`)
+                return refined
+              } catch {
+                doneCount++
+                return structured.replace(/\n/g, ' | ').slice(0, 200)
+              }
+            })
+          )
+          let ri = 0
+          for (const idx of needRefineIndices) {
+            preResults[idx] = refineResults[ri++]
+          }
+        }
+
+        // 未精炼且无 API Key 的降级为结构化文本
+        const refinedDescs = preResults.map((desc, idx) => {
+          if (desc) return desc
+          const shot = selected[idx]
+          const fields = parseSeedanceFields(shot.prompt, {
+            shotType: shot.shotType, camera: shot.camera,
+            scene: shot.scene, lighting: shot.lighting,
+          })
+          return buildStructuredInput(fields, '', shot.scene, materials).replace(/\n/g, ' | ').slice(0, 200)
+        })
+
+        // 2. 用精炼后的描述组装宫格提示词
+        const prompt = assembleGridPrompt(refinedDescs, layout.cols, layout.rows, styleEN)
+        setProgress('🎨 生成宫格图中...')
         const result = await callImageGenAPI(settingsForGrid, prompt, refBase64s, negativePrompt, refImageIds)
         if (result.b64) {
-          setResultUrl(`data:image/jpeg;base64,${result.b64}`)
+          const dataUrl = `data:image/jpeg;base64,${result.b64}`
+          setResultUrl(dataUrl)
+          // 保存宫格图到数据库
+          const saved = await fetch('/api/media/upload', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              base64: result.b64, mimeType: 'image/jpeg', refType: 'grid',
+              ...(projectId ? { projectId } : {}),
+              ...(episodeId ? { episodeId } : {}),
+            }),
+          })
+          if (saved.ok) {
+            const { url } = await saved.json() as { url: string }
+            onGridSaved?.(url)
+          }
         } else if (result.url) {
           setResultUrl(result.url)
+          // 外部 URL 下载后保存
+          const uploaded = await uploadExternalImageUrl(result.url, {
+            refType: 'grid',
+            ...(projectId ? { projectId } : {}),
+            ...(episodeId ? { episodeId } : {}),
+          })
+          if (uploaded) onGridSaved?.(uploaded.url)
         }
       } else {
         // 逐格合成：使用 shotStore 中已生成的分镜图，不再重新调 API
@@ -105,14 +187,32 @@ const GridModal: React.FC<GridModalProps> = ({ shots, styleKey, onClose }) => {
           showLabels: true,
           labels: selected.map((_, i) => `#${i + 1}`),
         })
-        setResultUrl(canvas.toDataURL('image/png'))
+        const composeDataUrl = canvas.toDataURL('image/png')
+        setResultUrl(composeDataUrl)
+        // 保存合成宫格图
+        const b64 = composeDataUrl.split(',')[1]
+        if (b64) {
+          const saved = await fetch('/api/media/upload', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              base64: b64, mimeType: 'image/png', refType: 'grid',
+              ...(projectId ? { projectId } : {}),
+              ...(episodeId ? { episodeId } : {}),
+            }),
+          })
+          if (saved.ok) {
+            const { url } = await saved.json() as { url: string }
+            onGridSaved?.(url)
+          }
+        }
       }
     } catch (e) {
       setError(String(e))
     }
     setProgress('')
     setGenerating(false)
-  }, [shots, gridCount, layout, cellAspect, genMode, styleKey, imageSettings])
+  }, [shots, gridCount, layout, cellAspect, genMode, styleKey, imageSettings, projectId, episodeId, onGridSaved])
 
   const handleDownload = () => {
     if (!resultUrl) return
