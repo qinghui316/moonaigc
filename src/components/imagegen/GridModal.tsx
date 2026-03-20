@@ -24,7 +24,7 @@ interface GridModalProps {
 const GridModal: React.FC<GridModalProps> = ({ shots, styleKey, projectId, episodeId, onClose, onGridSaved }) => {
   const { textSettings, imageSettings } = useSettingsStore()
   const { materials } = useMaterialStore()
-  const { shotImages } = useShotStore()
+  const { shotImages, setEditedPrompt } = useShotStore()
   const [layoutIdx, setLayoutIdx] = useState(0)
   const [cellAspect, setCellAspect] = useState('16:9')
   const [genMode, setGenMode] = useState<'direct' | 'compose'>('compose')
@@ -45,7 +45,8 @@ const GridModal: React.FC<GridModalProps> = ({ shots, styleKey, projectId, episo
     abortRef.current = new AbortController()
 
     try {
-      const { shots: selected } = selectShotsForGrid(shots, gridCount)
+      const selection = selectShotsForGrid(shots, gridCount)
+      const { shots: selected, roleLabels } = selection
       const styleEN = STYLE_MAP_EN[styleKey] ?? 'cinematic film still'
       const styleNeg = STYLE_NEGATIVE_PROMPTS[styleKey] ?? ''
       const isInline = imageSettings.platformId !== 'doubao-image'
@@ -60,19 +61,40 @@ const GridModal: React.FC<GridModalProps> = ({ shots, styleKey, projectId, episo
         const gridSize = imageSettings.platformId === 'doubao-image'
           ? selectBestGridImageSize(layout.cols, layout.rows, cellAspect)
           : imageSettings.imageResolution
-        const settingsForGrid = { ...imageSettings, imageResolution: gridSize, aspectRatio: cellAspect }
+        const settingsForGrid = {
+          ...imageSettings,
+          imageResolution: gridSize as typeof imageSettings.imageResolution,
+          aspectRatio: cellAspect as typeof imageSettings.aspectRatio,
+        }
 
         // 从所有选中镜头的 prompt 中收集有图的素材参考图（去重）
         const seenIds = new Set<number>()
-        const allRefs = selected.flatMap(shot =>
-          collectRefImages(shot.prompt, materials).filter(r => {
-            if (seenIds.has(r.imageFileId)) return false
-            seenIds.add(r.imageFileId)
+        const materialRefs = selected.flatMap(shot => {
+          const originalIndex = shots.indexOf(shot)
+          const savedRefs = useShotStore.getState().selectedMaterialRefs[originalIndex]
+          const refs = savedRefs ?? collectRefImages(shot.prompt, materials, undefined, { includeFallback: false }).map(ref => ({
+            name: ref.name,
+            type: ref.type,
+            desc: ref.desc,
+            imageUrl: ref.imageUrl,
+            imageFileId: ref.imageFileId,
+          }))
+          return refs.filter(ref => {
+            if (seenIds.has(ref.imageFileId)) return false
+            seenIds.add(ref.imageFileId)
             return true
-          })
-        )
-        const refBase64s = await loadRefImageBase64s(allRefs)
-        const refImageIds = allRefs.map(r => r.imageFileId)
+          }).map(ref => ({ ...ref, tag: `@${ref.name}` }))
+        })
+        const localRefs = selected.flatMap(shot => {
+          const originalIndex = shots.indexOf(shot)
+          return useShotStore.getState().selectedLocalRefs[originalIndex] ?? []
+        })
+        const uniqueLocalRefs = localRefs.filter((ref, index, arr) => arr.findIndex(item => item.id === ref.id) === index)
+        const refBase64s = [
+          ...await loadRefImageBase64s(materialRefs),
+          ...uniqueLocalRefs.map(ref => ({ base64: ref.base64, mimeType: ref.mimeType })),
+        ]
+        const refImageIds = materialRefs.map(r => r.imageFileId)
 
         // 1. 每格：优先用已精炼的提示词，未精炼的并发调 AI 精炼
         const { editedPrompts } = useShotStore.getState()
@@ -100,6 +122,8 @@ const GridModal: React.FC<GridModalProps> = ({ shots, styleKey, projectId, episo
               const refDescs = buildRefImageDescs(refs)
               try {
                 const refined = await refinePromptViaAI(structured, textSettings, refDescs)
+                const originalIndex = shots.indexOf(shot)
+                if (originalIndex >= 0) setEditedPrompt(originalIndex, refined)
                 doneCount++
                 setProgress(`✨ AI精炼 ${doneCount}/${needRefineIndices.length}`)
                 return refined
@@ -127,7 +151,14 @@ const GridModal: React.FC<GridModalProps> = ({ shots, styleKey, projectId, episo
         })
 
         // 2. 用精炼后的描述组装宫格提示词
-        const prompt = assembleGridPrompt(refinedDescs, layout.cols, layout.rows, styleEN)
+        const prompt = assembleGridPrompt(
+          refinedDescs,
+          layout.cols,
+          layout.rows,
+          styleEN,
+          roleLabels,
+          buildRefImageDescs(materialRefs)
+        )
         setProgress('🎨 生成宫格图中...')
         const result = await callImageGenAPI(settingsForGrid, prompt, refBase64s, negativePrompt, refImageIds)
         if (result.b64) {
@@ -180,12 +211,16 @@ const GridModal: React.FC<GridModalProps> = ({ shots, styleKey, projectId, episo
         }
 
         setProgress('🖼 合成画布中...')
+        const captions = selected.map(shot => shot.scene.replace(/\s+/g, ' ').trim()).map(text => text.slice(0, 28))
         const canvas = await composeGridCanvas(imageUrls, {
           cols: layout.cols, rows: layout.rows,
           cellWidth: cellW, cellHeight: cellH,
           gap: 4, bgColor: '#000000', cornerRadius: 6,
           showLabels: true,
-          labels: selected.map((_, i) => `#${i + 1}`),
+          labels: roleLabels.map((label, i) => `${i + 1} ${label}`),
+          title: `${layout.label}故事板`,
+          subtitle: genMode === 'compose' ? 'Compose' : 'Direct',
+          captions,
         })
         const composeDataUrl = canvas.toDataURL('image/png')
         setResultUrl(composeDataUrl)
@@ -212,7 +247,7 @@ const GridModal: React.FC<GridModalProps> = ({ shots, styleKey, projectId, episo
     }
     setProgress('')
     setGenerating(false)
-  }, [shots, gridCount, layout, cellAspect, genMode, styleKey, imageSettings, projectId, episodeId, onGridSaved])
+  }, [shots, gridCount, layout, cellAspect, genMode, styleKey, imageSettings, projectId, episodeId, onGridSaved, textSettings, materials, shotImages, setEditedPrompt])
 
   const handleDownload = () => {
     if (!resultUrl) return

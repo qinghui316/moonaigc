@@ -18,7 +18,15 @@ interface MaterialState {
   loadForProject: (projectId?: string) => Promise<void>
   persist: () => Promise<void>
   buildAssetMap: () => AssetMapEntry[]
-  buildSystemPromptInfo: () => { assetLibraryInfo: string; assetCallRule: string; subjectTagHint: string; nameMappingInstruction: string; hasAnyTagAsset: boolean }
+  buildSystemPromptInfo: () => {
+    assetLibraryInfo: string
+    assetCallRule: string
+    subjectTagHint: string
+    nameMappingInstruction: string
+    hasAnyTagAsset: boolean
+    continuityIronRule: string
+    consistencyAnchor: string
+  }
   setSlotImage: (type: AssetType, index: number, imageFileId: number, imageUrl: string) => void
   clearSlotImage: (type: AssetType, index: number) => Promise<void>
   getAssetImageForTag: (tag: string) => { imageUrl: string; imageFileId: number; name: string; type: AssetType } | null

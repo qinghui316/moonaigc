@@ -1,4 +1,4 @@
-import { generate } from './api'
+import { generate, streamGenerate } from './api'
 import {
   buildSplitScriptSystemPrompt,
   buildSplitScriptUserPrompt,
@@ -7,7 +7,7 @@ import {
   buildImportCharacterDocSystemPrompt,
   buildImportCharacterDocUserPrompt,
 } from '../prompts/drama/importScript'
-import type { Episode, ApiSettings } from '../types'
+import type { Episode, ApiSettings, ChatMessage } from '../types'
 
 export interface SplitEpisode {
   episodeNumber: number
@@ -19,7 +19,16 @@ export interface SplitEpisode {
   status: 'outline'
 }
 
-/** 规则识别分集标记（第X集/Chapter X/[X]等），成功返回分集数组，否则返回 null */
+function runTextGeneration(
+  messages: ChatMessage[],
+  settings: ApiSettings,
+  onChunk?: (chunk: string) => void
+): Promise<string> {
+  return onChunk
+    ? streamGenerate(messages, settings, onChunk)
+    : generate(messages, settings)
+}
+
 export function tryRuleSplit(text: string): SplitEpisode[] | null {
   const patterns = [
     /第\s*(\d+)\s*[集章节话回]/g,
@@ -31,29 +40,29 @@ export function tryRuleSplit(text: string): SplitEpisode[] | null {
 
   for (const pattern of patterns) {
     const matches = [...text.matchAll(pattern)]
-    if (matches.length >= 2) {
-      const episodes: SplitEpisode[] = []
-      for (let i = 0; i < matches.length; i++) {
-        const start = matches[i].index!
-        const end = i < matches.length - 1 ? matches[i + 1].index! : text.length
-        const content = text.slice(start, end).trim()
-        episodes.push({
-          episodeNumber: parseInt(matches[i][1]),
-          title: content.split('\n')[0].slice(0, 30),
-          summary: content.slice(0, 200),
-          hookType: '',
-          mark: '',
-          sourceText: content,
-          status: 'outline',
-        })
-      }
-      return episodes
+    if (matches.length < 2) continue
+
+    const episodes: SplitEpisode[] = []
+    for (let i = 0; i < matches.length; i++) {
+      const start = matches[i].index ?? 0
+      const end = i < matches.length - 1 ? (matches[i + 1].index ?? text.length) : text.length
+      const content = text.slice(start, end).trim()
+      episodes.push({
+        episodeNumber: parseInt(matches[i][1], 10),
+        title: content.split('\n')[0].slice(0, 30),
+        summary: content.slice(0, 200),
+        hookType: '',
+        mark: '',
+        sourceText: content,
+        status: 'outline',
+      })
     }
+    return episodes
   }
+
   return null
 }
 
-/** AI 拆集：调用 prompt 输出 JSON */
 export async function aiSplitScript(
   sourceText: string,
   totalEpisodes: number,
@@ -61,20 +70,16 @@ export async function aiSplitScript(
   settings: ApiSettings,
   onChunk?: (chunk: string) => void
 ): Promise<SplitEpisode[]> {
-  const result = await generate(
-    [
-      { role: 'system', content: buildSplitScriptSystemPrompt() },
-      { role: 'user', content: buildSplitScriptUserPrompt(sourceText, totalEpisodes, adaptMode) },
-    ],
-    settings,
-    onChunk
-  )
+  const messages: ChatMessage[] = [
+    { role: 'system', content: buildSplitScriptSystemPrompt() },
+    { role: 'user', content: buildSplitScriptUserPrompt(sourceText, totalEpisodes, adaptMode) },
+  ]
+  const result = await runTextGeneration(messages, settings, onChunk)
   const cleaned = result.replace(/```json\n?|```/g, '').trim()
   const parsed = JSON.parse(cleaned) as SplitEpisode[]
-  return parsed.map(e => ({ ...e, status: 'outline' as const }))
+  return parsed.map(episode => ({ ...episode, status: 'outline' as const }))
 }
 
-/** 生成导入版创作方案（基于原文 + 已拆集摘要） */
 export async function generateImportCreativePlan(
   sourceText: string,
   adaptMode: 'faithful' | 'blockbuster',
@@ -83,18 +88,16 @@ export async function generateImportCreativePlan(
   settings: ApiSettings,
   onChunk?: (chunk: string) => void
 ): Promise<string> {
-  const summaries = episodes.map(e => `第${e.episodeNumber}集《${e.title}》：${e.summary}`).join('\n')
-  return generate(
-    [
-      { role: 'system', content: buildImportCreativePlanSystemPrompt() },
-      { role: 'user', content: buildImportCreativePlanUserPrompt(sourceText, adaptMode, totalEpisodes, summaries) },
-    ],
-    settings,
-    onChunk
-  )
+  const summaries = episodes
+    .map(episode => `第${episode.episodeNumber}集《${episode.title}》：${episode.summary}`)
+    .join('\n')
+  const messages: ChatMessage[] = [
+    { role: 'system', content: buildImportCreativePlanSystemPrompt() },
+    { role: 'user', content: buildImportCreativePlanUserPrompt(sourceText, adaptMode, totalEpisodes, summaries) },
+  ]
+  return runTextGeneration(messages, settings, onChunk)
 }
 
-/** 生成导入版角色档案（基于原文 + 创作方案） */
 export async function generateImportCharacterDoc(
   sourceText: string,
   creativePlan: string,
@@ -102,72 +105,62 @@ export async function generateImportCharacterDoc(
   settings: ApiSettings,
   onChunk?: (chunk: string) => void
 ): Promise<string> {
-  return generate(
-    [
-      { role: 'system', content: buildImportCharacterDocSystemPrompt() },
-      { role: 'user', content: buildImportCharacterDocUserPrompt(sourceText, creativePlan, adaptMode) },
-    ],
-    settings,
-    onChunk
-  )
+  const messages: ChatMessage[] = [
+    { role: 'system', content: buildImportCharacterDocSystemPrompt() },
+    { role: 'user', content: buildImportCharacterDocUserPrompt(sourceText, creativePlan, adaptMode) },
+  ]
+  return runTextGeneration(messages, settings, onChunk)
 }
 
-/** 素材去重：归一化名字后检查是否已存在相似名称 */
 export function normalizeAssetName(name: string): string {
   return name.trim().replace(/\s+/g, '').toLowerCase()
 }
 
-/** 从角色档案中提取角色名和描述，用于写入素材库 */
 export function extractCharactersFromDoc(
   characterDoc: string
 ): Array<{ name: string; desc: string }> {
   const results: Array<{ name: string; desc: string }> = []
-  // 匹配"姓名："或"**姓名**"等格式
   const namePattern = /(?:^|\n)\s*[-*•]?\s*\*{0,2}姓名[:：]\*{0,2}\s*(.+)/gm
   const descPattern = /外貌特征[:：]\s*([^\n]+)/gm
-  const names = [...characterDoc.matchAll(namePattern)].map(m => m[1].trim())
-  const descs = [...characterDoc.matchAll(descPattern)].map(m => m[1].trim())
+  const names = [...characterDoc.matchAll(namePattern)].map(match => match[1].trim())
+  const descs = [...characterDoc.matchAll(descPattern)].map(match => match[1].trim())
+
   for (let i = 0; i < names.length; i++) {
-    if (names[i]) {
-      results.push({ name: names[i], desc: descs[i] ?? '' })
-    }
+    if (names[i]) results.push({ name: names[i], desc: descs[i] ?? '' })
   }
+
   return results
 }
 
-/** 从角色档案中提取场景名和描述 */
 export function extractScenesFromDoc(
   creativePlan: string
 ): Array<{ name: string; desc: string }> {
   const results: Array<{ name: string; desc: string }> = []
-  // 匹配时空背景部分
   const bgMatch = creativePlan.match(/时空背景[^\n]*\n([\s\S]{0,500}?)(?=\n###|$)/)
-  if (bgMatch) {
-    const lines = bgMatch[1].split('\n').filter(l => l.trim())
-    lines.slice(0, 3).forEach((line, i) => {
-      const text = line.replace(/^[-*•\d.]\s*/, '').trim()
-      if (text.length > 4) {
-        results.push({ name: `主场景${i + 1}`, desc: text })
-      }
-    })
-  }
+  if (!bgMatch) return results
+
+  const lines = bgMatch[1].split('\n').filter(line => line.trim())
+  lines.slice(0, 3).forEach((line, index) => {
+    const text = line.replace(/^[-*•\d.]\s*/, '').trim()
+    if (text.length > 4) results.push({ name: `主场景${index + 1}`, desc: text })
+  })
+
   return results
 }
 
-/** 转换 SplitEpisode 为 Episode（部分字段，剩余由 store 补全） */
 export function splitEpisodesToPartial(
   projectId: string,
   episodes: SplitEpisode[]
 ): Omit<Episode, 'id'>[] {
-  return episodes.map(e => ({
+  return episodes.map(episode => ({
     projectId,
-    episodeNumber: e.episodeNumber,
-    title: e.title,
-    summary: e.summary,
-    hookType: e.hookType,
-    mark: e.mark,
+    episodeNumber: episode.episodeNumber,
+    title: episode.title,
+    summary: episode.summary,
+    hookType: episode.hookType,
+    mark: episode.mark,
     script: '',
     status: 'outline' as const,
-    sourceText: e.sourceText,
+    sourceText: episode.sourceText,
   }))
 }

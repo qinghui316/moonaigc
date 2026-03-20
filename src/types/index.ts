@@ -208,6 +208,49 @@ export interface ShotData {
   prompt: string
 }
 
+export interface GridPanelRecord {
+  id: number
+  gridResultId: number
+  panelOrder: number
+  timeRange: string
+  seedancePrompt: string
+  sourceSeedancePrompts?: Array<{
+    sourceShotRef: string
+    prompt: string
+  }>
+  imagePromptText: string
+  sourceShotRefs: string[]
+  createdAt: string | number
+}
+
+export interface GridReferenceImageRecord {
+  kind: 'material' | 'local'
+  name: string
+  typeLabel: string
+  imageUrl?: string | null
+  imageFileId?: number | null
+  sourceShotRefs: string[]
+}
+
+export interface GridResultRecord {
+  id: number
+  projectId?: string | null
+  episodeId?: string | null
+  historyId?: number | null
+  mediaFileId?: number | null
+  mediaUrl?: string | null
+  layout: string
+  aspectRatio: string
+  sourceShotRefs: string[]
+  usedReferenceImages?: GridReferenceImageRecord[]
+  rawModelOutput?: string
+  validationPassed: boolean
+  createdAt: string | number
+  updatedAt?: string | number
+  panelCount?: number
+  panels?: GridPanelRecord[]
+}
+
 // ===== Safety Types =====
 export interface SafetyResult {
   text: string

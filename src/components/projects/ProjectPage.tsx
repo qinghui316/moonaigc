@@ -106,6 +106,14 @@ const ProjectPage: React.FC<ProjectPageProps> = ({ onNavigate }) => {
       worldSetting: form.worldSetting.trim(),
       creativePlan: '',
       characterDoc: '',
+      sourceMode: 'ai',
+      adaptMode: '',
+      sourceScript: '',
+      episodeCountMode: 'manual',
+      importStatus: 'idle',
+      currentStep: 0,
+      lastCompletedStep: 0,
+      importError: '',
     })
     setSaving(false)
     setShowForm(false)

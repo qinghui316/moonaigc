@@ -5,15 +5,16 @@ import { useHistoryStore } from '../../store/useHistoryStore'
 import { useShotStore } from '../../store/useShotStore'
 import { useProjectStore } from '../../store/useProjectStore'
 import { parseTableRows } from '../../utils/parseTable'
-import { parseSeedanceFields, buildStructuredInput, buildDirectImagePrompt, refinePromptViaAI } from '../../services/imagePrompt'
+import { parseSeedanceFields, buildStructuredInput, refinePromptViaAI } from '../../services/imagePrompt'
 import { callImageGenAPI, uploadExternalImageUrl } from '../../services/imageGen'
 import { collectRefImages, buildRefImageDescs, loadRefImageBase64s, clearRefImageCache } from '../../services/refImageCollector'
 import { STYLE_MAP } from '../../data/styleMap'
 import { IMAGE_PLATFORMS } from '../../data/platforms'
 import { GLOBAL_NEGATIVE_PROMPT, GLOBAL_NEGATIVE_PROMPT_INLINE, STYLE_NEGATIVE_PROMPTS } from '../../data/negativePrompts'
 import GridModal from './GridModal'
+import GridResultWorkspace from './GridResultWorkspace'
 import RefImagePickerModal, { type ManualRefItem } from './RefImagePickerModal'
-import type { ShotData, ImageGenSettings } from '../../types'
+import type { ImageGenSettings } from '../../types'
 
 interface ShotRow {
   index: number
@@ -24,12 +25,14 @@ interface ShotRow {
   cells: string[]
 }
 
-const ImageGenPage: React.FC<{ selectedRowIndex?: number | null }> = ({ selectedRowIndex }) => {
+const ImageGenPage: React.FC<{ selectedRowIndex?: number | null }> = ({ selectedRowIndex = null }) => {
   const { textSettings, imageSettings } = useSettingsStore()
   const materialStore = useMaterialStore()
   const { records: history } = useHistoryStore()
   const shotStore = useShotStore()
-  const { projects, episodes, loadProjects, selectProject } = useProjectStore()
+  const setSelectedMaterialRefs = useShotStore(state => state.setSelectedMaterialRefs)
+  const setSelectedLocalRefs = useShotStore(state => state.setSelectedLocalRefs)
+  const { projects, episodes, loadProjects, selectProject, currentProject, currentEpisode } = useProjectStore()
 
   // 当前图片平台配置
   const currentImagePlatform = IMAGE_PLATFORMS.find(p => p.id === imageSettings.platformId)
@@ -54,6 +57,7 @@ const ImageGenPage: React.FC<{ selectedRowIndex?: number | null }> = ({ selected
     if (Object.keys(updates).length > 0) setImageSettings(updates)
   }, [imageSettings.platformId, imageSettings.model]) // eslint-disable-line react-hooks/exhaustive-deps
 
+
   // 来源模式：历史记录 or 项目剧集
   const [sourceMode, setSourceMode] = useState<'history' | 'project'>('project')
   const [selectedProjectId, setSelectedProjectId] = useState<string>('')
@@ -73,7 +77,15 @@ const ImageGenPage: React.FC<{ selectedRowIndex?: number | null }> = ({ selected
   const [batchGenerating, setBatchGenerating] = useState(false)
   const [batchStatus, setBatchStatus] = useState('')
   const [lightboxSrc, setLightboxSrc] = useState<string | null>(null)
+  const [pageMode, setPageMode] = useState<'shots' | 'grid'>('shots')
   const [showGridModal, setShowGridModal] = useState(false)
+  useEffect(() => {
+    if (pageMode !== 'grid') return
+    const updates: Partial<ImageGenSettings> = {}
+    if (effectiveAspectRatios.includes('16:9') && imageSettings.aspectRatio !== '16:9') updates.aspectRatio = '16:9'
+    if (effectiveResolutions.some(item => item.value === '4K') && imageSettings.imageResolution !== '4K') updates.imageResolution = '4K'
+    if (Object.keys(updates).length > 0) useSettingsStore.getState().setImageSettings(updates)
+  }, [pageMode, effectiveAspectRatios, effectiveResolutions, imageSettings.aspectRatio, imageSettings.imageResolution])
   // 手动参考图管理
   const [manualRefs, setManualRefs] = useState<ManualRefItem[]>([])
   const [localUploads, setLocalUploads] = useState<{ id: string; base64: string; mimeType: string; name: string }[]>([])
@@ -82,6 +94,12 @@ const ImageGenPage: React.FC<{ selectedRowIndex?: number | null }> = ({ selected
   // 底部画廊
   const [galleryTab, setGalleryTab] = useState<'all' | 'shot' | 'grid'>('all')
   const [dbImages, setDbImages] = useState<{ id: number; url: string; refType: string; createdAt?: number }[]>([])
+
+  const latestRecordForEpisode = useCallback((episodeId?: string | null) => {
+    if (!episodeId) return null
+    const recs = history.filter(item => item.episodeId === episodeId)
+    return recs.length > 0 ? recs.reduce((a, b) => (b.id > a.id ? b : a)) : null
+  }, [history])
 
   const loadGalleryImages = useCallback(async (projId: string, epId?: string) => {
     if (!projId) return
@@ -120,6 +138,7 @@ const ImageGenPage: React.FC<{ selectedRowIndex?: number | null }> = ({ selected
     setSelectedItems(new Set())
     // 切换历史记录时清空旧的提示词缓存
     shotStore.clearEditedPrompts()
+    shotStore.clearSelectedRefs()
     // 从 store 恢复已生成的图片（loadShotsFromDB 已更新 shotImages）
     const imgs: Record<number, string> = {}
     const latestImages = useShotStore.getState().shotImages
@@ -157,12 +176,55 @@ const ImageGenPage: React.FC<{ selectedRowIndex?: number | null }> = ({ selected
     // 自动联动参考图
     const materials = materialStore.materials
     const refs = collectRefImages(row.prompt, materials)
+    const storeState = useShotStore.getState()
+    const savedMaterialRefs = storeState.selectedMaterialRefs[row.index] ?? []
+    const savedLocalRefs = storeState.selectedLocalRefs[row.index] ?? []
+    const hasSavedSelection =
+      Object.prototype.hasOwnProperty.call(storeState.selectedMaterialRefs, row.index)
+      || Object.prototype.hasOwnProperty.call(storeState.selectedLocalRefs, row.index)
+    const savedImageIds = new Set(savedMaterialRefs.map(ref => ref.imageFileId))
+    const autoRefIds = new Set(refs.map(ref => ref.imageFileId))
     const checks: Record<string, boolean> = {}
-    refs.forEach(r => { checks[r.tag] = true })
+    refs.forEach(ref => {
+      checks[ref.tag] = hasSavedSelection ? savedImageIds.has(ref.imageFileId) : true
+    })
     setRefImageChecks(checks)
+    setManualRefs(hasSavedSelection ? savedMaterialRefs.filter(ref => !autoRefIds.has(ref.imageFileId)) : [])
+    setLocalUploads(hasSavedSelection ? savedLocalRefs : [])
   }, [selectedHistoryId, history, styleKey, materialStore.materials])
 
+  useEffect(() => {
+    if (!selectedRow) return
+    const autoRefs = collectRefImages(selectedRow.prompt, materialStore.materials)
+      .filter(ref => refImageChecks[ref.tag] !== false)
+      .map(ref => ({
+        name: ref.name,
+        type: ref.type,
+        desc: ref.desc,
+        imageUrl: ref.imageUrl,
+        imageFileId: ref.imageFileId,
+      }))
+    const seenIds = new Set(autoRefs.map(ref => ref.imageFileId))
+    const mergedMaterialRefs = [
+      ...autoRefs,
+      ...manualRefs.filter(ref => !seenIds.has(ref.imageFileId)),
+    ]
+    setSelectedMaterialRefs(selectedRow.index, mergedMaterialRefs)
+    setSelectedLocalRefs(selectedRow.index, localUploads)
+  }, [selectedRow, materialStore.materials, refImageChecks, manualRefs, localUploads, setSelectedLocalRefs, setSelectedMaterialRefs])
+
   // AI精炼：将当前提示词精炼后写回文本框，供用户预览/修改
+  useEffect(() => {
+    if (pageMode !== 'shots' || rows.length === 0) return
+    if (selectedRow && rows.some(row => row.index === selectedRow.index)) return
+
+    const target = selectedRowIndex != null
+      ? rows.find(row => row.index === selectedRowIndex) ?? rows[0]
+      : rows[0]
+
+    handleSelectRow(target)
+  }, [pageMode, rows, selectedRow, selectedRowIndex, handleSelectRow])
+
   const handleRefine = useCallback(async () => {
     if (!textSettings.key) { setError('请先在设置中配置文字生成 API Key'); return }
     if (!selectedRow) return
@@ -318,7 +380,6 @@ const ImageGenPage: React.FC<{ selectedRowIndex?: number | null }> = ({ selected
       // 合并手动添加参考图（去重）
       const seenIds2 = new Set(autoRefs.map(r => r.imageFileId))
       const refs = [...autoRefs, ...manualRefs.filter(r => !seenIds2.has(r.imageFileId)).map(r => ({ ...r, tag: `@${r.name}` }))]
-      const refDescs = buildRefImageDescs(refs)
       const { headers } = parseTableRows(history.find(h => h.id === selectedHistoryId)?.storyboard ?? '')
       const fallback = {
         shotType: row.shotType,
@@ -359,7 +420,7 @@ const ImageGenPage: React.FC<{ selectedRowIndex?: number | null }> = ({ selected
           ...materialBase64s,
           ...localUploads.map(u => ({ base64: u.base64, mimeType: u.mimeType })),
         ]
-        const result = await callImageGenAPI(imageSettings, structured, refBase64s, negativePrompt, refImageIds)
+        const result = await callImageGenAPI(imageSettings, structured, chainRefs, negativePrompt, refImageIds)
         clearRefImageCache()
 
         let imgUrl = result.url
@@ -460,6 +521,13 @@ const ImageGenPage: React.FC<{ selectedRowIndex?: number | null }> = ({ selected
     if (sourceMode === 'project') loadProjects()
   }, [sourceMode]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  useEffect(() => {
+    if (sourceMode !== 'project') return
+    if (currentProject?.id && selectedProjectId !== currentProject.id) {
+      setSelectedProjectId(currentProject.id)
+    }
+  }, [sourceMode, currentProject?.id, selectedProjectId])
+
   // 切换项目时加载剧集
   const handleSelectProject = useCallback(async (id: string) => {
     setSelectedProjectId(id)
@@ -474,11 +542,27 @@ const ImageGenPage: React.FC<{ selectedRowIndex?: number | null }> = ({ selected
   const episodesWithRecord = useMemo(() => {
     if (!selectedProjectId) return []
     return episodes.map(ep => {
-      const recs = history.filter(h => h.episodeId === ep.id)
-      const latest = recs.length > 0 ? recs.reduce((a, b) => (b.id > a.id ? b : a)) : null
+      const latest = latestRecordForEpisode(ep.id)
       return { episode: ep, record: latest }
     })
-  }, [episodes, history, selectedProjectId])
+  }, [episodes, latestRecordForEpisode, selectedProjectId])
+
+  useEffect(() => {
+    if (sourceMode !== 'project') return
+    if (!currentProject?.id || !currentEpisode?.id) return
+    if (selectedProjectId !== currentProject.id) return
+    const latest = latestRecordForEpisode(currentEpisode.id)
+    if (!latest || selectedHistoryId === latest.id) return
+    void loadHistory(latest.id)
+  }, [
+    sourceMode,
+    currentProject?.id,
+    currentEpisode?.id,
+    selectedProjectId,
+    selectedHistoryId,
+    latestRecordForEpisode,
+    loadHistory,
+  ])
 
   // 有资产图的参考图（可勾选传给 API）
   const currentRefs = selectedRow
@@ -512,8 +596,40 @@ const ImageGenPage: React.FC<{ selectedRowIndex?: number | null }> = ({ selected
     return result
   }, [selectedRow, materialStore.materials])
 
+  const handleCloseGridModal = useCallback(() => {
+    setShowGridModal(false)
+    if (!selectedRow) return
+    const saved = useShotStore.getState().editedPrompts[selectedRow.index]
+    if (saved) setEditedPrompt(saved)
+  }, [selectedRow])
+
+  void currentRefs
+
   return (
     <div className="flex flex-col h-full bg-gray-950 text-white">
+      <div className="flex items-center gap-2 px-4 py-3 border-b border-gray-800 shrink-0">
+        <button
+          onClick={() => setPageMode('shots')}
+          className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
+            pageMode === 'shots' ? 'bg-amber-600 text-white' : 'bg-gray-800 text-gray-400 hover:text-gray-200'
+          }`}
+        >
+          普通镜头生图
+        </button>
+        <button
+          onClick={() => setPageMode('grid')}
+          className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
+            pageMode === 'grid' ? 'bg-purple-700 text-white' : 'bg-gray-800 text-gray-400 hover:text-gray-200'
+          }`}
+        >
+          宫格生图模式
+        </button>
+      </div>
+
+      {pageMode === 'grid' ? (
+        <GridResultWorkspace styleKey={styleKey} onStyleChange={setStyleKey} />
+      ) : (
+        <>
       {/* 顶部：选择分镜来源 */}
       <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-800 shrink-0 flex-wrap">
         {/* 来源模式切换 */}
@@ -550,6 +666,7 @@ const ImageGenPage: React.FC<{ selectedRowIndex?: number | null }> = ({ selected
             <select
               value={selectedProjectId}
               onChange={e => handleSelectProject(e.target.value)}
+              disabled={!!currentProject}
               className="bg-gray-800 border border-gray-700 text-gray-200 text-sm px-3 py-1.5 rounded-lg focus:outline-none focus:border-amber-500 max-w-[160px]"
             >
               <option value="">— 选择项目 —</option>
@@ -561,7 +678,8 @@ const ImageGenPage: React.FC<{ selectedRowIndex?: number | null }> = ({ selected
               <select
                 value={selectedHistoryId ?? ''}
                 onChange={e => e.target.value && loadHistory(Number(e.target.value))}
-                className="bg-gray-800 border border-gray-700 text-gray-200 text-sm px-3 py-1.5 rounded-lg focus:outline-none focus:border-amber-500 flex-1 max-w-xs"
+                disabled={!!currentEpisode}
+                className="bg-gray-800 border border-gray-700 text-gray-200 text-sm px-3 py-1.5 rounded-lg focus:outline-none focus:border-amber-500 flex-1 max-w-xs disabled:opacity-60"
               >
                 <option value="">— 选择集数 —</option>
                 {episodesWithRecord.map(({ episode, record }) => (
@@ -1002,7 +1120,7 @@ const ImageGenPage: React.FC<{ selectedRowIndex?: number | null }> = ({ selected
             styleKey={styleKey}
             projectId={rec?.projectId}
             episodeId={rec?.episodeId}
-            onClose={() => setShowGridModal(false)}
+            onClose={handleCloseGridModal}
             onGridSaved={(url) => {
               setDbImages(prev => [...prev, { id: Date.now(), url, refType: 'grid' }])
             }}
@@ -1017,6 +1135,8 @@ const ImageGenPage: React.FC<{ selectedRowIndex?: number | null }> = ({ selected
         selectedRefs={manualRefs}
         onConfirm={refs => setManualRefs(refs)}
       />
+        </>
+      )}
     </div>
   )
 }

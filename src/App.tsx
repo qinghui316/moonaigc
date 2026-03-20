@@ -17,7 +17,7 @@ import { useMaterialStore } from './store/useMaterialStore'
 import { useThemeStore } from './store/useThemeStore'
 
 const App: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<TabId>('create')
+  const [activeTab, setActiveTab] = useState<TabId>('projects')
   const [showSettings, setShowSettings] = useState(false)
   const [loadedRecord, setLoadedRecord] = useState<HistoryRecord | null>(null)
   const [loadedEpisode, setLoadedEpisode] = useState<Episode | null>(null)

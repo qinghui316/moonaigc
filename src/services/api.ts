@@ -1,4 +1,9 @@
-import type { ApiSettings, ChatMessage } from '../types'
+import type { ApiSettings } from '../types'
+
+export interface ApiMessage {
+  role: 'system' | 'user' | 'assistant'
+  content: unknown
+}
 
 const PROXY_BASE = '/api/ai'
 
@@ -36,7 +41,7 @@ const parseDelta = (line: string, mode: ApiSettings['mode']): string => {
 
 // 流式生成，回调每个 token
 export const streamGenerate = async (
-  messages: ChatMessage[],
+  messages: ApiMessage[],
   settings: ApiSettings,
   onToken: (token: string) => void,
   signal?: AbortSignal
@@ -82,7 +87,7 @@ export const streamGenerate = async (
 
 // 非流式生成
 export const generate = async (
-  messages: ChatMessage[],
+  messages: ApiMessage[],
   settings: ApiSettings,
   signal?: AbortSignal
 ): Promise<string> => {

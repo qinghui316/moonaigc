@@ -2,7 +2,7 @@ import type { Director } from '../types'
 import type { SystemPromptContext } from '../types'
 
 // 构建 SEEDANCE 提示词格式说明（共享函数，chain.ts 同步 import）
-export const buildSeedanceFormat = (enableBGM: boolean, enableSubtitle: boolean): string => {
+export const buildSeedanceFormat = (enableBGM: boolean, _enableSubtitle: boolean): string => {
   const bgmPart = enableBGM ? '+情绪背景音乐' : ''
   // 标记铁律：禁BGM/禁字幕作为行末标记，不作为内联字段
   return `镜头：【景别+运镜】 环境：在@图片N [背景静态描述；场景内正在使用的道具必须用[状态]标注其动态状态，例：旧电视[屏幕亮着显示游戏画面]、游戏机[连着手柄通电中]、蜡烛[火焰燃烧中]、水杯[盛着液体]] 叙事目的：[本镜推动故事的核心目标，5-12字] 衔接：[与上一镜的连接方式，如承接动作末态/由视线切入/由声音切入] 角色分动：@人物N [外观] 正在 [肢体动作]（多人用；分隔） 细节：@人物N [微表情与情绪状态（禁止描述道具）] 光影：[光源方向+质感+色调] 台词(@人物N,第Xs开口):"台词原文"（X必须替换为实际秒数整数，如第3s开口、第2s开口，禁止写字母X；@人物N替换为实际说话角色@标签；无台词时完全省略此字段，禁止空引号；多人说话写多个台词字段） 音效：[环境音+声响${bgmPart}]`

@@ -5,6 +5,8 @@ import {
   episodeAdd, episodeBatchAdd, episodeUpdate, episodesByProject, episodeDelete,
 } from '../services/db'
 
+type ProjectInput = Omit<Project, 'id' | 'createdAt' | 'updatedAt'>
+
 interface ProjectState {
   projects: Project[]
   currentProject: Project | null
@@ -12,7 +14,7 @@ interface ProjectState {
   currentEpisode: Episode | null
 
   loadProjects: () => Promise<void>
-  addProject: (p: Omit<Project, 'id' | 'createdAt' | 'updatedAt'>) => Promise<Project>
+  addProject: (p: ProjectInput) => Promise<Project>
   updateProject: (id: string, data: Partial<Project>) => Promise<void>
   deleteProject: (id: string) => Promise<void>
   selectProject: (id: string) => Promise<void>
@@ -25,6 +27,20 @@ interface ProjectState {
   deleteEpisode: (id: string) => Promise<void>
   selectEpisode: (id: string | null) => void
   updateEpisodeStatus: (id: string, status: Episode['status']) => Promise<void>
+}
+
+function withProjectDefaults(data: ProjectInput): ProjectInput {
+  return {
+    ...data,
+    sourceMode: data.sourceMode ?? 'ai',
+    adaptMode: data.adaptMode ?? '',
+    sourceScript: data.sourceScript ?? '',
+    episodeCountMode: data.episodeCountMode ?? 'manual',
+    importStatus: data.importStatus ?? 'idle',
+    currentStep: data.currentStep ?? 0,
+    lastCompletedStep: data.lastCompletedStep ?? 0,
+    importError: data.importError ?? '',
+  }
 }
 
 export const useProjectStore = create<ProjectState>((set, get) => ({
@@ -44,15 +60,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
       id: crypto.randomUUID(),
       createdAt: now,
       updatedAt: now,
-      sourceMode: 'ai',
-      adaptMode: '',
-      sourceScript: '',
-      episodeCountMode: 'manual',
-      importStatus: 'idle',
-      currentStep: 0,
-      lastCompletedStep: 0,
-      importError: '',
-      ...data,
+      ...withProjectDefaults(data),
     }
     await projectAdd(p)
     set(state => ({ projects: [p, ...state.projects] }))
@@ -62,7 +70,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
   updateProject: async (id, data) => {
     await projectUpdate(id, data)
     set(state => ({
-      projects: state.projects.map(p => p.id === id ? { ...p, ...data, updatedAt: Date.now() } : p),
+      projects: state.projects.map(project => project.id === id ? { ...project, ...data, updatedAt: Date.now() } : project),
       currentProject: state.currentProject?.id === id
         ? { ...state.currentProject, ...data, updatedAt: Date.now() }
         : state.currentProject,
@@ -72,23 +80,21 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
   deleteProject: async (id) => {
     await projectDelete(id)
     set(state => ({
-      projects: state.projects.filter(p => p.id !== id),
+      projects: state.projects.filter(project => project.id !== id),
       currentProject: state.currentProject?.id === id ? null : state.currentProject,
       episodes: state.currentProject?.id === id ? [] : state.episodes,
       currentEpisode: state.currentProject?.id === id ? null : state.currentEpisode,
     }))
-    // 卸载该项目的素材库（延迟导入避免循环依赖）
     const { useMaterialStore } = await import('./useMaterialStore')
     useMaterialStore.getState().loadForProject(undefined)
   },
 
   selectProject: async (id) => {
-    const project = get().projects.find(p => p.id === id) ?? null
+    const project = get().projects.find(item => item.id === id) ?? null
     set({ currentProject: project, currentEpisode: null })
     if (project) {
       const episodes = await episodesByProject(id)
       set({ episodes })
-      // 切换项目素材库
       const { useMaterialStore } = await import('./useMaterialStore')
       await useMaterialStore.getState().loadForProject(id)
     }
@@ -107,14 +113,14 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
   },
 
   addEpisode: async (data) => {
-    const ep: Episode = { id: crypto.randomUUID(), sourceText: '', ...data }
+    const ep: Episode = { id: crypto.randomUUID(), ...data }
     await episodeAdd(ep)
     set(state => ({ episodes: [...state.episodes, ep].sort((a, b) => a.episodeNumber - b.episodeNumber) }))
     return ep
   },
 
   batchAddEpisodes: async (dataList) => {
-    const eps: Episode[] = dataList.map(d => ({ id: crypto.randomUUID(), sourceText: '', ...d }))
+    const eps: Episode[] = dataList.map(data => ({ id: crypto.randomUUID(), ...data }))
     await episodeBatchAdd(eps)
     set(state => ({
       episodes: [...state.episodes, ...eps].sort((a, b) => a.episodeNumber - b.episodeNumber),
@@ -124,7 +130,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
   updateEpisode: async (id, data) => {
     await episodeUpdate(id, data)
     set(state => ({
-      episodes: state.episodes.map(e => e.id === id ? { ...e, ...data } : e),
+      episodes: state.episodes.map(episode => episode.id === id ? { ...episode, ...data } : episode),
       currentEpisode: state.currentEpisode?.id === id
         ? { ...state.currentEpisode, ...data }
         : state.currentEpisode,
@@ -134,20 +140,20 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
   deleteEpisode: async (id) => {
     await episodeDelete(id)
     set(state => ({
-      episodes: state.episodes.filter(e => e.id !== id),
+      episodes: state.episodes.filter(episode => episode.id !== id),
       currentEpisode: state.currentEpisode?.id === id ? null : state.currentEpisode,
     }))
   },
 
   selectEpisode: (id) => {
-    const ep = id ? get().episodes.find(e => e.id === id) ?? null : null
+    const ep = id ? get().episodes.find(episode => episode.id === id) ?? null : null
     set({ currentEpisode: ep })
   },
 
   updateEpisodeStatus: async (id, status) => {
     await episodeUpdate(id, { status })
     set(state => ({
-      episodes: state.episodes.map(e => e.id === id ? { ...e, status } : e),
+      episodes: state.episodes.map(episode => episode.id === id ? { ...episode, status } : episode),
       currentEpisode: state.currentEpisode?.id === id
         ? { ...state.currentEpisode, status }
         : state.currentEpisode,

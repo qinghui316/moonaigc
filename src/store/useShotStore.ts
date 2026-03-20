@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { ShotData } from '../types'
+import type { AssetType, ShotData } from '../types'
 import { parseTableRows } from '../utils/parseTable'
 
 interface ShotImageInfo {
@@ -8,27 +8,46 @@ interface ShotImageInfo {
   mediaFileId?: number
 }
 
+interface ShotMaterialRefSelection {
+  name: string
+  type: AssetType
+  desc: string
+  imageUrl: string
+  imageFileId: number
+}
+
+interface ShotLocalRefSelection {
+  id: string
+  base64: string
+  mimeType: string
+  name: string
+}
+
 interface ShotStoreState {
   shots: ShotData[]
   shotImages: Record<number, ShotImageInfo>
-  // rowIndex -> shotId (DB id)
   shotIds: Record<number, number>
-  // 持久化每个镜头的已编辑提示词（AI精炼或手动修改后），切页面不丢失
   editedPrompts: Record<number, string>
+  selectedMaterialRefs: Record<number, ShotMaterialRefSelection[]>
+  selectedLocalRefs: Record<number, ShotLocalRefSelection[]>
   parseFromMarkdown: (md: string) => ShotData[]
   loadShotsFromDB: (historyId: number) => Promise<void>
   saveShotsToDB: (historyId: number, shots: ShotData[]) => Promise<void>
   setShotImage: (rowIndex: number, info: ShotImageInfo) => void
   clearShotImage: (rowIndex: number) => void
   setEditedPrompt: (rowIndex: number, prompt: string) => void
+  setSelectedMaterialRefs: (rowIndex: number, refs: ShotMaterialRefSelection[]) => void
+  setSelectedLocalRefs: (rowIndex: number, refs: ShotLocalRefSelection[]) => void
   clearEditedPrompts: () => void
+  clearSelectedRefs: () => void
 }
 
 function mapRowToShot(headers: string[], row: string[]): ShotData {
   const get = (key: string) => {
-    const i = headers.findIndex(h => h.includes(key))
-    return i >= 0 ? (row[i] ?? '') : ''
+    const columnIndex = headers.findIndex(header => header.includes(key))
+    return columnIndex >= 0 ? (row[columnIndex] ?? '') : ''
   }
+
   return {
     time: get('时间'),
     shotType: get('景别'),
@@ -45,6 +64,8 @@ export const useShotStore = create<ShotStoreState>((set) => ({
   shotImages: {},
   shotIds: {},
   editedPrompts: {},
+  selectedMaterialRefs: {},
+  selectedLocalRefs: {},
 
   parseFromMarkdown: (md) => {
     const { headers, rows } = parseTableRows(md)
@@ -56,33 +77,34 @@ export const useShotStore = create<ShotStoreState>((set) => ({
   loadShotsFromDB: async (historyId) => {
     try {
       const resp = await fetch(`/api/shots?historyId=${historyId}`)
-      if (resp.ok) {
-        const raw = await resp.json() as Array<Record<string, unknown>>
-        const shots: ShotData[] = raw.map(s => ({
-          time: s.timeRange as string ?? '',
-          shotType: s.shotType as string ?? '',
-          camera: s.camera as string ?? '',
-          scene: s.scene as string ?? '',
-          lighting: s.lighting as string ?? '',
-          drama: s.drama as string ?? '',
-          prompt: s.prompt as string ?? '',
-        }))
-        // 构建 shotIds (rowIndex -> DB id) 和 shotImages (从 imageFile 恢复)
-        const shotIds: Record<number, number> = {}
-        const shotImages: Record<number, ShotImageInfo> = {}
-        raw.forEach((s, idx) => {
-          if (typeof s.id === 'number') shotIds[idx] = s.id
-          const imgFile = s.imageFile as Record<string, unknown> | null | undefined
-          if (imgFile && imgFile.id) {
-            shotImages[idx] = {
-              url: `/api/media/${imgFile.id}/file`,
-              prompt: s.prompt as string ?? '',
-              mediaFileId: imgFile.id as number,
-            }
+      if (!resp.ok) return
+
+      const raw = await resp.json() as Array<Record<string, unknown>>
+      const shots: ShotData[] = raw.map(item => ({
+        time: item.timeRange as string ?? '',
+        shotType: item.shotType as string ?? '',
+        camera: item.camera as string ?? '',
+        scene: item.scene as string ?? '',
+        lighting: item.lighting as string ?? '',
+        drama: item.drama as string ?? '',
+        prompt: item.prompt as string ?? '',
+      }))
+
+      const shotIds: Record<number, number> = {}
+      const shotImages: Record<number, ShotImageInfo> = {}
+      raw.forEach((item, index) => {
+        if (typeof item.id === 'number') shotIds[index] = item.id
+        const imageFile = item.imageFile as Record<string, unknown> | null | undefined
+        if (imageFile?.id) {
+          shotImages[index] = {
+            url: `/api/media/${imageFile.id}/file`,
+            prompt: item.prompt as string ?? '',
+            mediaFileId: imageFile.id as number,
           }
-        })
-        set({ shots, shotIds, shotImages })
-      }
+        }
+      })
+
+      set({ shots, shotIds, shotImages })
     } catch {
       // ignore
     }
@@ -116,7 +138,19 @@ export const useShotStore = create<ShotStoreState>((set) => ({
     set(state => ({ editedPrompts: { ...state.editedPrompts, [rowIndex]: prompt } }))
   },
 
+  setSelectedMaterialRefs: (rowIndex, refs) => {
+    set(state => ({ selectedMaterialRefs: { ...state.selectedMaterialRefs, [rowIndex]: refs } }))
+  },
+
+  setSelectedLocalRefs: (rowIndex, refs) => {
+    set(state => ({ selectedLocalRefs: { ...state.selectedLocalRefs, [rowIndex]: refs } }))
+  },
+
   clearEditedPrompts: () => {
     set({ editedPrompts: {} })
+  },
+
+  clearSelectedRefs: () => {
+    set({ selectedMaterialRefs: {}, selectedLocalRefs: {} })
   },
 }))

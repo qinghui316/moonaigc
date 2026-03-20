@@ -13,6 +13,7 @@ import materialsRouter from './routes/materials'
 import aiProxyRouter from './routes/aiProxy'
 import mediaRouter from './routes/media'
 import shotsRouter from './routes/shots'
+import gridResultsRouter from './routes/gridResults'
 config()
 
 export const prisma = new PrismaClient()
@@ -41,6 +42,7 @@ app.use('/api/materials', materialsRouter)
 app.use('/api/ai', aiProxyRouter)
 app.use('/api/media', mediaRouter)
 app.use('/api/shots', shotsRouter)
+app.use('/api/grid-results', gridResultsRouter)
 // Production: serve built frontend
 if (process.env.NODE_ENV === 'production') {
   const distPath = path.resolve(__dirname, '../../dist')

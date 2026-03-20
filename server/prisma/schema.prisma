@@ -18,6 +18,7 @@ model User {
   projects     Project[]
   history      HistoryRecord[]
   materialSets MaterialSet[]
+  gridResults  GridResult[]
 }
 
 model UserSettings {
@@ -80,6 +81,7 @@ model Project {
   history      HistoryRecord[]
   materialSets MaterialSet[]
   mediaFiles   MediaFile[]
+  gridResults  GridResult[]
 }
 
 model Episode {
@@ -95,7 +97,8 @@ model Episode {
   status        String   @default("outline")
   sourceText    String   @default("")  // 该集对应的原始文本片段
 
-  history HistoryRecord[]
+  history     HistoryRecord[]
+  gridResults GridResult[]
 }
 
 model HistoryRecord {
@@ -114,7 +117,8 @@ model HistoryRecord {
   storyboard String   @default("")
   time       String   @default("")
 
-  shots Shot[]
+  shots       Shot[]
+  gridResults GridResult[]
 }
 
 model MaterialSet {
@@ -167,6 +171,46 @@ model MediaFile {
   assetType  String?  // "character" | "scene" | "props" | "shot"
   assetSlot  String?  // 素材槽位标识
 
-  shotImages Shot[] @relation("ShotImage")
-  shotVideos Shot[] @relation("ShotVideo")
+  shotImages       Shot[]       @relation("ShotImage")
+  shotVideos       Shot[]       @relation("ShotVideo")
+  gridResultImages GridResult[] @relation("GridResultImage")
+}
+
+model GridResult {
+  id               Int            @id @default(autoincrement())
+  userId           String
+  user             User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  projectId        String?
+  project          Project?       @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  episodeId        String?
+  episode          Episode?       @relation(fields: [episodeId], references: [id], onDelete: SetNull)
+  historyId        Int?
+  history          HistoryRecord? @relation(fields: [historyId], references: [id], onDelete: SetNull)
+  mediaFileId      Int?
+  mediaFile        MediaFile?     @relation("GridResultImage", fields: [mediaFileId], references: [id], onDelete: SetNull)
+  layout           String         @default("3x3")
+  aspectRatio      String         @default("16:9")
+  sourceShotRefs   Json           @default("[]")
+  usedReferenceImages Json        @default("[]")
+  rawModelOutput   String         @default("")
+  validationPassed Boolean        @default(true)
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  panels GridPanel[]
+}
+
+model GridPanel {
+  id              Int        @id @default(autoincrement())
+  gridResultId    Int
+  gridResult      GridResult @relation(fields: [gridResultId], references: [id], onDelete: Cascade)
+  panelOrder      Int
+  timeRange       String     @default("")
+  seedancePrompt  String     @default("")
+  sourceSeedancePrompts Json @default("[]")
+  imagePromptText String     @default("")
+  sourceShotRefs  Json       @default("[]")
+  createdAt       DateTime   @default(now())
+
+  @@unique([gridResultId, panelOrder])
 }

@@ -239,6 +239,7 @@ const ScriptWorkPage: React.FC<ScriptWorkPageProps> = ({ onNavigate, onLoadEpiso
             mark: ep.mark,
             script: '',
             status: 'outline' as const,
+            sourceText: '',
           })))
         } catch { /* ignore parse error */ }
       }
@@ -304,6 +305,7 @@ const ScriptWorkPage: React.FC<ScriptWorkPageProps> = ({ onNavigate, onLoadEpiso
               mark: ep.mark,
               script: '',
               status: 'outline' as const,
+              sourceText: '',
             })))
           } catch { /* ignore parse error */ }
         }

@@ -1,65 +1,93 @@
-import type { Materials } from '../types'
-import type { ApiSettings } from '../types'
+import type { Materials, ApiSettings } from '../types'
 import { STYLE_MAP_EN, DEFAULT_STYLE_EN } from '../data/styleMap'
 import { detectStyleFromText } from '../data/styleAutoMap'
 
-// 解析 SEEDANCE 七维格式，对齐 V6 的 Zn 函数
-// 同时接收表格列值作为回退（当 SEEDANCE 字段为空时）
+type SeedanceFallback = {
+  shotType?: string
+  camera?: string
+  scene?: string
+  lighting?: string
+}
+
+const SEEDANCE_FIELDS: Array<[string, RegExp]> = [
+  ['镜头', /镜头[：:]\s*(.+?)(?=\s*环境[：:]|\s*叙事目的[：:]|\s*角色分动[：:]|$)/s],
+  ['环境', /环境[：:]\s*(.+?)(?=\s*叙事目的[：:]|\s*衔接[：:]|\s*角色分动[：:]|\s*细节[：:]|$)/s],
+  ['叙事目的', /叙事目的[：:]\s*(.+?)(?=\s*衔接[：:]|\s*角色分动[：:]|\s*细节[：:]|$)/s],
+  ['衔接', /衔接[：:]\s*(.+?)(?=\s*角色分动[：:]|\s*细节[：:]|\s*光影[：:]|$)/s],
+  ['角色分动', /角色分动[：:]\s*(.+?)(?=\s*细节[：:]|\s*光影[：:]|$)/s],
+  ['细节', /细节[：:]\s*(.+?)(?=\s*光影[：:]|\s*台词[：:]|$)/s],
+  ['光影', /光影[：:]\s*(.+?)(?=\s*台词[：:]|\s*音效[：:]|$)/s],
+  ['台词', /台词(?:[(（][^)）]*[)）])?[：:]\s*"?(.+?)"?(?=\s*音效[：:]|$)/s],
+  ['音效', /音效[：:]\s*(.+?)$/s],
+]
+
+function compactText(text: string): string {
+  return text.replace(/\s+/g, ' ').trim()
+}
+
+function clampText(text: string, max = 160): string {
+  const trimmed = compactText(text)
+  if (trimmed.length <= max) return trimmed
+  return `${trimmed.slice(0, max).trim()}…`
+}
+
+function normalizePromptLine(text: string): string {
+  return compactText(
+    text
+      .replace(/^[\-•]\s*/g, '')
+      .replace(/^参考图\d+\s*:\s*/g, '')
+      .replace(/^无参考图[:：]?\s*/g, '')
+  )
+}
+
+function buildReferenceBlock(refImageDescs: string[]): string {
+  if (refImageDescs.length === 0) return '无参考图'
+  return refImageDescs
+    .map((desc, index) => `参考图${index + 1}: [${normalizePromptLine(desc)}]`)
+    .join('\n')
+}
+
 export function parseSeedanceFields(
   prompt: string,
-  fallback?: { shotType?: string; camera?: string; scene?: string; lighting?: string }
+  fallback?: SeedanceFallback
 ): Record<string, string> {
   const fields: Record<string, string> = {}
-  // 更新字段顺序：镜头→环境→叙事目的→衔接→角色分动→细节→光影→台词→音效
-  const fieldPatterns: [string, RegExp][] = [
-    ['镜头', /镜头：(.+?)(?=\s*环境：|\s*叙事目的：|\s*角色分动：|$)/s],
-    ['环境', /环境：(.+?)(?=\s*叙事目的：|\s*衔接：|\s*角色分动：|\s*细节：|$)/s],
-    ['叙事目的', /叙事目的：(.+?)(?=\s*衔接：|\s*角色分动：|\s*细节：|$)/s],
-    ['衔接', /衔接：(.+?)(?=\s*角色分动：|\s*细节：|\s*光影：|$)/s],
-    ['角色分动', /角色分动：(.+?)(?=\s*细节：|\s*光影：|$)/s],
-    ['细节', /细节：(.+?)(?=\s*光影：|\s*台词|$)/s],
-    ['光影', /光影：(.+?)(?=\s*台词|\s*音效：|$)/s],
-    ['台词', /台词[(@（][^)）]*[)）][：:]\s*"?(.+?)"?(?=\s*台词[(@（]|\s*音效：|\s*$)/s],
-    ['音效', /音效：(.+?)(?=\s*\[禁|$)/s],
-  ]
-  for (const [key, re] of fieldPatterns) {
-    const m = prompt.match(re)
-    if (m) fields[key] = m[1].trim()
+
+  for (const [key, re] of SEEDANCE_FIELDS) {
+    const match = prompt.match(re)
+    if (match?.[1]) fields[key] = compactText(match[1])
   }
 
-  // 回退：从表格独立列值填充空字段（对齐 V6 的 Zn 函数）
-  if (fallback) {
-    if (!fields['镜头'] && (fallback.shotType || fallback.camera)) {
-      fields['镜头'] = [fallback.shotType, fallback.camera].filter(Boolean).join(' ')
-    }
-    if (!fields['光影'] && fallback.lighting) {
-      fields['光影'] = fallback.lighting
-    }
-    if (!fields['环境'] && fallback.scene) {
-      fields['环境'] = fallback.scene
-    }
+  if (!fields['镜头'] && (fallback?.shotType || fallback?.camera)) {
+    fields['镜头'] = compactText([fallback.shotType, fallback.camera].filter(Boolean).join(' '))
+  }
+  if (!fields['环境'] && fallback?.scene) {
+    fields['环境'] = compactText(fallback.scene)
+  }
+  if (!fields['光影'] && fallback?.lighting) {
+    fields['光影'] = compactText(fallback.lighting)
   }
 
   return fields
 }
 
-// 将 @人物N, @图片N 替换为素材库中的描述文字（对齐 V6 的 He 函数）
 export function expandAtTags(text: string, materials: Materials): string {
   let result = text
-  const allSlots = [
-    ...materials.character.map(m => ({ ...m, prefix: '@' })),
-    ...materials.image.map(m => ({ ...m, prefix: '@' })),
-    ...materials.props.map(m => ({ ...m, prefix: '@' })),
+  const slots = [
+    ...materials.character,
+    ...materials.image,
+    ...materials.props,
   ]
-  for (const slot of allSlots) {
+
+  for (const slot of slots) {
     if (!slot.name) continue
-    const re = new RegExp(`@${slot.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'g')
-    result = result.replace(re, slot.desc ? `[${slot.desc.slice(0, 60)}]` : slot.name)
+    const escaped = slot.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    result = result.replace(new RegExp(`@${escaped}`, 'g'), slot.desc ? `[${slot.desc.slice(0, 80)}]` : slot.name)
   }
+
   return result
 }
 
-// 去除 @xxx [...] 中的 @ 和中括号，保留纯文本（对齐 V6 的 Oe 函数）
 export function stripAtBrackets(text: string): string {
   return text
     .replace(/@(\S+)\s*\[([^\]]*)\]/g, '$2')
@@ -67,22 +95,26 @@ export function stripAtBrackets(text: string): string {
     .replace(/\[([^\]]*)\]/g, '$1')
 }
 
-// 去除拍摄指令标记
 export function cleanShootingMarks(text: string): string {
-  return text.replace(/\s*\[禁BGM\]\s*/g, ' ').replace(/\s*\[禁字幕\]\s*/g, ' ').trim()
+  return compactText(
+    text
+      .replace(/\s*\[禁BGM[^\]]*\]\s*/g, ' ')
+      .replace(/\s*\[禁字幕[^\]]*\]\s*/g, ' ')
+      .replace(/\s*拍摄指令[：:]\[[^\]]*\]\s*/g, ' ')
+  )
 }
 
-// 构建结构化输入（给 AI 精炼用，含回退逻辑）
-// materials 传入时，会先将各字段中的 @标签替换为素材库描述文字，再清洗符号
 export function buildStructuredInput(
   fields: Record<string, string>,
   styleCN: string,
   sceneDesc: string,
   materials?: Materials,
 ): string {
-  // 有素材库时：先 expandAtTags（替换 @标签为描述），再 stripAtBrackets（清洗符号）
-  const expand = (text: string) =>
-    materials ? stripAtBrackets(expandAtTags(text, materials)) : stripAtBrackets(text)
+  const expand = (text: string) => {
+    if (!text) return ''
+    const replaced = materials ? expandAtTags(text, materials) : text
+    return cleanShootingMarks(stripAtBrackets(replaced))
+  }
 
   const parts: string[] = []
   if (fields['镜头']) parts.push(`景别与运镜：${fields['镜头']}`)
@@ -91,18 +123,18 @@ export function buildStructuredInput(
   if (fields['角色分动']) parts.push(`角色动作：${expand(fields['角色分动'])}`)
   if (fields['细节']) parts.push(`情绪细节：${expand(fields['细节'])}`)
   if (fields['环境']) parts.push(`场景环境：${expand(fields['环境'])}`)
-  if (fields['光影']) parts.push(`光影氛围：${fields['光影']}`)
+  if (fields['光影']) parts.push(`光影氛围：${cleanShootingMarks(fields['光影'])}`)
   if (fields['台词']) parts.push(`台词暗示：${expand(fields['台词'])}`)
-  if (fields['音效']) parts.push(`音效暗示：${cleanShootingMarks(expand(fields['音效']))}`)
-  if (sceneDesc) parts.push(`画面描述：${sceneDesc}`)
+  if (fields['音效']) parts.push(`音效暗示：${expand(fields['音效'])}`)
+  if (sceneDesc) parts.push(`画面描述：${cleanShootingMarks(sceneDesc)}`)
   if (styleCN) parts.push(`视觉风格：${styleCN}`)
-  // 中文风格词自动识别：扫描场景描述，追加英文风格关键词（供 AI 精炼时参考）
-  const autoStyle = detectStyleFromText(sceneDesc + ' ' + styleCN, '')
+
+  const autoStyle = detectStyleFromText(`${sceneDesc} ${styleCN}`.trim(), '')
   if (autoStyle) parts.push(`自动风格补充：${autoStyle}`)
+
   return parts.join('\n')
 }
 
-// 直接拼接回退模式（英文），对齐 V6 的 buildDirectImagePrompt
 export function buildDirectImagePrompt(
   fields: Record<string, string>,
   styleKey: string,
@@ -112,68 +144,83 @@ export function buildDirectImagePrompt(
   const styleEN = STYLE_MAP_EN[styleKey] ?? DEFAULT_STYLE_EN
   const parts: string[] = []
 
-  // 参考图声明放开头
   if (refImageDescs.length > 0) {
-    parts.push(refImageDescs.map((d, i) => `Reference Image ${i + 1}: ${d}`).join(', '))
+    parts.push(refImageDescs.map((desc, i) => `Reference Image ${i + 1}: ${normalizePromptLine(desc)}`).join('. '))
+  } else {
+    parts.push('No reference image.')
   }
 
-  const action = stripAtBrackets(fields['角色分动'] ?? '')
-  if (action) parts.push(action)
+  parts.push(
+    'Single decisive cinematic moment, not a sequence.',
+    'Keep the same character identity, hairstyle, costume, environment architecture, and key prop state.',
+    'Do not add subtitles, dialogue bubbles, captions, logos, or extra props.'
+  )
 
-  const detail = stripAtBrackets(fields['细节'] ?? '')
-  if (detail) parts.push(detail)
+  const orderedSegments = [
+    fields['叙事目的'] ? `Narrative intent: ${stripAtBrackets(fields['叙事目的'])}.` : '',
+    fields['衔接'] ? `Transition cue: ${stripAtBrackets(fields['衔接'])}.` : '',
+    fields['角色分动'] ? `Subject action: ${stripAtBrackets(fields['角色分动'])}.` : '',
+    fields['细节'] ? `Expression and detail: ${stripAtBrackets(fields['细节'])}.` : '',
+    fields['环境'] ? `Environment state: ${cleanShootingMarks(stripAtBrackets(fields['环境']))}.` : '',
+    fields['光影'] ? `Lighting and composition: ${cleanShootingMarks(fields['光影'])}.` : '',
+    sceneDesc ? `Scene anchor: ${cleanShootingMarks(sceneDesc)}.` : '',
+  ].filter(Boolean)
 
-  const env = stripAtBrackets(cleanShootingMarks(fields['环境'] ?? ''))
-  if (env) parts.push(env)
+  parts.push(...orderedSegments)
+  parts.push(`Style: ${styleEN}.`)
 
-  const light = fields['光影'] ?? ''
-  if (light) parts.push(light)
-
-  if (sceneDesc) parts.push(sceneDesc)
-
-  parts.push(styleEN)
-
-  // 中文风格词自动识别：扫描场景描述，追加匹配到的英文风格
   const autoStyle = detectStyleFromText(sceneDesc, styleEN)
-  if (autoStyle) parts.push(autoStyle)
+  if (autoStyle) parts.push(`Additional style anchor: ${autoStyle}.`)
 
-  parts.push('high quality, cinematic, 8k')
+  parts.push('High quality, cinematic still, strong continuity control.')
 
-  return parts.filter(Boolean).join(', ')
+  return parts.join(' ')
 }
 
-// AI 精炼：将结构化 SEEDANCE 描述精炼为图片生成提示词（中文输出，200词）
-// 对齐 V6 的 Vn 函数，参考图声明放在开头
 export async function refinePromptViaAI(
   structuredInput: string,
   textSettings: ApiSettings,
   refImageDescs: string[],
 ): Promise<string> {
-  const systemPrompt = `你是专业分镜插画师，精通将分镜描述转化为图像生成提示词。
+  const systemPrompt = `你是专业分镜插画提示词设计师。你的任务是把结构化分镜描述，改写成适合图片生成模型使用的中文提示词。
 
-🔥【视觉连续性铁律（最高优先级）】：
-绝对优先遵守@标签括号内的描述（包含角色、道具、场景外观），这是保证全片一致性的核心锚点，必须完整体现在提示词中。
+必须遵守以下规则：
+1. 输出必须以参考图声明开头。如果有参考图，逐行写“参考图1: [...]”。如果没有参考图，第一行必须是“无参考图”。
+2. 输出顺序固定为：
+   参考图声明
+   全局一致性锚点
+   叙事目的与衔接
+   主体动作
+   场景与道具状态
+   光影与构图
+   风格尾段
+3. 只描述一个决定性瞬间，不写连续动作过程，不写“先……再……”。
+4. 绝对优先保留角色身份、脸部特征、发型、服装、场景架构、关键道具状态，不得随意改造、现代化或替换。
+5. 台词暗示和音效暗示只允许转成视觉状态、气氛和表演细节，不得生成字幕、对白框、对话文字。
+6. 不要输出字段名、JSON、@标签、括号说明、额外解释。
+7. 禁止出现“字幕、对白框、文字、logo、水印、额外人物、额外道具”等会诱导模型画出脏内容的指令。
+8. 全文控制在 180 到 240 字内，短而硬，不要空话。
 
-铁律（违反则失败）：
-1. 每镜只描述一个决定性瞬间的静止画面，禁止描述动作过程（如"A做完X然后B做Y"），而是捕捉该过程中最具张力的一帧定格：所有角色的姿态、表情、身体位置应是同一时刻的状态
-2. 推断道具-角色-环境的逻辑关联状态：角色手持游戏手柄 → 电视屏幕必须亮着显示游戏画面；角色看书 → 灯必须亮；角色喝水 → 杯子必须有水
-3. 【台词暗示】和【音效暗示】字段只提取场景状态信息，转化为视觉细节，不写进对话框
-4. 禁止输出@符号、括号标签、字段名等结构化标记
-5. 叙事意图：从结构化输入中的【叙事意图】和【衔接方式】字段提取，转化为构图引导（如"推进情节"→构图向前聚焦，"场景切换"→广角建立全景）
-6. 输出不超过 200 词，格式：参考图声明 → 叙事意图与衔接 → 主体动作 → 场景环境状态 → 光影构图 → 风格
-7. 若附带前一镜参考图（第一张），画面风格、色调、角色造型必须与其保持视觉连续性
-8. 开头必须先声明参考图，标注每张参考图对应的角色/场景/道具名称，确保图片生成模型能将参考图与提示词中的对应元素匹配。格式：参考图1: [类型-名称], 参考图2: [类型-名称]...。声明之后再写场景描述。`
+参考图声明示例：
+参考图1: [角色-林晚]
+参考图2: [场景-旧客厅]
 
-  const refBlock = refImageDescs.length > 0
-    ? `\n本次生图将附带以下参考图（图片文件单独传入，你需要在提示词开头先声明对应关系）：\n${refImageDescs.map((d, i) => `- 参考图${i + 1}: ${d}`).join('\n')}`
-    : `\n注意：本次无参考图，请在提示词开头写"无参考图"后直接描述场景。`
+输出风格要求：
+- 语言简洁，画面导向明确
+- 优先写稳定锚点，再写动作和构图
+- 尾段再补风格、镜头气质和质感词`
 
-  const userPrompt = `请将以下结构化分镜描述转写为图像生成提示词：\n\n${structuredInput}${refBlock}`
+  const refBlock = buildReferenceBlock(refImageDescs)
+  const userPrompt = `请把以下结构化分镜描述改写成图片生成提示词。\n\n结构化输入：\n${structuredInput}\n\n参考图信息：\n${refBlock}`
 
   const { generate } = await import('./api')
   const result = await generate(
-    [{ role: 'system', content: systemPrompt }, { role: 'user', content: userPrompt }],
+    [
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: userPrompt },
+    ],
     textSettings
   )
-  return result.trim()
+
+  return clampText(result.trim(), 320)
 }
