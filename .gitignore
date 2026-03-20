@@ -25,6 +25,7 @@ dist-ssr
 
 # Cursor
 .cursor/
+.codex/
 
 # Environment & secrets
 .env
