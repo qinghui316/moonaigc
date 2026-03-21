@@ -6,6 +6,16 @@ const SLOT_COUNT = 10
 
 const emptySlots = () => Array.from({ length: SLOT_COUNT }, () => ({ name: '', desc: '', file: null, url: null, imageFileId: undefined as number | undefined, imageUrl: undefined as string | undefined }))
 
+export const DEFAULT_TAG_MODE: AssetTagMode = { character: true, image: true, props: true }
+
+export const createEmptyMaterials = (): Materials => ({
+  character: emptySlots(),
+  image: emptySlots(),
+  props: emptySlots(),
+  video: [],
+  audio: [],
+})
+
 interface MaterialState {
   materials: Materials
   tagMode: AssetTagMode
@@ -33,14 +43,8 @@ interface MaterialState {
 }
 
 export const useMaterialStore = create<MaterialState>((set, get) => ({
-  materials: {
-    character: emptySlots(),
-    image: emptySlots(),
-    props: emptySlots(),
-    video: [],
-    audio: [],
-  },
-  tagMode: { character: true, image: true, props: true },
+  materials: createEmptyMaterials(),
+  tagMode: DEFAULT_TAG_MODE,
   currentProjectId: null,
 
   setSlot: (type, index, data) => {
@@ -93,11 +97,11 @@ export const useMaterialStore = create<MaterialState>((set, get) => ({
     try {
       const saved = await materialsGet<{ materials?: Materials; tagMode?: AssetTagMode }>(pid)
       if (saved?.materials) {
-        set({ materials: saved.materials, tagMode: saved.tagMode ?? { character: true, image: true, props: true } })
+        set({ materials: saved.materials, tagMode: saved.tagMode ?? DEFAULT_TAG_MODE })
       } else {
         set({
-          materials: { character: emptySlots(), image: emptySlots(), props: emptySlots(), video: [], audio: [] },
-          tagMode: { character: true, image: true, props: true },
+          materials: createEmptyMaterials(),
+          tagMode: DEFAULT_TAG_MODE,
         })
       }
     } catch {

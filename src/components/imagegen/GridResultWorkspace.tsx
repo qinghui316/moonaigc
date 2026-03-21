@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useSettingsStore } from '../../store/useSettingsStore'
 import { useMaterialStore } from '../../store/useMaterialStore'
 import { useHistoryStore } from '../../store/useHistoryStore'
@@ -23,6 +23,7 @@ import {
 } from '../../services/gridResults'
 import type { GridResultRecord, ImageGenSettings } from '../../types'
 import GridResultTable from './GridResultTable'
+import { getPreferredEpisodeId, setPreferredEpisodeId } from '../../utils/imagegenPrefs'
 
 interface SourceShotRow {
   index: number
@@ -36,6 +37,12 @@ interface SourceShotRow {
 interface GridResultWorkspaceProps {
   styleKey: string
   onStyleChange: (styleKey: string) => void
+}
+
+function isAbortError(err: unknown): boolean {
+  return err instanceof DOMException
+    ? err.name === 'AbortError'
+    : err instanceof Error && err.name === 'AbortError'
 }
 
 const GridResultWorkspace: React.FC<GridResultWorkspaceProps> = ({ styleKey, onStyleChange }) => {
@@ -59,12 +66,19 @@ const GridResultWorkspace: React.FC<GridResultWorkspaceProps> = ({ styleKey, onS
   const [status, setStatus] = useState('')
   const [error, setError] = useState('')
   const [lightboxSrc, setLightboxSrc] = useState<string | null>(null)
+  const gridDefaultsAppliedRef = useRef(false)
+  const generateAbortRef = useRef<AbortController | null>(null)
+  const regenerateAbortRef = useRef<AbortController | null>(null)
 
   const currentImagePlatform = IMAGE_PLATFORMS.find(p => p.id === imageSettings.platformId)
     ?? IMAGE_PLATFORMS[0]
   const currentModelDef = currentImagePlatform.models.find(m => m.value === imageSettings.model)
   const effectiveAspectRatios = currentModelDef?.aspectRatios ?? currentImagePlatform.aspectRatios
   const effectiveResolutions = currentModelDef?.resolutions ?? currentImagePlatform.resolutions
+  const resultDisplayNumbers = useMemo(
+    () => new Map(results.map((result, index) => [result.id, index + 1])),
+    [results],
+  )
   const latestRecordForEpisode = useCallback((episodeId?: string | null) => {
     if (!episodeId) return null
     const recs = history.filter(item => item.episodeId === episodeId)
@@ -77,6 +91,11 @@ const GridResultWorkspace: React.FC<GridResultWorkspaceProps> = ({ styleKey, onS
       void loadHistoryStore()
     }
   }, [history.length, loadHistoryStore, loadProjects])
+
+  useEffect(() => () => {
+    generateAbortRef.current?.abort()
+    regenerateAbortRef.current?.abort()
+  }, [])
 
   useEffect(() => {
     const { setImageSettings } = useSettingsStore.getState()
@@ -99,6 +118,7 @@ const GridResultWorkspace: React.FC<GridResultWorkspaceProps> = ({ styleKey, onS
   }, [imageSettings.model, imageSettings.platformId])
 
   useEffect(() => {
+    if (gridDefaultsAppliedRef.current) return
     const updates: Partial<ImageGenSettings> = {}
     if (effectiveAspectRatios.includes('16:9') && imageSettings.aspectRatio !== '16:9') {
       updates.aspectRatio = '16:9'
@@ -109,6 +129,7 @@ const GridResultWorkspace: React.FC<GridResultWorkspaceProps> = ({ styleKey, onS
     if (Object.keys(updates).length > 0) {
       useSettingsStore.getState().setImageSettings(updates)
     }
+    gridDefaultsAppliedRef.current = true
   }, [effectiveAspectRatios, effectiveResolutions, imageSettings.aspectRatio, imageSettings.imageResolution])
 
   const episodesWithRecord = useMemo(() => {
@@ -180,7 +201,7 @@ const GridResultWorkspace: React.FC<GridResultWorkspaceProps> = ({ styleKey, onS
   }, [selectProject])
 
   useEffect(() => {
-    if (currentProject?.id && selectedProjectId !== currentProject.id) {
+    if (!selectedProjectId && currentProject?.id) {
       setSelectedProjectId(currentProject.id)
     }
   }, [currentProject?.id, selectedProjectId])
@@ -192,6 +213,9 @@ const GridResultWorkspace: React.FC<GridResultWorkspaceProps> = ({ styleKey, onS
 
     const record = history.find(item => item.id === historyId)
     if (!record) return
+    if (record.projectId && record.episodeId) {
+      setPreferredEpisodeId(record.projectId, record.episodeId)
+    }
 
     const { headers, rows } = parseTableRows(record.storyboard)
     const parsed = rows.map((cells, index) => {
@@ -220,9 +244,13 @@ const GridResultWorkspace: React.FC<GridResultWorkspaceProps> = ({ styleKey, onS
   }, [history, loadResultsForEpisode])
 
   useEffect(() => {
-    if (!currentProject?.id || !currentEpisode?.id) return
+    if (!currentProject?.id) return
+    if (selectedHistoryId != null) return
     if (selectedProjectId !== currentProject.id) return
-    const latest = latestRecordForEpisode(currentEpisode.id)
+    const preferredEpisodeId = getPreferredEpisodeId(currentProject.id)
+    const targetEpisodeId = preferredEpisodeId ?? currentEpisode?.id ?? null
+    if (!targetEpisodeId) return
+    const latest = latestRecordForEpisode(targetEpisodeId)
     if (!latest || selectedHistoryId === latest.id) return
     void handleSelectHistory(latest.id)
   }, [
@@ -261,10 +289,12 @@ const GridResultWorkspace: React.FC<GridResultWorkspaceProps> = ({ styleKey, onS
     [selectedSourceShots],
   )
 
-  const lockSelection = false
-
   const handleGenerate = useCallback(async () => {
-    if (lockSelection) {
+    if (generating) {
+      generateAbortRef.current?.abort()
+      return
+    }
+    if (false) {
       setError('当前集已有宫格结果，删除后才能重新选择源分镜并生成')
       return
     }
@@ -288,6 +318,10 @@ const GridResultWorkspace: React.FC<GridResultWorkspaceProps> = ({ styleKey, onS
     setGenerating(true)
     setError('')
     setStatus('生成 9 宫格分镜中...')
+    const abortController = new AbortController()
+    generateAbortRef.current = abortController
+    let createdResultId: number | null = null
+    let mediaPersisted = false
 
     try {
       const sourceShots: GridSourceShot[] = selectedSourceShots.map(row => ({
@@ -358,6 +392,7 @@ const GridResultWorkspace: React.FC<GridResultWorkspaceProps> = ({ styleKey, onS
         STYLE_MAP[styleKey] ?? styleKey,
         imageSettings.aspectRatio,
         textSettings,
+        abortController.signal,
       )
 
       const created = await createGridResult({
@@ -388,6 +423,7 @@ const GridResultWorkspace: React.FC<GridResultWorkspaceProps> = ({ styleKey, onS
           }
         }) ?? [],
       })
+      createdResultId = created.id
 
       setStatus('生成 9 宫格图片中...')
 
@@ -409,6 +445,7 @@ const GridResultWorkspace: React.FC<GridResultWorkspaceProps> = ({ styleKey, onS
         refImages,
         negativePrompt,
         materialRefs.map(ref => ref.imageFileId),
+        abortController.signal,
       )
 
       let mediaFileId: number | undefined
@@ -426,6 +463,7 @@ const GridResultWorkspace: React.FC<GridResultWorkspaceProps> = ({ styleKey, onS
             projectId: currentHistory.projectId,
             episodeId: currentHistory.episodeId,
           }),
+          signal: abortController.signal,
         })
         if (!uploadResp.ok) throw new Error('宫格图上传失败')
         const uploadData = await uploadResp.json() as { id: number; url: string }
@@ -437,7 +475,7 @@ const GridResultWorkspace: React.FC<GridResultWorkspaceProps> = ({ styleKey, onS
           refId: String(created.id),
           projectId: currentHistory.projectId,
           episodeId: currentHistory.episodeId,
-        })
+        }, abortController.signal)
         if (!uploaded) throw new Error('宫格图下载保存失败')
         mediaFileId = uploaded.id
         mediaUrl = uploaded.url
@@ -447,6 +485,7 @@ const GridResultWorkspace: React.FC<GridResultWorkspaceProps> = ({ styleKey, onS
 
       if (mediaFileId) {
         await updateGridResultMedia(created.id, mediaFileId)
+        mediaPersisted = true
       }
 
       await loadResultsForEpisode(currentHistory.projectId ?? '', currentHistory.episodeId)
@@ -462,16 +501,29 @@ const GridResultWorkspace: React.FC<GridResultWorkspaceProps> = ({ styleKey, onS
       }
       setStatus('宫格结果已保存，源分镜已冻结')
     } catch (err) {
-      setError(String(err))
-      setStatus('')
+      if (createdResultId != null && !mediaPersisted) {
+        try {
+          await deleteGridResult(createdResultId)
+        } catch {
+          // ignore rollback errors
+        }
+      }
+      if (isAbortError(err)) {
+        setError('')
+        setStatus('已取消生成')
+      } else {
+        setError(String(err))
+        setStatus('')
+      }
     } finally {
+      generateAbortRef.current = null
       setGenerating(false)
     }
   }, [
     currentHistory,
+    generating,
     imageSettings,
     loadResultsForEpisode,
-    lockSelection,
     materials,
     selectedHistoryId,
     selectedSourceShots,
@@ -482,7 +534,11 @@ const GridResultWorkspace: React.FC<GridResultWorkspaceProps> = ({ styleKey, onS
   ])
 
   const handleRegenerateResult = useCallback(async () => {
-    if (!selectedResult || regenerating) return
+    if (regenerating) {
+      regenerateAbortRef.current?.abort()
+      return
+    }
+    if (!selectedResult) return
     if (!imageSettings.key) {
       setError('请先配置图片生成 API Key')
       return
@@ -491,6 +547,8 @@ const GridResultWorkspace: React.FC<GridResultWorkspaceProps> = ({ styleKey, onS
     setRegenerating(true)
     setError('')
     setStatus('重新生成宫格图片中...')
+    const abortController = new AbortController()
+    regenerateAbortRef.current = abortController
 
     try {
       const materialRefs = (selectedResult.usedReferenceImages ?? [])
@@ -530,6 +588,7 @@ const GridResultWorkspace: React.FC<GridResultWorkspaceProps> = ({ styleKey, onS
         refImages,
         negativePrompt,
         materialRefs.map(ref => ref.imageFileId).filter((id): id is number => typeof id === 'number'),
+        abortController.signal,
       )
 
       let mediaFileId: number | undefined
@@ -547,6 +606,7 @@ const GridResultWorkspace: React.FC<GridResultWorkspaceProps> = ({ styleKey, onS
             projectId: selectedResult.projectId,
             episodeId: selectedResult.episodeId,
           }),
+          signal: abortController.signal,
         })
         if (!uploadResp.ok) throw new Error('宫格图上传失败')
         const uploadData = await uploadResp.json() as { id: number; url: string }
@@ -558,7 +618,7 @@ const GridResultWorkspace: React.FC<GridResultWorkspaceProps> = ({ styleKey, onS
           refId: String(selectedResult.id),
           projectId: selectedResult.projectId ?? undefined,
           episodeId: selectedResult.episodeId ?? undefined,
-        })
+        }, abortController.signal)
         if (!uploaded) throw new Error('宫格图下载保存失败')
         mediaFileId = uploaded.id
         mediaUrl = uploaded.url
@@ -584,9 +644,15 @@ const GridResultWorkspace: React.FC<GridResultWorkspaceProps> = ({ styleKey, onS
       }
       setStatus('宫格图片已重新生成')
     } catch (err) {
-      setError(String(err))
-      setStatus('')
+      if (isAbortError(err)) {
+        setError('')
+        setStatus('已取消生成')
+      } else {
+        setError(String(err))
+        setStatus('')
+      }
     } finally {
+      regenerateAbortRef.current = null
       setRegenerating(false)
     }
   }, [
@@ -638,7 +704,6 @@ const GridResultWorkspace: React.FC<GridResultWorkspaceProps> = ({ styleKey, onS
             <select
               value={selectedProjectId}
               onChange={e => void handleSelectProject(e.target.value)}
-              disabled={!!currentProject}
               className="h-10 w-full bg-gray-800 border border-gray-700 text-gray-200 text-sm px-3 rounded-xl focus:outline-none focus:border-amber-500"
             >
               <option value="">选择项目</option>
@@ -653,7 +718,7 @@ const GridResultWorkspace: React.FC<GridResultWorkspaceProps> = ({ styleKey, onS
             <select
               value={selectedHistoryId ?? ''}
               onChange={e => e.target.value && void handleSelectHistory(Number(e.target.value))}
-              disabled={!selectedProjectId || !!currentEpisode}
+              disabled={!selectedProjectId}
               className="h-10 w-full bg-gray-800 border border-gray-700 text-gray-200 text-sm px-3 rounded-xl focus:outline-none focus:border-amber-500 disabled:opacity-60"
             >
               <option value="">选择集数</option>
@@ -724,10 +789,10 @@ const GridResultWorkspace: React.FC<GridResultWorkspaceProps> = ({ styleKey, onS
             </div>
             <button
               onClick={() => void handleGenerate()}
-              disabled={generating || selectedSourceShots.length === 0}
+              disabled={!generating && selectedSourceShots.length === 0}
               className="h-10 text-sm bg-purple-700 hover:bg-purple-600 text-white px-4 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
             >
-              {generating ? '生成中...' : '生成 9 宫格'}
+              {generating ? '取消生成' : '生成 9 宫格'}
             </button>
           </div>
         </div>
@@ -740,7 +805,6 @@ const GridResultWorkspace: React.FC<GridResultWorkspaceProps> = ({ styleKey, onS
 
         {(status || error) && (
           <div className="mt-1.5 flex flex-wrap items-center gap-4 text-xs">
-            {lockSelection && <div className="text-amber-400">当前集已有宫格结果，源分镜选择已冻结，删除后才能重新选择</div>}
             {status && <div className="text-amber-400">{status}</div>}
             {error && <div className="text-red-400">{error}</div>}
           </div>
@@ -825,7 +889,7 @@ const GridResultWorkspace: React.FC<GridResultWorkspaceProps> = ({ styleKey, onS
                     <div className="w-16 h-10 rounded bg-gray-800 border border-dashed border-gray-700" />
                   )}
                   <div className="min-w-0">
-                    <div className="text-xs text-gray-200">结果 #{result.id}</div>
+                    <div className="text-xs text-gray-200">结果{resultDisplayNumbers.get(result.id) ?? result.id}</div>
                     <div className="text-[11px] text-gray-500">
                       {new Date(result.createdAt).toLocaleString('zh-CN', {
                         month: '2-digit',
@@ -870,17 +934,17 @@ const GridResultWorkspace: React.FC<GridResultWorkspaceProps> = ({ styleKey, onS
                 <div className="flex-1 min-w-0 space-y-3">
                   <div className="flex items-start justify-between gap-4">
                     <div>
-                      <div className="text-sm text-gray-300 font-medium">结果 #{selectedResult.id}</div>
+                      <div className="text-sm text-gray-300 font-medium">结果{resultDisplayNumbers.get(selectedResult.id) ?? selectedResult.id}</div>
                       <div className="text-xs text-gray-500">
                         {new Date(selectedResult.createdAt).toLocaleString('zh-CN')}
                       </div>
                     </div>
                     <button
                       onClick={() => void handleRegenerateResult()}
-                      disabled={regenerating || deleting}
+                      disabled={!regenerating && deleting}
                       className="mr-2 text-xs px-3 py-1.5 rounded-lg border border-amber-700/50 bg-amber-900/20 text-amber-300 hover:bg-amber-900/30 disabled:opacity-50"
                     >
-                      {regenerating ? '重新生成中...' : '重新生成'}
+                      {regenerating ? '取消生成' : '重新生成'}
                     </button>
                     <button
                       onClick={() => void handleDeleteResult()}

@@ -9,6 +9,8 @@ interface SettingsState {
   textSettings: ApiSettings
   visionSettings: ApiSettings
   imageSettings: ImageGenSettings
+  imageStyleKey: string
+  assetStyleKey: string
   platformKeys: PlatformDict
   visionPlatformKeys: PlatformDict
   imagePlatformKeys: PlatformDict
@@ -26,6 +28,8 @@ interface SettingsState {
   setTextSettings: (s: Partial<ApiSettings>) => void
   setVisionSettings: (s: Partial<ApiSettings>) => void
   setImageSettings: (s: Partial<ImageGenSettings>) => void
+  setImageStyleKey: (styleKey: string) => void
+  setAssetStyleKey: (styleKey: string) => void
   setFlag: (key: 'autoSafety' | 'autoSound' | 'enableWordFilter' | 'autoSaveHistory', val: boolean) => void
   load: () => Promise<void>
   persist: () => Promise<void>
@@ -59,6 +63,25 @@ const defaultImageSettings: ImageGenSettings = {
   key: '',
   aspectRatio: '1:1',
   imageResolution: '2K',
+}
+
+const IMAGE_STYLE_STORAGE_KEY = 'moonaigc.imageStyleKey'
+const ASSET_STYLE_STORAGE_KEY = 'moonaigc.assetStyleKey'
+
+function readLocalStyle(key: string, fallback: string) {
+  try {
+    return window.localStorage.getItem(key) ?? fallback
+  } catch {
+    return fallback
+  }
+}
+
+function writeLocalStyle(key: string, value: string) {
+  try {
+    window.localStorage.setItem(key, value)
+  } catch {
+    // ignore
+  }
 }
 
 function applyPlatformSwitch(
@@ -99,6 +122,8 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
   textSettings: defaultTextSettings,
   visionSettings: defaultVisionSettings,
   imageSettings: defaultImageSettings,
+  imageStyleKey: readLocalStyle(IMAGE_STYLE_STORAGE_KEY, 'cinematic'),
+  assetStyleKey: readLocalStyle(ASSET_STYLE_STORAGE_KEY, 'cinematic'),
   platformKeys: {},
   visionPlatformKeys: {},
   imagePlatformKeys: {},
@@ -127,7 +152,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
         platformEndpoints: r.endpoints,
       }
     })
-    get().persist()
+    if (get().isLoaded) get().persist()
   },
 
   setVisionSettings: (s) => {
@@ -143,7 +168,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
         visionPlatformEndpoints: r.endpoints,
       }
     })
-    get().persist()
+    if (get().isLoaded) get().persist()
   },
 
   setImageSettings: (s) => {
@@ -167,12 +192,24 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       }
       return { imageSettings: newSettings, imagePlatformKeys: nk, imagePlatformModels: nm, imagePlatformEndpoints: ne }
     })
-    get().persist()
+    if (get().isLoaded) get().persist()
+  },
+
+  setImageStyleKey: (styleKey) => {
+    set({ imageStyleKey: styleKey })
+    writeLocalStyle(IMAGE_STYLE_STORAGE_KEY, styleKey)
+    if (get().isLoaded) get().persist()
+  },
+
+  setAssetStyleKey: (styleKey) => {
+    set({ assetStyleKey: styleKey })
+    writeLocalStyle(ASSET_STYLE_STORAGE_KEY, styleKey)
+    if (get().isLoaded) get().persist()
   },
 
   setFlag: (key, val) => {
     set({ [key]: val })
-    get().persist()
+    if (get().isLoaded) get().persist()
   },
 
   load: async () => {
@@ -181,6 +218,8 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
         textSettings?: ApiSettings
         visionSettings?: ApiSettings
         imageSettings?: ImageGenSettings
+        imageStyleKey?: string
+        assetStyleKey?: string
         platformKeys?: PlatformDict
         visionPlatformKeys?: PlatformDict
         imagePlatformKeys?: PlatformDict
@@ -207,16 +246,19 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
         const ipe = saved.imagePlatformEndpoints ?? {}
 
         const ts = { ...defaultTextSettings, ...saved.textSettings }
+        if (!ts.key && pk[ts.platformId]) ts.key = pk[ts.platformId]
         if (ts.key && !pk[ts.platformId]) pk[ts.platformId] = ts.key
         if (ts.model && !pm[ts.platformId]) pm[ts.platformId] = ts.model
         if (ts.endpoint && !pe[ts.platformId]) pe[ts.platformId] = ts.endpoint
 
         const vs = { ...defaultVisionSettings, ...saved.visionSettings }
+        if (!vs.key && vpk[vs.platformId]) vs.key = vpk[vs.platformId]
         if (vs.key && !vpk[vs.platformId]) vpk[vs.platformId] = vs.key
         if (vs.model && !vpm[vs.platformId]) vpm[vs.platformId] = vs.model
         if (vs.endpoint && !vpe[vs.platformId]) vpe[vs.platformId] = vs.endpoint
 
         const is = { ...defaultImageSettings, ...saved.imageSettings }
+        if (!is.key && ipk[is.platformId]) is.key = ipk[is.platformId]
         if (is.key && !ipk[is.platformId]) ipk[is.platformId] = is.key
         if (is.model && !ipm[is.platformId]) ipm[is.platformId] = is.model
         if (is.endpoint && !ipe[is.platformId]) ipe[is.platformId] = is.endpoint
@@ -225,6 +267,8 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
           textSettings: ts,
           visionSettings: vs,
           imageSettings: is,
+          imageStyleKey: saved.imageStyleKey ?? readLocalStyle(IMAGE_STYLE_STORAGE_KEY, 'cinematic'),
+          assetStyleKey: saved.assetStyleKey ?? readLocalStyle(ASSET_STYLE_STORAGE_KEY, 'cinematic'),
           platformKeys: pk,
           visionPlatformKeys: vpk,
           imagePlatformKeys: ipk,
@@ -239,6 +283,11 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
           enableWordFilter: saved.enableWordFilter ?? true,
           autoSaveHistory: saved.autoSaveHistory ?? true,
         })
+      } else {
+        set({
+          imageStyleKey: readLocalStyle(IMAGE_STYLE_STORAGE_KEY, 'cinematic'),
+          assetStyleKey: readLocalStyle(ASSET_STYLE_STORAGE_KEY, 'cinematic'),
+        })
       }
     } catch {
       // ignore
@@ -252,6 +301,8 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       textSettings: state.textSettings,
       visionSettings: state.visionSettings,
       imageSettings: state.imageSettings,
+      imageStyleKey: state.imageStyleKey,
+      assetStyleKey: state.assetStyleKey,
       platformKeys: state.platformKeys,
       visionPlatformKeys: state.visionPlatformKeys,
       imagePlatformKeys: state.imagePlatformKeys,

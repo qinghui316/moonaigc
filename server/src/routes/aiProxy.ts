@@ -15,6 +15,29 @@ interface ProxyBody {
   stream?: boolean
 }
 
+function sleepWithSignal(ms: number, signal: AbortSignal): Promise<void> {
+  if (signal.aborted) {
+    return Promise.reject(signal.reason ?? new Error('Aborted'))
+  }
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      signal.removeEventListener('abort', onAbort)
+      resolve()
+    }, ms)
+    const onAbort = () => {
+      clearTimeout(timer)
+      reject(signal.reason ?? new Error('Aborted'))
+    }
+    signal.addEventListener('abort', onAbort, { once: true })
+  })
+}
+
+function isAbortError(err: unknown): boolean {
+  return err instanceof DOMException
+    ? err.name === 'AbortError'
+    : err instanceof Error && err.name === 'AbortError'
+}
+
 function buildHeaders(settings: ProxySettings): Record<string, string> {
   if (settings.mode === 'anthropic') {
     return {
@@ -80,6 +103,12 @@ router.post('/generate', async (req: Request, res: Response) => {
     const data = await upstream.json()
     res.json(data)
   } catch (err) {
+    if (isAbortError(err)) {
+      if (!res.headersSent && !res.writableEnded) {
+        res.status(499).json({ error: 'Request cancelled' })
+      }
+      return
+    }
     if (!res.headersSent) {
       res.status(502).json({ error: String(err) })
     }
@@ -137,6 +166,12 @@ router.post('/stream', async (req: Request, res: Response) => {
 
 // POST /api/ai/image - 图片生成代理
 router.post('/image', async (req: Request, res: Response) => {
+  const abortController = new AbortController()
+  const timeout = setTimeout(() => abortController.abort(new DOMException('Timed out', 'AbortError')), 7 * 60 * 1000)
+  req.on('close', () => {
+    abortController.abort(new DOMException('Client closed request', 'AbortError'))
+  })
+
   try {
     const { settings, prompt, refImages, negativePrompt, refImageIds } = req.body as {
       settings: {
@@ -254,6 +289,7 @@ router.post('/image', async (req: Request, res: Response) => {
               method: 'POST',
               headers: rhUploadHeaders,
               body: formData,
+              signal: abortController.signal,
             })
             if (uploadResp.ok) {
               const uploadData = await uploadResp.json() as { code: number; data?: { download_url: string } }
@@ -305,7 +341,12 @@ router.post('/image', async (req: Request, res: Response) => {
 
       // Step1: 提交任务
       console.log('[RunningHub] 提交任务:', submitUrl, JSON.stringify({ ...submitBody, prompt: submitBody.prompt?.toString().slice(0, 50) }))
-      const submitResp = await fetch(submitUrl, { method: 'POST', headers: rhHeaders, body: JSON.stringify(submitBody) })
+      const submitResp = await fetch(submitUrl, {
+        method: 'POST',
+        headers: rhHeaders,
+        body: JSON.stringify(submitBody),
+        signal: abortController.signal,
+      })
       console.log('[RunningHub] 提交状态码:', submitResp.status)
       if (!submitResp.ok) {
         const text = await submitResp.text()
@@ -327,12 +368,13 @@ router.post('/image', async (req: Request, res: Response) => {
       const maxRetries = 84
       let attempt = 0
       while (attempt < maxRetries) {
-        await new Promise(r => setTimeout(r, 5000))
+        await sleepWithSignal(5000, abortController.signal)
         attempt++
         const queryResp = await fetch(queryUrl, {
           method: 'POST',
           headers: rhHeaders,
           body: JSON.stringify({ taskId }),
+          signal: abortController.signal,
         })
         if (!queryResp.ok) continue
         const queryData = await queryResp.json() as {
@@ -374,7 +416,7 @@ router.post('/image', async (req: Request, res: Response) => {
       method: 'POST',
       headers,
       body: JSON.stringify(body),
-      signal: AbortSignal.timeout(7 * 60 * 1000), // 7分钟超时
+      signal: abortController.signal,
     })
     if (!upstream.ok) {
       const text = await upstream.text()
@@ -384,9 +426,17 @@ router.post('/image', async (req: Request, res: Response) => {
     const data = await upstream.json()
     res.json(data)
   } catch (err) {
+    if (isAbortError(err)) {
+      if (!res.headersSent && !res.writableEnded) {
+        res.status(499).json({ error: 'Request cancelled' })
+      }
+      return
+    }
     if (!res.headersSent) {
       res.status(502).json({ error: String(err) })
     }
+  } finally {
+    clearTimeout(timeout)
   }
 })
 

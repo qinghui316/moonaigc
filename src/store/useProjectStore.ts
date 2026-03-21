@@ -3,7 +3,9 @@ import type { Project, Episode } from '../types'
 import {
   projectAdd, projectUpdate, projectGetAll, projectDelete,
   episodeAdd, episodeBatchAdd, episodeUpdate, episodesByProject, episodeDelete,
+  materialsSave,
 } from '../services/db'
+import { createEmptyMaterials, DEFAULT_TAG_MODE } from './useMaterialStore'
 
 type ProjectInput = Omit<Project, 'id' | 'createdAt' | 'updatedAt'>
 
@@ -63,6 +65,10 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
       ...withProjectDefaults(data),
     }
     await projectAdd(p)
+    await materialsSave(p.id, {
+      materials: createEmptyMaterials(),
+      tagMode: DEFAULT_TAG_MODE,
+    })
     set(state => ({ projects: [p, ...state.projects] }))
     return p
   },

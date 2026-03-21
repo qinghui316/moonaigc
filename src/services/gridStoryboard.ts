@@ -189,6 +189,7 @@ export async function generateNineGridStoryboard(
   styleLabel: string,
   aspectRatio: string,
   textSettings: ApiSettings,
+  signal?: AbortSignal,
 ): Promise<GridStoryboardResult> {
   const rawText = await generate(
     [
@@ -203,6 +204,7 @@ export async function generateNineGridStoryboard(
       },
     ] satisfies ApiMessage[],
     textSettings,
+    signal,
   )
 
   try {

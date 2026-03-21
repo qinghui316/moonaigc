@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useMemo } from 'react'
+import React, { useState, useCallback, useEffect, useMemo, useRef } from 'react'
 import { useSettingsStore } from '../../store/useSettingsStore'
 import { useMaterialStore } from '../../store/useMaterialStore'
 import { useHistoryStore } from '../../store/useHistoryStore'
@@ -15,6 +15,7 @@ import GridModal from './GridModal'
 import GridResultWorkspace from './GridResultWorkspace'
 import RefImagePickerModal, { type ManualRefItem } from './RefImagePickerModal'
 import type { ImageGenSettings } from '../../types'
+import { getPreferredEpisodeId, setPreferredEpisodeId } from '../../utils/imagegenPrefs'
 
 interface ShotRow {
   index: number
@@ -26,7 +27,7 @@ interface ShotRow {
 }
 
 const ImageGenPage: React.FC<{ selectedRowIndex?: number | null }> = ({ selectedRowIndex = null }) => {
-  const { textSettings, imageSettings } = useSettingsStore()
+  const { textSettings, imageSettings, imageStyleKey, setImageStyleKey } = useSettingsStore()
   const materialStore = useMaterialStore()
   const { records: history } = useHistoryStore()
   const shotStore = useShotStore()
@@ -72,19 +73,22 @@ const ImageGenPage: React.FC<{ selectedRowIndex?: number | null }> = ({ selected
   const [generating, setGenerating] = useState<Record<number, boolean>>({})
   const [generatedImages, setGeneratedImages] = useState<Record<number, string>>({})
   const [error, setError] = useState('')
-  const [styleKey, setStyleKey] = useState('cinematic')
+  const styleKey = imageStyleKey
   const [selectedItems, setSelectedItems] = useState<Set<number>>(new Set())
   const [batchGenerating, setBatchGenerating] = useState(false)
   const [batchStatus, setBatchStatus] = useState('')
   const [lightboxSrc, setLightboxSrc] = useState<string | null>(null)
   const [pageMode, setPageMode] = useState<'shots' | 'grid'>('shots')
   const [showGridModal, setShowGridModal] = useState(false)
+  const gridDefaultsAppliedRef = useRef(false)
   useEffect(() => {
     if (pageMode !== 'grid') return
+    if (gridDefaultsAppliedRef.current) return
     const updates: Partial<ImageGenSettings> = {}
     if (effectiveAspectRatios.includes('16:9') && imageSettings.aspectRatio !== '16:9') updates.aspectRatio = '16:9'
     if (effectiveResolutions.some(item => item.value === '4K') && imageSettings.imageResolution !== '4K') updates.imageResolution = '4K'
     if (Object.keys(updates).length > 0) useSettingsStore.getState().setImageSettings(updates)
+    gridDefaultsAppliedRef.current = true
   }, [pageMode, effectiveAspectRatios, effectiveResolutions, imageSettings.aspectRatio, imageSettings.imageResolution])
   // 手动参考图管理
   const [manualRefs, setManualRefs] = useState<ManualRefItem[]>([])
@@ -115,6 +119,9 @@ const ImageGenPage: React.FC<{ selectedRowIndex?: number | null }> = ({ selected
     setSelectedHistoryId(id)
     const rec = history.find(h => h.id === id)
     if (!rec) return
+    if (rec.projectId && rec.episodeId) {
+      setPreferredEpisodeId(rec.projectId, rec.episodeId)
+    }
     // 从 DB 加载 shots（含 imageFile 回显）
     await shotStore.loadShotsFromDB(id)
     const { headers, rows: tableRows } = parseTableRows(rec.storyboard)
@@ -523,7 +530,7 @@ const ImageGenPage: React.FC<{ selectedRowIndex?: number | null }> = ({ selected
 
   useEffect(() => {
     if (sourceMode !== 'project') return
-    if (currentProject?.id && selectedProjectId !== currentProject.id) {
+    if (!selectedProjectId && currentProject?.id) {
       setSelectedProjectId(currentProject.id)
     }
   }, [sourceMode, currentProject?.id, selectedProjectId])
@@ -549,9 +556,13 @@ const ImageGenPage: React.FC<{ selectedRowIndex?: number | null }> = ({ selected
 
   useEffect(() => {
     if (sourceMode !== 'project') return
-    if (!currentProject?.id || !currentEpisode?.id) return
+    if (!currentProject?.id) return
+    if (selectedHistoryId != null) return
     if (selectedProjectId !== currentProject.id) return
-    const latest = latestRecordForEpisode(currentEpisode.id)
+    const preferredEpisodeId = getPreferredEpisodeId(currentProject.id)
+    const targetEpisodeId = preferredEpisodeId ?? currentEpisode?.id ?? null
+    if (!targetEpisodeId) return
+    const latest = latestRecordForEpisode(targetEpisodeId)
     if (!latest || selectedHistoryId === latest.id) return
     void loadHistory(latest.id)
   }, [
@@ -627,7 +638,7 @@ const ImageGenPage: React.FC<{ selectedRowIndex?: number | null }> = ({ selected
       </div>
 
       {pageMode === 'grid' ? (
-        <GridResultWorkspace styleKey={styleKey} onStyleChange={setStyleKey} />
+        <GridResultWorkspace styleKey={styleKey} onStyleChange={setImageStyleKey} />
       ) : (
         <>
       {/* 顶部：选择分镜来源 */}
@@ -666,7 +677,6 @@ const ImageGenPage: React.FC<{ selectedRowIndex?: number | null }> = ({ selected
             <select
               value={selectedProjectId}
               onChange={e => handleSelectProject(e.target.value)}
-              disabled={!!currentProject}
               className="bg-gray-800 border border-gray-700 text-gray-200 text-sm px-3 py-1.5 rounded-lg focus:outline-none focus:border-amber-500 max-w-[160px]"
             >
               <option value="">— 选择项目 —</option>
@@ -678,7 +688,6 @@ const ImageGenPage: React.FC<{ selectedRowIndex?: number | null }> = ({ selected
               <select
                 value={selectedHistoryId ?? ''}
                 onChange={e => e.target.value && loadHistory(Number(e.target.value))}
-                disabled={!!currentEpisode}
                 className="bg-gray-800 border border-gray-700 text-gray-200 text-sm px-3 py-1.5 rounded-lg focus:outline-none focus:border-amber-500 flex-1 max-w-xs disabled:opacity-60"
               >
                 <option value="">— 选择集数 —</option>
@@ -699,7 +708,7 @@ const ImageGenPage: React.FC<{ selectedRowIndex?: number | null }> = ({ selected
         <span className="text-xs text-gray-500">视觉风格：</span>
         <select
           value={styleKey}
-          onChange={e => setStyleKey(e.target.value)}
+          onChange={e => setImageStyleKey(e.target.value)}
           className="bg-gray-800 border border-gray-700 text-gray-200 text-xs px-2 py-1.5 rounded-lg focus:outline-none"
         >
           {Object.entries(STYLE_MAP).map(([k, v]) => (

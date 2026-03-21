@@ -1,20 +1,53 @@
 // 共享工具：解析分镜 Markdown 表格
 // 被 StoryboardTable.tsx 和 useShotStore.ts 共同使用
 
+const parseCells = (line: string): string[] =>
+  line
+    .split('|')
+    .slice(1, -1)
+    .map(cell => cell.trim())
+
+const isSeparatorRow = (cells: string[]): boolean =>
+  cells.length > 0 && cells.every(cell => /^:?-{3,}:?$/.test(cell.replace(/\s+/g, '')))
+
+const isHeaderRow = (cells: string[]): boolean => {
+  if (cells.length < 4) return false
+
+  const hasTime = cells.some(cell => cell.includes('时间'))
+  const hasShotType = cells.some(cell => cell.includes('景别'))
+  const hasCamera = cells.some(cell => cell.includes('运镜'))
+  const lastCell = cells[cells.length - 1] ?? ''
+
+  return hasTime && hasShotType && hasCamera && lastCell.includes('SEEDANCE')
+}
+
 export const parseTableRows = (markdown: string): { headers: string[]; rows: string[][] } => {
-  const lines = markdown.split('\n').filter(l => l.trim().startsWith('|'))
+  const lines = markdown
+    .split('\n')
+    .map(line => line.trim())
+    .filter(line => line.startsWith('|'))
+
   let headers: string[] = []
   const rows: string[][] = []
 
   for (const line of lines) {
-    if (line.includes('---')) continue
-    const cells = line.split('|').filter(Boolean).map(c => c.trim())
-    if (!headers.length) {
-      headers = cells
-    } else {
-      if (cells.length >= 2) rows.push(cells)
+    const cells = parseCells(line)
+    if (cells.length === 0) continue
+    if (isSeparatorRow(cells)) continue
+
+    if (isHeaderRow(cells)) {
+      if (!headers.length) {
+        headers = cells
+      }
+      continue
     }
+
+    if (!headers.length) continue
+    if (cells.length !== headers.length) continue
+
+    rows.push(cells)
   }
+
   return { headers, rows }
 }
 

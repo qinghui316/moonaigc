@@ -16,12 +16,14 @@ export async function callImageGenAPI(
   prompt: string,
   refImages?: RefImageData[],
   negativePrompt?: string,
-  refImageIds?: number[]
+  refImageIds?: number[],
+  signal?: AbortSignal,
 ): Promise<ImageGenResult> {
   const resp = await fetch('/api/ai/image', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ settings, prompt, refImages, negativePrompt, refImageIds }),
+    signal,
   })
   if (!resp.ok) {
     const text = await resp.text()
@@ -61,13 +63,15 @@ export async function callImageGenAPI(
 // 将外部图片 URL 交给后端下载并存入数据库（避免浏览器 CORS 限制）
 export async function uploadExternalImageUrl(
   externalUrl: string,
-  opts: { refType?: string; refId?: string; filename?: string; projectId?: string; episodeId?: string } = {}
+  opts: { refType?: string; refId?: string; filename?: string; projectId?: string; episodeId?: string } = {},
+  signal?: AbortSignal,
 ): Promise<{ url: string; id: number } | null> {
   try {
     const uploadResp = await fetch('/api/media/upload-from-url', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ url: externalUrl, ...opts }),
+      signal,
     })
     if (!uploadResp.ok) return null
     return await uploadResp.json() as { url: string; id: number }
