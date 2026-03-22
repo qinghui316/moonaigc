@@ -168,8 +168,16 @@ router.post('/stream', async (req: Request, res: Response) => {
 router.post('/image', async (req: Request, res: Response) => {
   const abortController = new AbortController()
   const timeout = setTimeout(() => abortController.abort(new DOMException('Timed out', 'AbortError')), 7 * 60 * 1000)
-  req.on('close', () => {
-    abortController.abort(new DOMException('Client closed request', 'AbortError'))
+  const handleClientAbort = () => {
+    if (!abortController.signal.aborted) {
+      abortController.abort(new DOMException('Client aborted request', 'AbortError'))
+    }
+  }
+  req.on('aborted', handleClientAbort)
+  res.on('close', () => {
+    if (!res.writableEnded) {
+      handleClientAbort()
+    }
   })
 
   try {
