@@ -39,10 +39,20 @@ interface GridResultWorkspaceProps {
   onStyleChange: (styleKey: string) => void
 }
 
+type SourceSelectionGroup = 'shot-image' | 'legacy'
+
 function isAbortError(err: unknown): boolean {
   return err instanceof DOMException
     ? err.name === 'AbortError'
     : err instanceof Error && err.name === 'AbortError'
+}
+
+function buildReferenceBlock(
+  refs: Array<{ typeLabel: string; name: string }>,
+): string {
+  return refs.length > 0
+    ? refs.map((ref, index) => `参考图${index + 1}: [${ref.typeLabel}-${ref.name}]`).join('\n')
+    : '无参考图'
 }
 
 const GridResultWorkspace: React.FC<GridResultWorkspaceProps> = ({ styleKey, onStyleChange }) => {
@@ -75,9 +85,29 @@ const GridResultWorkspace: React.FC<GridResultWorkspaceProps> = ({ styleKey, onS
   const currentModelDef = currentImagePlatform.models.find(m => m.value === imageSettings.model)
   const effectiveAspectRatios = currentModelDef?.aspectRatios ?? currentImagePlatform.aspectRatios
   const effectiveResolutions = currentModelDef?.resolutions ?? currentImagePlatform.resolutions
+  const sourceRowOrderMap = useMemo(
+    () => new Map(sourceRows.map((row, index) => [row.ref, index])),
+    [sourceRows],
+  )
+  const orderedResults = useMemo(() => {
+    const getSortKey = (result: GridResultRecord) => {
+      const indices = (result.sourceShotRefs ?? [])
+        .map(ref => sourceRowOrderMap.get(ref))
+        .filter((value): value is number => value != null)
+      return indices.length > 0 ? Math.min(...indices) : Number.MAX_SAFE_INTEGER
+    }
+
+    return [...results].sort((a, b) => {
+      const keyDiff = getSortKey(a) - getSortKey(b)
+      if (keyDiff !== 0) return keyDiff
+      const timeDiff = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+      if (timeDiff !== 0) return timeDiff
+      return a.id - b.id
+    })
+  }, [results, sourceRowOrderMap])
   const resultDisplayNumbers = useMemo(
-    () => new Map(results.map((result, index) => [result.id, index + 1])),
-    [results],
+    () => new Map(orderedResults.map((result, index) => [result.id, index + 1])),
+    [orderedResults],
   )
   const latestRecordForEpisode = useCallback((episodeId?: string | null) => {
     if (!episodeId) return null
@@ -149,6 +179,10 @@ const GridResultWorkspace: React.FC<GridResultWorkspaceProps> = ({ styleKey, onS
     () => new Set(results.flatMap(result => result.sourceShotRefs ?? [])),
     [results],
   )
+  const sourceRowGroupMap = useMemo(
+    () => new Map(sourceRows.map(row => [row.index, shotStore.shotImages[row.index] ? 'shot-image' as const : 'legacy' as const])),
+    [shotStore.shotImages, sourceRows],
+  )
 
   const loadResultDetail = useCallback(async (id: number | null) => {
     if (!id) {
@@ -176,13 +210,27 @@ const GridResultWorkspace: React.FC<GridResultWorkspaceProps> = ({ styleKey, onS
     setLoadingResults(false)
 
     if (list.length > 0) {
-      await loadResultDetail(list[0].id)
+      const sorted = [...list].sort((a, b) => {
+        const aIndices = (a.sourceShotRefs ?? [])
+          .map(ref => sourceRowOrderMap.get(ref))
+          .filter((value): value is number => value != null)
+        const bIndices = (b.sourceShotRefs ?? [])
+          .map(ref => sourceRowOrderMap.get(ref))
+          .filter((value): value is number => value != null)
+        const aKey = aIndices.length > 0 ? Math.min(...aIndices) : Number.MAX_SAFE_INTEGER
+        const bKey = bIndices.length > 0 ? Math.min(...bIndices) : Number.MAX_SAFE_INTEGER
+        if (aKey !== bKey) return aKey - bKey
+        const timeDiff = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+        if (timeDiff !== 0) return timeDiff
+        return a.id - b.id
+      })
+      await loadResultDetail(sorted[0].id)
     } else {
       setSelectedResultId(null)
       setSelectedResult(null)
       setSelectedItems(new Set())
     }
-  }, [loadResultDetail])
+  }, [loadResultDetail, sourceRowOrderMap])
 
   const handleSelectProject = useCallback(async (projectId: string) => {
     setSelectedProjectId(projectId)
@@ -264,30 +312,219 @@ const GridResultWorkspace: React.FC<GridResultWorkspaceProps> = ({ styleKey, onS
 
   useEffect(() => {
     setSelectedItems(prev => {
+      const candidates = Array.from(prev).filter(index => {
+        const row = sourceRows.find(item => item.index === index)
+        return row ? !occupiedSourceRefSet.has(row.ref) : false
+      })
+      const firstGroup = candidates.length > 0 ? sourceRowGroupMap.get(candidates[0]) : null
       const next = new Set(
-        Array.from(prev).filter(index => {
-          const row = sourceRows.find(item => item.index === index)
-          return row ? !occupiedSourceRefSet.has(row.ref) : false
-        }),
+        candidates.filter(index => !firstGroup || sourceRowGroupMap.get(index) === firstGroup),
       )
       return next.size === prev.size ? prev : next
     })
-  }, [occupiedSourceRefSet, sourceRows])
-
-  const selectableSourceRows = useMemo(
-    () => sourceRows.filter(row => !occupiedSourceRefSet.has(row.ref)),
-    [occupiedSourceRefSet, sourceRows],
-  )
+  }, [occupiedSourceRefSet, sourceRowGroupMap, sourceRows])
 
   const selectedSourceShots = useMemo(
     () => sourceRows.filter(row => selectedItems.has(row.index) && !occupiedSourceRefSet.has(row.ref)),
     [occupiedSourceRefSet, selectedItems, sourceRows],
   )
 
+  const currentSelectionGroup = useMemo<SourceSelectionGroup | null | 'mixed'>(() => {
+    const groups = new Set(
+      selectedSourceShots
+        .map(row => sourceRowGroupMap.get(row.index))
+        .filter((group): group is SourceSelectionGroup => group === 'shot-image' || group === 'legacy'),
+    )
+    if (groups.size === 0) return null
+    if (groups.size > 1) return 'mixed'
+    return groups.values().next().value ?? null
+  }, [selectedSourceShots, sourceRowGroupMap])
+
+  const defaultSelectionGroup = useMemo<SourceSelectionGroup | null>(() => {
+    const firstSelectableRow = sourceRows.find(row => !occupiedSourceRefSet.has(row.ref))
+    if (!firstSelectableRow) return null
+    return sourceRowGroupMap.get(firstSelectableRow.index) ?? null
+  }, [occupiedSourceRefSet, sourceRowGroupMap, sourceRows])
+
+  const bulkSelectionGroup = currentSelectionGroup && currentSelectionGroup !== 'mixed'
+    ? currentSelectionGroup
+    : defaultSelectionGroup
+
+  const selectableSourceRows = useMemo(
+    () => sourceRows.filter(row => {
+      if (occupiedSourceRefSet.has(row.ref)) return false
+      if (!bulkSelectionGroup) return true
+      return sourceRowGroupMap.get(row.index) === bulkSelectionGroup
+    }),
+    [bulkSelectionGroup, occupiedSourceRefSet, sourceRowGroupMap, sourceRows],
+  )
+
   const selectedSourceRefSet = useMemo(
     () => new Set(selectedSourceShots.map(row => row.ref)),
     [selectedSourceShots],
   )
+
+  const collectCharacterMaterialRefs = useCallback((rows: SourceShotRow[]) => {
+    const refsByImageId = new Map<number, {
+      name: string
+      type: 'character'
+      desc: string
+      imageUrl: string
+      imageFileId: number
+      sourceShotRefs: Set<string>
+    }>()
+
+    rows.forEach(row => {
+      const savedRefs = shotStore.selectedMaterialRefs[row.index]
+      const refs = (savedRefs ?? collectRefImages(row.prompt, materials, undefined, { includeFallback: false }).map(ref => ({
+        name: ref.name,
+        type: ref.type,
+        desc: ref.desc,
+        imageUrl: ref.imageUrl,
+        imageFileId: ref.imageFileId,
+      })))
+        .filter(ref => ref.type === 'character')
+
+      refs.forEach(ref => {
+        const existing = refsByImageId.get(ref.imageFileId)
+        if (existing) {
+          existing.sourceShotRefs.add(row.ref)
+          return
+        }
+        refsByImageId.set(ref.imageFileId, {
+          name: ref.name,
+          type: 'character',
+          desc: ref.desc,
+          imageUrl: ref.imageUrl,
+          imageFileId: ref.imageFileId,
+          sourceShotRefs: new Set([row.ref]),
+        })
+      })
+    })
+
+    return Array.from(refsByImageId.values()).map(ref => ({
+      ...ref,
+      sourceShotRefs: Array.from(ref.sourceShotRefs),
+    }))
+  }, [materials, shotStore.selectedMaterialRefs])
+
+  const buildLegacyReferencePayload = useCallback(async (rows: SourceShotRow[]) => {
+    const seenIds = new Set<number>()
+    const materialRefs = rows.flatMap(row => {
+      const savedRefs = shotStore.selectedMaterialRefs[row.index]
+      const refs = savedRefs ?? collectRefImages(row.prompt, materials, undefined, { includeFallback: false }).map(ref => ({
+        name: ref.name,
+        type: ref.type,
+        desc: ref.desc,
+        imageUrl: ref.imageUrl,
+        imageFileId: ref.imageFileId,
+      }))
+      return refs
+        .filter(ref => {
+          if (seenIds.has(ref.imageFileId)) return false
+          seenIds.add(ref.imageFileId)
+          return true
+        })
+        .map(ref => ({ ...ref, tag: `@${ref.name}`, sourceShotRef: row.ref }))
+    })
+
+    const localRefs = rows.flatMap(row => shotStore.selectedLocalRefs[row.index] ?? [])
+    const uniqueLocalRefs = localRefs.filter((ref, index, arr) => arr.findIndex(item => item.id === ref.id) === index)
+    const usedReferenceImages = [
+      ...materialRefs.map(ref => ({
+        kind: 'material' as const,
+        name: ref.name,
+        typeLabel: ref.type === 'character' ? '角色' : ref.type === 'image' ? '场景' : '道具',
+        imageUrl: ref.imageUrl,
+        imageFileId: ref.imageFileId,
+        sourceShotRefs: ref.sourceShotRef ? [ref.sourceShotRef] : [],
+      })),
+      ...uniqueLocalRefs.map(ref => ({
+        kind: 'local' as const,
+        name: ref.name,
+        typeLabel: '本地',
+        imageUrl: null,
+        imageFileId: null,
+        sourceShotRefs: [],
+      })),
+    ]
+
+    return {
+      strategy: 'legacy_material_refs' as const,
+      usedReferenceImages,
+      refImages: [
+        ...await loadRefImageBase64s(materialRefs),
+        ...uniqueLocalRefs.map(ref => ({ base64: ref.base64, mimeType: ref.mimeType })),
+      ],
+      refDescs: buildRefImageDescs(materialRefs),
+      refImageIds: materialRefs.map(ref => ref.imageFileId),
+    }
+  }, [materials, shotStore.selectedLocalRefs, shotStore.selectedMaterialRefs])
+
+  const buildShotPriorityReferencePayload = useCallback(async (rows: SourceShotRow[]) => {
+    const shotRefs = await Promise.all(rows.map(async row => {
+      const shotImage = shotStore.shotImages[row.index]
+      if (!shotImage?.url) {
+        throw new Error(`源分镜 ${row.ref} 缺少已生成的分镜图，不能使用分镜图优先模式`)
+      }
+      return {
+        kind: 'shot' as const,
+        name: row.ref,
+        typeLabel: '分镜图',
+        imageUrl: shotImage.url,
+        imageFileId: shotImage.mediaFileId ?? null,
+        sourceShotRefs: [row.ref],
+        payload: await fetchAssetImageAsBase64(shotImage.url),
+        desc: `分镜图-${row.ref}，优先参考该镜头的构图、人物站位和场景空间`,
+      }
+    }))
+
+    const characterRefs = collectCharacterMaterialRefs(rows)
+    const usedReferenceImages = [
+      ...shotRefs.map(ref => ({
+        kind: ref.kind,
+        name: ref.name,
+        typeLabel: ref.typeLabel,
+        imageUrl: ref.imageUrl,
+        imageFileId: ref.imageFileId,
+        sourceShotRefs: ref.sourceShotRefs,
+      })),
+      ...characterRefs.map(ref => ({
+        kind: 'material' as const,
+        name: ref.name,
+        typeLabel: '角色',
+        imageUrl: ref.imageUrl,
+        imageFileId: ref.imageFileId,
+        sourceShotRefs: ref.sourceShotRefs,
+      })),
+    ]
+
+    const refDescs = [
+      ...shotRefs.map(ref => ref.desc),
+      ...characterRefs.map(ref => `角色-${ref.name}${ref.desc ? `，${ref.desc.replace(/\s+/g, ' ').trim().slice(0, 60)}` : ''}`),
+    ]
+
+    return {
+      strategy: 'shot_image_priority' as const,
+      usedReferenceImages,
+      refImages: [
+        ...shotRefs.map(ref => ref.payload),
+        ...await loadRefImageBase64s(characterRefs.map(ref => ({
+          tag: `@${ref.name}`,
+          name: ref.name,
+          type: ref.type,
+          desc: ref.desc,
+          imageUrl: ref.imageUrl,
+          imageFileId: ref.imageFileId,
+        }))),
+      ],
+      refDescs,
+      refImageIds: [
+        ...shotRefs.map(ref => ref.imageFileId).filter((id): id is number => typeof id === 'number'),
+        ...characterRefs.map(ref => ref.imageFileId),
+      ],
+    }
+  }, [collectCharacterMaterialRefs, shotStore.shotImages])
 
   const handleGenerate = useCallback(async () => {
     if (generating) {
@@ -315,6 +552,15 @@ const GridResultWorkspace: React.FC<GridResultWorkspaceProps> = ({ styleKey, onS
       return
     }
 
+    if (currentSelectionGroup === 'mixed') {
+      setError('已有分镜图和无分镜图的源分镜不能混选生成 9 宫格')
+      return
+    }
+    if (!currentSelectionGroup) {
+      setError('请先选择同一组源分镜')
+      return
+    }
+
     setGenerating(true)
     setError('')
     setStatus('生成 9 宫格分镜中...')
@@ -335,6 +581,12 @@ const GridResultWorkspace: React.FC<GridResultWorkspaceProps> = ({ styleKey, onS
         sourceShots.map(shot => [shot.ref, shot.prompt.trim()]),
       )
 
+      const referencePayload = currentSelectionGroup === 'shot-image'
+        ? await buildShotPriorityReferencePayload(selectedSourceShots)
+        : await buildLegacyReferencePayload(selectedSourceShots)
+      const { usedReferenceImages, refImages, refDescs, refImageIds } = referencePayload
+      const refBlock = buildReferenceBlock(usedReferenceImages)
+      /*
       const seenIds = new Set<number>()
       const materialRefs = selectedSourceShots.flatMap(row => {
         const savedRefs = shotStore.selectedMaterialRefs[row.index]
@@ -385,6 +637,7 @@ const GridResultWorkspace: React.FC<GridResultWorkspaceProps> = ({ styleKey, onS
         ? refDescs.map((desc, index) => `参考图${index + 1}: ${desc}`).join('\n')
         : '无参考图'
 
+      */
       const storyboard = await generateNineGridStoryboard(
         sourceShots,
         refImages,
@@ -444,7 +697,7 @@ const GridResultWorkspace: React.FC<GridResultWorkspaceProps> = ({ styleKey, onS
         finalPrompt,
         refImages,
         negativePrompt,
-        materialRefs.map(ref => ref.imageFileId),
+        refImageIds,
         abortController.signal,
       )
 
@@ -524,11 +777,11 @@ const GridResultWorkspace: React.FC<GridResultWorkspaceProps> = ({ styleKey, onS
     generating,
     imageSettings,
     loadResultsForEpisode,
-    materials,
     selectedHistoryId,
+    currentSelectionGroup,
     selectedSourceShots,
-    shotStore.selectedLocalRefs,
-    shotStore.selectedMaterialRefs,
+    buildLegacyReferencePayload,
+    buildShotPriorityReferencePayload,
     styleKey,
     textSettings,
   ])
@@ -551,6 +804,9 @@ const GridResultWorkspace: React.FC<GridResultWorkspaceProps> = ({ styleKey, onS
     regenerateAbortRef.current = abortController
 
     try {
+      const usesShotImagePriority = (selectedResult.usedReferenceImages ?? []).some(ref => ref.kind === 'shot')
+      const persistedImageRefs = (selectedResult.usedReferenceImages ?? []).filter(ref => !!ref.imageUrl)
+      /*
       const materialRefs = (selectedResult.usedReferenceImages ?? [])
         .filter(ref => ref.kind === 'material' && !!ref.imageUrl)
       const localSourceRefSet = new Set(selectedResult.sourceShotRefs)
@@ -570,6 +826,22 @@ const GridResultWorkspace: React.FC<GridResultWorkspaceProps> = ({ styleKey, onS
           .join('\n')
         : '无参考图'
 
+      */
+      const localSourceRefSet = new Set(selectedResult.sourceShotRefs)
+      const localRefs = usesShotImagePriority
+        ? []
+        : sourceRows
+          .filter(row => localSourceRefSet.has(row.ref))
+          .flatMap(row => shotStore.selectedLocalRefs[row.index] ?? [])
+      const uniqueLocalRefs = localRefs.filter((ref, index, arr) => arr.findIndex(item => item.id === ref.id) === index)
+
+      const refImages = [
+        ...await Promise.all(persistedImageRefs.map(async ref => fetchAssetImageAsBase64(ref.imageUrl!))),
+        ...uniqueLocalRefs.map(ref => ({ base64: ref.base64, mimeType: ref.mimeType })),
+      ]
+
+      const refBlock = buildReferenceBlock(selectedResult.usedReferenceImages ?? [])
+
       const panelPrompts = normalizeGridPanels(selectedResult.panels).map(panel => panel.imagePromptText).filter(Boolean)
       const finalPrompt = buildNineGridImagePrompt({
         aspectRatio: imageSettings.aspectRatio,
@@ -587,7 +859,7 @@ const GridResultWorkspace: React.FC<GridResultWorkspaceProps> = ({ styleKey, onS
         finalPrompt,
         refImages,
         negativePrompt,
-        materialRefs.map(ref => ref.imageFileId).filter((id): id is number => typeof id === 'number'),
+        persistedImageRefs.map(ref => ref.imageFileId).filter((id): id is number => typeof id === 'number'),
         abortController.signal,
       )
 
@@ -803,6 +1075,14 @@ const GridResultWorkspace: React.FC<GridResultWorkspaceProps> = ({ styleKey, onS
           </div>
         )}
 
+        <div className="mt-1.5 text-xs text-gray-500">
+          {currentSelectionGroup === 'shot-image'
+            ? '当前选择：有分镜图组。将传入分镜图和角色设计图，不传场景图和道具图。'
+            : currentSelectionGroup === 'legacy'
+              ? '当前选择：无分镜图组。将沿用原有素材参考图逻辑。'
+              : '源分镜分为“有分镜图”和“无分镜图”两组，同次 9 宫格生成不能混选。'}
+        </div>
+
         {(status || error) && (
           <div className="mt-1.5 flex flex-wrap items-center gap-4 text-xs">
             {status && <div className="text-amber-400">{status}</div>}
@@ -823,19 +1103,23 @@ const GridResultWorkspace: React.FC<GridResultWorkspaceProps> = ({ styleKey, onS
             ) : (
               sourceRows.map(row => {
                 const occupied = occupiedSourceRefSet.has(row.ref)
+                const rowGroup = sourceRowGroupMap.get(row.index) ?? 'legacy'
+                const groupLocked = currentSelectionGroup != null
+                  && currentSelectionGroup !== 'mixed'
+                  && currentSelectionGroup !== rowGroup
                 const checked = occupied || selectedItems.has(row.index)
                 return (
                   <label
                     key={row.index}
                     className={`block p-3 border-b border-gray-800 transition-colors ${
                       checked ? 'bg-gray-800/70' : 'hover:bg-gray-800/40'
-                    } ${occupied ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+                    } ${occupied || groupLocked ? 'cursor-not-allowed' : 'cursor-pointer'}`}
                   >
                     <div className="flex items-start gap-2">
                       <input
                         type="checkbox"
                         checked={checked}
-                        disabled={occupied}
+                        disabled={occupied || groupLocked}
                         onChange={e => {
                           setSelectedItems(prev => {
                             const next = new Set(prev)
@@ -847,7 +1131,16 @@ const GridResultWorkspace: React.FC<GridResultWorkspaceProps> = ({ styleKey, onS
                         className="mt-0.5"
                       />
                       <div className="min-w-0">
-                        <div className="text-xs text-gray-400">{row.ref}</div>
+                        <div className="flex items-center gap-2 text-xs text-gray-400">
+                          <span>{row.ref}</span>
+                          <span className={`rounded-full border px-1.5 py-0.5 text-[10px] ${
+                            rowGroup === 'shot-image'
+                              ? 'border-emerald-700/50 bg-emerald-900/20 text-emerald-300'
+                              : 'border-gray-700 bg-gray-800 text-gray-400'
+                          }`}>
+                            {rowGroup === 'shot-image' ? '有分镜图' : '无分镜图'}
+                          </span>
+                        </div>
                         <div className="text-xs text-amber-500">{row.shotType || '未标注景别'}</div>
                         <div className="text-xs text-gray-500 truncate">{row.scene || row.prompt}</div>
                       </div>
@@ -866,7 +1159,7 @@ const GridResultWorkspace: React.FC<GridResultWorkspaceProps> = ({ styleKey, onS
             {!loadingResults && results.length === 0 && (
               <div className="p-4 text-xs text-gray-600">当前集还没有宫格结果</div>
             )}
-            {results.map(result => (
+            {orderedResults.map(result => (
               <button
                 key={result.id}
                 onClick={() => void loadResultDetail(result.id)}

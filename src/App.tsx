@@ -6,12 +6,11 @@ import SettingsPanel from './components/settings/SettingsPanel'
 import CreatePage from './components/create/CreatePage'
 import ImageGenPage from './components/imagegen/ImageGenPage'
 import MaterialPage from './components/materials/MaterialPage'
-import HistoryPage from './components/history/HistoryPage'
 import ProjectPage from './components/projects/ProjectPage'
 import ScriptWorkPage from './components/scriptwork/ScriptWorkPage'
 import GalleryPage from './components/gallery/GalleryPage'
 import type { TabId } from './components/layout/TabNav'
-import type { HistoryRecord, Episode } from './types'
+import type { Episode } from './types'
 import { useSettingsStore } from './store/useSettingsStore'
 import { useMaterialStore } from './store/useMaterialStore'
 import { useThemeStore } from './store/useThemeStore'
@@ -19,7 +18,6 @@ import { useThemeStore } from './store/useThemeStore'
 const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabId>('projects')
   const [showSettings, setShowSettings] = useState(false)
-  const [loadedRecord, setLoadedRecord] = useState<HistoryRecord | null>(null)
   const [loadedEpisode, setLoadedEpisode] = useState<Episode | null>(null)
   const { load: loadSettings } = useSettingsStore()
   const { load: loadMaterials } = useMaterialStore()
@@ -44,15 +42,8 @@ const App: React.FC = () => {
     return () => window.removeEventListener('keydown', handler) as void
   }, [])
 
-  const handleLoadHistory = (record: HistoryRecord) => {
-    setLoadedRecord(record)
-    setLoadedEpisode(null)
-    setActiveTab('create')
-  }
-
   const handleLoadEpisode = (episode: Episode) => {
     setLoadedEpisode(episode)
-    setLoadedRecord(null)
     setActiveTab('create')
   }
 
@@ -70,8 +61,7 @@ const App: React.FC = () => {
         </div>
         <div className="h-full" style={{ display: activeTab === 'create' ? 'block' : 'none' }}>
           <CreatePage
-            key={loadedRecord?.id ?? loadedEpisode?.id}
-            loadedRecord={loadedRecord}
+            key={loadedEpisode?.id ?? 'create'}
             loadedEpisode={loadedEpisode}
           />
         </div>
@@ -83,9 +73,6 @@ const App: React.FC = () => {
         </div>
         <div className="h-full" style={{ display: activeTab === 'gallery' ? 'block' : 'none' }}>
           <GalleryPage />
-        </div>
-        <div className="h-full" style={{ display: activeTab === 'history' ? 'block' : 'none' }}>
-          <HistoryPage onLoad={handleLoadHistory} />
         </div>
       </main>
 

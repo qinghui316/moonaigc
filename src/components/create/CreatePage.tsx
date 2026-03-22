@@ -4,6 +4,7 @@ import ParamPanel from './ParamPanel'
 import DurationControl from './DurationControl'
 import StoryboardTable from './StoryboardTable'
 import StorylineTimeline from './StorylineTimeline'
+import HistoryPage from '../history/HistoryPage'
 import ShotEditModal from '../modals/ShotEditModal'
 import SafetyModal from '../modals/SafetyModal'
 import VisionModal from '../modals/VisionModal'
@@ -96,8 +97,10 @@ const CreatePage: React.FC<{ loadedRecord?: HistoryRecord | null; loadedEpisode?
   const [safetyModal, setSafetyModal] = useState<SafetyResult | null>(null)
   const [showVision, setShowVision] = useState(false)
   const [showStc, setShowStc] = useState(false)
+  const [showHistoryPicker, setShowHistoryPicker] = useState(false)
   const [pendingSafetyAction, setPendingSafetyAction] = useState<(() => void) | null>(null)
   const [viewSceneId, setViewSceneId] = useState<number | null>(null)
+  const [activeHistoryRecordId, setActiveHistoryRecordId] = useState<number | null>(loadedRecord?.id ?? null)
 
   const abortRef = useRef<AbortController | null>(null)
 
@@ -117,6 +120,8 @@ const CreatePage: React.FC<{ loadedRecord?: HistoryRecord | null; loadedEpisode?
     setStoryboard(loadedRecord.storyboard || '')
     const foundDirector = DIRECTORS.find(d => d.id === loadedRecord.directorId)
     if (foundDirector) setSelectedDirector(foundDirector)
+    setActiveHistoryRecordId(loadedRecord.id)
+    setShowHistoryPicker(false)
     chainStore.reset()
   }, [loadedRecord])
 
@@ -128,7 +133,18 @@ const CreatePage: React.FC<{ loadedRecord?: HistoryRecord | null; loadedEpisode?
     // 尝试恢复该集最近一次生成的分镜内容
     const prevRecord = historyRecords.find(r => r.episodeId === loadedEpisode.id)
     setStoryboard(prevRecord ? (prevRecord.storyboard || '') : '')
+    setActiveHistoryRecordId(prevRecord?.id ?? null)
   }, [loadedEpisode])
+
+  const handleLoadHistoryRecord = useCallback((record: HistoryRecord) => {
+    setPlot(record.fullPlot || record.plot || '')
+    setStoryboard(record.storyboard || '')
+    const foundDirector = DIRECTORS.find(d => d.id === record.directorId)
+    if (foundDirector) setSelectedDirector(foundDirector)
+    setActiveHistoryRecordId(record.id)
+    setShowHistoryPicker(false)
+    chainStore.reset()
+  }, [chainStore])
 
   const buildSystemContext = useCallback(() => {
     const assetInfo = materialStore.buildSystemPromptInfo()
@@ -249,6 +265,7 @@ const CreatePage: React.FC<{ loadedRecord?: HistoryRecord | null; loadedEpisode?
           } as Omit<HistoryRecord, 'id'>)
           const parsedShots = useShotStore.getState().parseFromMarkdown(md)
           await useShotStore.getState().saveShotsToDB(histId, parsedShots)
+          setActiveHistoryRecordId(histId)
           if (ep) await updateEpisodeStatus(ep.id, 'storyboarded')
         }
       } else {
@@ -363,6 +380,7 @@ const CreatePage: React.FC<{ loadedRecord?: HistoryRecord | null; loadedEpisode?
           } as Omit<HistoryRecord, 'id'>)
           const parsedShots = useShotStore.getState().parseFromMarkdown(allContent)
           await useShotStore.getState().saveShotsToDB(histId, parsedShots)
+          setActiveHistoryRecordId(histId)
           if (ep) await updateEpisodeStatus(ep.id, 'storyboarded')
         }
       }
@@ -474,6 +492,8 @@ const CreatePage: React.FC<{ loadedRecord?: HistoryRecord | null; loadedEpisode?
 
   const handleSaveHistory = async () => {
     if (!storyboard) return
+    const ep = useProjectStore.getState().currentEpisode
+    const proj = useProjectStore.getState().currentProject
     const histId = await addHistory({
       createdAt: Date.now(),
       plot: plot.slice(0, 200),
@@ -482,9 +502,12 @@ const CreatePage: React.FC<{ loadedRecord?: HistoryRecord | null; loadedEpisode?
       directorId: selectedDirector.id,
       storyboard: storyboard,
       time: new Date().toLocaleString('zh-CN'),
+      ...(proj ? { projectId: proj.id } : {}),
+      ...(ep ? { episodeId: ep.id } : {}),
     } as Omit<HistoryRecord, 'id'>)
     const parsedShots = useShotStore.getState().parseFromMarkdown(storyboard)
     await useShotStore.getState().saveShotsToDB(histId, parsedShots)
+    setActiveHistoryRecordId(histId)
     alert('✅ 已保存到历史记录')
   }
 
@@ -670,6 +693,12 @@ const CreatePage: React.FC<{ loadedRecord?: HistoryRecord | null; loadedEpisode?
                   onClick={() => setShowPasteModal(true)}
                   className="px-2 py-1 text-xs text-amber-400 bg-amber-900/20 border border-amber-800/30 rounded-lg hover:bg-amber-900/30 transition-colors">
                   📋 粘贴提取
+                </button>
+                <button
+                  onClick={() => setShowHistoryPicker(true)}
+                  className="px-2 py-1 text-xs text-teal-400 bg-teal-900/20 border border-teal-800/30 rounded-lg hover:bg-teal-900/30 transition-colors"
+                >
+                  历史版本
                 </button>
                 <input
                   ref={fileInputRef}
@@ -884,6 +913,21 @@ const CreatePage: React.FC<{ loadedRecord?: HistoryRecord | null; loadedEpisode?
       )}
 
       {/* Modals */}
+      {showHistoryPicker && (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="w-full max-w-6xl h-[80vh] bg-gray-900 border border-gray-800 rounded-2xl shadow-2xl overflow-hidden">
+            <HistoryPage
+              embedded
+              onClose={() => setShowHistoryPicker(false)}
+              onLoad={handleLoadHistoryRecord}
+              currentProjectId={currentProject?.id}
+              currentEpisodeId={currentEpisode?.id}
+              currentRecordId={activeHistoryRecordId}
+            />
+          </div>
+        </div>
+      )}
+
       {editModal && (
         <ShotEditModal
           shotRow={editModal.row}

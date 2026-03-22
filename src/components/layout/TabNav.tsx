@@ -1,6 +1,6 @@
 import React from 'react'
 
-export type TabId = 'projects' | 'scriptwork' | 'create' | 'imagegen' | 'materials' | 'gallery' | 'history'
+export type TabId = 'projects' | 'scriptwork' | 'create' | 'imagegen' | 'materials' | 'gallery'
 
 interface Tab {
   id: TabId
@@ -66,15 +66,6 @@ const TabNav: React.FC<TabNavProps> = ({ activeTab, onChange }) => {
       icon: (
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h7v7H3V3zm11 0h7v7h-7V3zm0 11h7v7h-7v-7zM3 14h7v7H3v-7z" />
-        </svg>
-      ),
-    },
-    {
-      id: 'history',
-      label: '历史记录',
-      icon: (
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
       ),
     },

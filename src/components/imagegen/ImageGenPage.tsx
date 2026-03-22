@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useMemo, useRef } from 'react'
+﻿import React, { useState, useCallback, useEffect, useMemo, useRef } from 'react'
 import { useSettingsStore } from '../../store/useSettingsStore'
 import { useMaterialStore } from '../../store/useMaterialStore'
 import { useHistoryStore } from '../../store/useHistoryStore'
@@ -96,7 +96,7 @@ const ImageGenPage: React.FC<{ selectedRowIndex?: number | null }> = ({ selected
   const [showRefPicker, setShowRefPicker] = useState(false)
   const localUploadInputRef = React.useRef<HTMLInputElement>(null)
   // 底部画廊
-  const [galleryTab, setGalleryTab] = useState<'all' | 'shot' | 'grid'>('all')
+  const galleryTab: 'shot' = 'shot'
   const [dbImages, setDbImages] = useState<{ id: number; url: string; refType: string; createdAt?: number }[]>([])
 
   const latestRecordForEpisode = useCallback((episodeId?: string | null) => {
@@ -112,7 +112,7 @@ const ImageGenPage: React.FC<{ selectedRowIndex?: number | null }> = ({ selected
     const resp = await fetch(`/api/media?${params.toString()}`)
     if (!resp.ok) return
     const data = await resp.json() as { items: { id: number; url: string; refType: string; createdAt: number }[]; total: number }
-    setDbImages(data.items.filter(d => d.refType === 'shot' || d.refType === 'grid'))
+    setDbImages(data.items.filter(d => d.refType === 'shot'))
   }, [])
 
   const loadHistory = useCallback(async (id: number) => {
@@ -1030,25 +1030,20 @@ const ImageGenPage: React.FC<{ selectedRowIndex?: number | null }> = ({ selected
       {/* 底部画廊 */}
       {(Object.keys(generatedImages).length > 0 || dbImages.length > 0) && (
         <div className="border-t border-gray-800 p-3 shrink-0">
-          {/* 标签页 */}
+          {/* 分镜图 */}
           <div className="flex items-center gap-1 mb-2">
-            {(['all', 'shot', 'grid'] as const).map(tab => {
+            {(() => {
               const localShotCount = Object.values(generatedImages).filter(url => !dbImages.some(d => d.url === url)).length
-              const dbCount = tab === 'all'
-                ? dbImages.length
-                : dbImages.filter(d => d.refType === tab).length
-              const count = (tab === 'all' || tab === 'shot') ? dbCount + localShotCount : dbCount
-              const label = tab === 'all' ? '全部' : tab === 'shot' ? '分镜图' : '宫格图'
+              const count = dbImages.length + localShotCount
               return (
                 <button
-                  key={tab}
-                  onClick={() => setGalleryTab(tab)}
-                  className={`px-2 py-0.5 text-xs rounded-full border transition-colors ${galleryTab === tab ? 'bg-amber-600 border-amber-600 text-white' : 'bg-transparent border-gray-700 text-gray-400 hover:text-gray-200'}`}
+                  type="button"
+                  className="px-2 py-0.5 text-xs rounded-full border transition-colors bg-amber-600 border-amber-600 text-white"
                 >
-                  {label}（{count}）
+                  分镜图（{count}）
                 </button>
               )
-            })}
+            })()}
             <button
               onClick={() => {
                 const rec = history.find(h => h.id === selectedHistoryId)
@@ -1061,24 +1056,24 @@ const ImageGenPage: React.FC<{ selectedRowIndex?: number | null }> = ({ selected
             </button>
           </div>
           <div className="flex gap-2 overflow-x-auto pb-1">
-            {/* DB 图片（分镜图 + 宫格图） */}
+            {/* DB 分镜图 */}
             {dbImages
-              .filter(d => galleryTab === 'all' || d.refType === galleryTab)
+              .filter(d => d.refType === galleryTab)
               .map(d => (
                 <div key={`db-${d.id}`} className="relative shrink-0 group">
                   <img
                     src={d.url}
-                    alt={d.refType === 'grid' ? '宫格图' : '分镜图'}
-                    className={`object-cover rounded-lg cursor-pointer ${d.refType === 'grid' ? 'h-20 w-32' : 'h-20 w-20'}`}
+                    alt="分镜图"
+                    className="h-20 w-20 object-cover rounded-lg cursor-pointer"
                     onClick={() => setLightboxSrc(d.url)}
                   />
-                  <div className={`absolute top-0 left-0 text-xs px-1 rounded-tl-lg ${d.refType === 'grid' ? 'bg-amber-700/80 text-white' : 'bg-black/60 text-white'}`}>
-                    {d.refType === 'grid' ? '宫' : '镜'}
+                  <div className="absolute top-0 left-0 text-xs px-1 rounded-tl-lg bg-black/60 text-white">
+                    镜
                   </div>
                 </div>
               ))}
             {/* 本次会话新生成但未持久化的图（用于提示用户已生成） */}
-            {galleryTab !== 'grid' && Object.entries(generatedImages)
+            {Object.entries(generatedImages)
               .filter(([, url]) => !dbImages.some(d => d.url === url))
               .map(([idx, url]) => (
                 <div key={`local-${idx}`} className="relative shrink-0 group">

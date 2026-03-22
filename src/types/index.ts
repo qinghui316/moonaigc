@@ -224,7 +224,7 @@ export interface GridPanelRecord {
 }
 
 export interface GridReferenceImageRecord {
-  kind: 'material' | 'local'
+  kind: 'material' | 'local' | 'shot'
   name: string
   typeLabel: string
   imageUrl?: string | null
