@@ -92,8 +92,13 @@ export const useShotStore = create<ShotStoreState>((set) => ({
 
       const shotIds: Record<number, number> = {}
       const shotImages: Record<number, ShotImageInfo> = {}
+      const editedPrompts: Record<number, string> = {}
       raw.forEach((item, index) => {
         if (typeof item.id === 'number') shotIds[index] = item.id
+        // 恢复已保存的精炼提示词
+        if (typeof item.prompt === 'string' && item.prompt) {
+          editedPrompts[index] = item.prompt
+        }
         const imageFile = item.imageFile as Record<string, unknown> | null | undefined
         if (imageFile?.id) {
           shotImages[index] = {
@@ -104,7 +109,7 @@ export const useShotStore = create<ShotStoreState>((set) => ({
         }
       })
 
-      set({ shots, shotIds, shotImages })
+      set({ shots, shotIds, shotImages, editedPrompts })
     } catch {
       // ignore
     }

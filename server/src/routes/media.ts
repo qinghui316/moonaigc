@@ -112,7 +112,7 @@ router.post('/upload-from-url', async (req: Request, res: Response) => {
       },
     })
 
-    res.json({ id: record.id, filePath: record.filePath, url: `/api/media/${record.id}/file` })
+    res.json({ id: record.id, filePath: record.filePath, url: `/api/media/${record.id}/file`, base64: buffer.toString('base64'), mimeType })
   } catch (err) {
     res.status(500).json({ error: String(err) })
   }

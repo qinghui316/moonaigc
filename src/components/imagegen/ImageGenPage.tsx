@@ -26,6 +26,59 @@ interface ShotRow {
   cells: string[]
 }
 
+type LocalUploadRef = { id: string; base64: string; mimeType: string; name: string }
+type MaterialDisplayRef = {
+  kind: 'material'
+  key: string
+  source: '自动' | '手动'
+  name: string
+  typeLabel: string
+  imageUrl: string
+  imageFileId: number
+  tag?: string
+}
+type LocalDisplayRef = {
+  kind: 'local'
+  key: string
+  source: '本地'
+  name: string
+  imageUrl: string
+  id: string
+}
+
+const ASSET_TYPE_LABELS: Record<ManualRefItem['type'], string> = {
+  character: '角色',
+  image: '场景',
+  props: '道具',
+}
+
+const mapCollectedRefsToManualItems = (refs: ReturnType<typeof collectRefImages>): ManualRefItem[] =>
+  refs.map(ref => ({
+    name: ref.name,
+    type: ref.type,
+    desc: ref.desc,
+    imageUrl: ref.imageUrl,
+    imageFileId: ref.imageFileId,
+  }))
+
+const toRefImageInfos = (refs: ManualRefItem[]) =>
+  refs.map(ref => ({
+    tag: `@${ref.name}`,
+    type: ref.type,
+    name: ref.name,
+    desc: ref.desc,
+    imageUrl: ref.imageUrl,
+    imageFileId: ref.imageFileId,
+  }))
+
+const mergeMaterialRefs = (autoRefs: ManualRefItem[], extraRefs: ManualRefItem[]) => {
+  const seenIds = new Set(autoRefs.map(ref => ref.imageFileId))
+  return [
+    ...autoRefs,
+    ...extraRefs.filter(ref => !seenIds.has(ref.imageFileId)),
+  ]
+}
+
 const ImageGenPage: React.FC<{ selectedRowIndex?: number | null }> = ({ selectedRowIndex = null }) => {
   const { textSettings, imageSettings, imageStyleKey, setImageStyleKey } = useSettingsStore()
   const materialStore = useMaterialStore()
@@ -92,7 +145,7 @@ const ImageGenPage: React.FC<{ selectedRowIndex?: number | null }> = ({ selected
   }, [pageMode, effectiveAspectRatios, effectiveResolutions, imageSettings.aspectRatio, imageSettings.imageResolution])
   // 手动参考图管理
   const [manualRefs, setManualRefs] = useState<ManualRefItem[]>([])
-  const [localUploads, setLocalUploads] = useState<{ id: string; base64: string; mimeType: string; name: string }[]>([])
+  const [localUploads, setLocalUploads] = useState<LocalUploadRef[]>([])
   const [showRefPicker, setShowRefPicker] = useState(false)
   const localUploadInputRef = React.useRef<HTMLInputElement>(null)
   // 底部画廊
@@ -143,8 +196,7 @@ const ImageGenPage: React.FC<{ selectedRowIndex?: number | null }> = ({ selected
     setSelectedRow(null)
     setEditedPrompt('')
     setSelectedItems(new Set())
-    // 切换历史记录时清空旧的提示词缓存
-    shotStore.clearEditedPrompts()
+    // 切换历史记录时清空旧的参考图选择缓存（editedPrompts 已由 loadShotsFromDB 从 DB 恢复，不再清空）
     shotStore.clearSelectedRefs()
     // 从 store 恢复已生成的图片（loadShotsFromDB 已更新 shotImages）
     const imgs: Record<number, string> = {}
@@ -200,25 +252,97 @@ const ImageGenPage: React.FC<{ selectedRowIndex?: number | null }> = ({ selected
     setLocalUploads(hasSavedSelection ? savedLocalRefs : [])
   }, [selectedHistoryId, history, styleKey, materialStore.materials])
 
-  useEffect(() => {
-    if (!selectedRow) return
-    const autoRefs = collectRefImages(selectedRow.prompt, materialStore.materials)
-      .filter(ref => refImageChecks[ref.tag] !== false)
-      .map(ref => ({
+  const currentAutoCollectedRefs = useMemo(
+    () => (selectedRow
+      ? collectRefImages(selectedRow.prompt, materialStore.materials)
+        .filter(ref => refImageChecks[ref.tag] !== false)
+      : []),
+    [selectedRow, materialStore.materials, refImageChecks],
+  )
+
+  const currentAutoMaterialRefs = useMemo(
+    () => mapCollectedRefsToManualItems(currentAutoCollectedRefs),
+    [currentAutoCollectedRefs],
+  )
+
+  const currentResolvedMaterialRefs = useMemo(
+    () => mergeMaterialRefs(currentAutoMaterialRefs, manualRefs),
+    [currentAutoMaterialRefs, manualRefs],
+  )
+
+  const resolveRefsForRow = useCallback((row: ShotRow, preferCurrentState = false) => {
+    if (preferCurrentState && selectedRow?.index === row.index) {
+      return {
+        materialRefs: currentResolvedMaterialRefs,
+        localRefs: localUploads,
+      }
+    }
+
+    const storeState = useShotStore.getState()
+    const hasSavedSelection =
+      Object.prototype.hasOwnProperty.call(storeState.selectedMaterialRefs, row.index)
+      || Object.prototype.hasOwnProperty.call(storeState.selectedLocalRefs, row.index)
+
+    if (hasSavedSelection) {
+      return {
+        materialRefs: storeState.selectedMaterialRefs[row.index] ?? [],
+        localRefs: storeState.selectedLocalRefs[row.index] ?? [],
+      }
+    }
+
+    return {
+      materialRefs: mapCollectedRefsToManualItems(collectRefImages(row.prompt, materialStore.materials)),
+      localRefs: [] as LocalUploadRef[],
+    }
+  }, [selectedRow?.index, currentResolvedMaterialRefs, localUploads, materialStore.materials])
+
+  const currentDisplayRefs = useMemo<(MaterialDisplayRef | LocalDisplayRef)[]>(() => {
+    const autoRefById = new Map(currentAutoCollectedRefs.map(ref => [ref.imageFileId, ref]))
+    const materialDisplayRefs: MaterialDisplayRef[] = currentResolvedMaterialRefs.map(ref => {
+      const autoRef = autoRefById.get(ref.imageFileId)
+      return {
+        kind: 'material',
+        key: `${autoRef ? 'auto' : 'manual'}_${ref.imageFileId}`,
+        source: autoRef ? '自动' : '手动',
         name: ref.name,
-        type: ref.type,
-        desc: ref.desc,
+        typeLabel: ASSET_TYPE_LABELS[ref.type],
         imageUrl: ref.imageUrl,
         imageFileId: ref.imageFileId,
-      }))
-    const seenIds = new Set(autoRefs.map(ref => ref.imageFileId))
-    const mergedMaterialRefs = [
-      ...autoRefs,
-      ...manualRefs.filter(ref => !seenIds.has(ref.imageFileId)),
-    ]
-    setSelectedMaterialRefs(selectedRow.index, mergedMaterialRefs)
+        tag: autoRef?.tag,
+      }
+    })
+
+    const localDisplayRefs: LocalDisplayRef[] = localUploads.map(ref => ({
+      kind: 'local',
+      key: `local_${ref.id}`,
+      source: '本地',
+      name: ref.name,
+      imageUrl: `data:${ref.mimeType};base64,${ref.base64}`,
+      id: ref.id,
+    }))
+
+    return [...materialDisplayRefs, ...localDisplayRefs]
+  }, [currentAutoCollectedRefs, currentResolvedMaterialRefs, localUploads])
+
+  const persistShotPrompt = useCallback(async (rowIndex: number, prompt: string) => {
+    const shotId = useShotStore.getState().shotIds[rowIndex]
+    if (!shotId) return
+    try {
+      await fetch(`/api/shots/${shotId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt }),
+      })
+    } catch {
+      // ignore prompt persistence failures and keep local state
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!selectedRow) return
+    setSelectedMaterialRefs(selectedRow.index, currentResolvedMaterialRefs)
     setSelectedLocalRefs(selectedRow.index, localUploads)
-  }, [selectedRow, materialStore.materials, refImageChecks, manualRefs, localUploads, setSelectedLocalRefs, setSelectedMaterialRefs])
+  }, [selectedRow, currentResolvedMaterialRefs, localUploads, setSelectedLocalRefs, setSelectedMaterialRefs])
 
   // AI精炼：将当前提示词精炼后写回文本框，供用户预览/修改
   useEffect(() => {
@@ -244,11 +368,48 @@ const ImageGenPage: React.FC<{ selectedRowIndex?: number | null }> = ({ selected
       const refined = await refinePromptViaAI(editedPrompt, textSettings, refDescs)
       setEditedPrompt(refined)
       shotStore.setEditedPrompt(selectedRow.index, refined)
+      void persistShotPrompt(selectedRow.index, refined)
     } catch (e) {
       setError(`AI精炼失败：${String(e)}`)
     }
     setRefining(false)
-  }, [selectedRow, editedPrompt, textSettings, materialStore.materials, refImageChecks])
+  }, [selectedRow, editedPrompt, textSettings, materialStore.materials, refImageChecks, persistShotPrompt, shotStore])
+
+  // 判断两个镜头之间是否发生了场景切换
+  const hasSceneCut = useCallback((currentRowIndex: number, prevRowIndex: number): boolean => {
+    const currentRow = rows[currentRowIndex]
+    const prevRow = rows[prevRowIndex]
+    if (!currentRow || !prevRow) return true
+    const materials = materialStore.materials
+    const currentScenes = new Set(
+      collectRefImages(currentRow.prompt, materials).filter(r => r.type === 'image').map(r => r.name)
+    )
+    const prevScenes = new Set(
+      collectRefImages(prevRow.prompt, materials).filter(r => r.type === 'image').map(r => r.name)
+    )
+    // 场景 tag 集合不同 → 切镜（包括一方有场景另一方没有的情况）
+    if (currentScenes.size !== prevScenes.size) return true
+    for (const s of currentScenes) {
+      if (!prevScenes.has(s)) return true
+    }
+    return false
+  }, [rows, materialStore.materials])
+
+  // 获取前一镜已生成图片的 base64，用于链式参考
+  const getPrevShotBase64 = useCallback(async (currentRowIndex: number): Promise<{ base64: string; mimeType: string } | undefined> => {
+    const prevIdx = currentRowIndex - 1
+    if (prevIdx < 0) return undefined
+    // 场景切换时不传前一镜图片
+    if (hasSceneCut(currentRowIndex, prevIdx)) return undefined
+    const prevImage = useShotStore.getState().shotImages[prevIdx]
+    if (!prevImage?.url) return undefined
+    try {
+      const { fetchAssetImageAsBase64 } = await import('../../services/imageGen')
+      return await fetchAssetImageAsBase64(prevImage.url)
+    } catch {
+      return undefined
+    }
+  }, [hasSceneCut])
 
   const handleGenerate = useCallback(async (rowIndex: number, customPrompt?: string) => {
     if (!imageSettings.key) { setError('请在设置中配置图片生成 API Key'); return }
@@ -258,18 +419,17 @@ const ImageGenPage: React.FC<{ selectedRowIndex?: number | null }> = ({ selected
       const row = rows[rowIndex]
       if (!row) return
 
-      const materials = materialStore.materials
-      const autoRefs = collectRefImages(row.prompt, materials).filter(r => refImageChecks[r.tag] !== false)
-      // 合并自动匹配 + 手动添加的素材库参考图（按 imageFileId 去重）
-      const seenIds = new Set(autoRefs.map(r => r.imageFileId))
-      const extraRefs = manualRefs.filter(r => !seenIds.has(r.imageFileId))
-      const allMaterialRefs = [...autoRefs, ...extraRefs.map(r => ({ ...r, tag: `@${r.name}` }))]
+      const { materialRefs: allMaterialRefs, localRefs: rowLocalRefs } = resolveRefsForRow(row, true)
+      const allMaterialRefInfos = toRefImageInfos(allMaterialRefs)
       const finalPrompt = customPrompt ?? editedPrompt
 
       const refBase64s = [
-        ...await loadRefImageBase64s(allMaterialRefs),
-        ...localUploads.map(u => ({ base64: u.base64, mimeType: u.mimeType })),
+        ...await loadRefImageBase64s(allMaterialRefInfos),
+        ...rowLocalRefs.map(u => ({ base64: u.base64, mimeType: u.mimeType })),
       ]
+      // 链式参考：将前一镜已生成图片追加到参考图末尾
+      const prevShot = await getPrevShotBase64(rowIndex)
+      if (prevShot) refBase64s.push(prevShot)
       const refImageIds = allMaterialRefs.map(r => r.imageFileId)
       // 计算负向提示词（全局 + 风格特有）
       const styleNeg = STYLE_NEGATIVE_PROMPTS[styleKey] ?? ''
@@ -368,7 +528,7 @@ const ImageGenPage: React.FC<{ selectedRowIndex?: number | null }> = ({ selected
       setError(String(e))
     }
     setGenerating(prev => ({ ...prev, [rowIndex]: false }))
-  }, [rows, imageSettings, editedPrompt, refImageChecks, materialStore.materials, shotStore, selectedHistoryId])
+  }, [rows, imageSettings, editedPrompt, shotStore, selectedHistoryId, resolveRefsForRow, history, styleKey])
 
   const handleBatchGenerate = useCallback(async () => {
     if (selectedItems.size === 0) { setError('请先选择要生成的镜头'); return }
@@ -377,16 +537,25 @@ const ImageGenPage: React.FC<{ selectedRowIndex?: number | null }> = ({ selected
     const total = selectedItems.size
     let done = 0
     let prevImageB64: string | undefined
+    let prevBatchIdx: number | undefined
+
+    // 初始化：如果第一个选中镜头的前一镜已有图片，作为链式参考起点（getPrevShotBase64 内已含切镜检测）
+    const firstIdx = [...selectedItems].sort((a, b) => a - b)[0]
+    if (firstIdx != null) {
+      const prevShot = await getPrevShotBase64(firstIdx)
+      if (prevShot) prevImageB64 = prevShot.base64
+    }
 
     for (const idx of [...selectedItems].sort((a, b) => a - b)) {
       const row = rows[idx]
       if (!row) continue
       done++
-      const materials = materialStore.materials
-      const autoRefs = collectRefImages(row.prompt, materials)
-      // 合并手动添加参考图（去重）
-      const seenIds2 = new Set(autoRefs.map(r => r.imageFileId))
-      const refs = [...autoRefs, ...manualRefs.filter(r => !seenIds2.has(r.imageFileId)).map(r => ({ ...r, tag: `@${r.name}` }))]
+
+      // 批量循环中检测切镜：如果与上一个处理的镜头场景不同，清掉 prevImageB64
+      if (prevBatchIdx != null && hasSceneCut(idx, prevBatchIdx)) {
+        prevImageB64 = undefined
+      }
+      const { materialRefs: refs, localRefs: rowLocalRefs } = resolveRefsForRow(row, true)
       const { headers } = parseTableRows(history.find(h => h.id === selectedHistoryId)?.storyboard ?? '')
       const fallback = {
         shotType: row.shotType,
@@ -399,12 +568,16 @@ const ImageGenPage: React.FC<{ selectedRowIndex?: number | null }> = ({ selected
       const fields = parseSeedanceFields(row.prompt, fallback)
       const styleName = STYLE_MAP[styleKey] ?? ''
       let structured = buildStructuredInput(fields, styleName, row.scene, materialStore.materials)
+      const refInfos = toRefImageInfos(refs)
 
       // 每张图先 AI 精炼
       if (textSettings.key) {
         setBatchStatus(`✨ AI精炼提示词 (${done}/${total})`)
         try {
-          structured = await refinePromptViaAI(structured, textSettings, buildRefImageDescs(refs))
+          structured = await refinePromptViaAI(structured, textSettings, buildRefImageDescs(refInfos))
+          shotStore.setEditedPrompt(idx, structured)
+          if (selectedRow?.index === idx) setEditedPrompt(structured)
+          void persistShotPrompt(idx, structured)
         } catch {
           // 精炼失败则使用原始结构化提示词
         }
@@ -419,13 +592,13 @@ const ImageGenPage: React.FC<{ selectedRowIndex?: number | null }> = ({ selected
         : [GLOBAL_NEGATIVE_PROMPT, styleNeg].filter(Boolean).join(', ')
 
       try {
-        const materialBase64s = await loadRefImageBase64s(refs)
+        const materialBase64s = await loadRefImageBase64s(refInfos)
         const refImageIds = refs.map(r => r.imageFileId)
-        // 将前一镜图片插入参考图最前，本地上传追加到末尾
+        // 将前一镜图片追加到参考图末尾
         const chainRefs = [
-          ...(prevImageB64 ? [{ base64: prevImageB64, mimeType: 'image/jpeg' }] : []),
           ...materialBase64s,
-          ...localUploads.map(u => ({ base64: u.base64, mimeType: u.mimeType })),
+          ...rowLocalRefs.map(u => ({ base64: u.base64, mimeType: u.mimeType })),
+          ...(prevImageB64 ? [{ base64: prevImageB64, mimeType: 'image/jpeg' }] : []),
         ]
         const result = await callImageGenAPI(imageSettings, structured, chainRefs, negativePrompt, refImageIds)
         clearRefImageCache()
@@ -471,6 +644,7 @@ const ImageGenPage: React.FC<{ selectedRowIndex?: number | null }> = ({ selected
           })
           if (uploaded) {
             imgUrl = uploaded.url
+            curB64 = uploaded.base64
             shotStore.setShotImage(idx, { url: imgUrl, prompt: structured, mediaFileId: uploaded.id })
             setDbImages(prev => [...prev, { id: uploaded.id, url: uploaded.url, refType: 'shot' }])
             if (shotId) {
@@ -483,45 +657,22 @@ const ImageGenPage: React.FC<{ selectedRowIndex?: number | null }> = ({ selected
           } else {
             shotStore.setShotImage(idx, { url: imgUrl, prompt: structured })
           }
-          // 取 b64 供下一镜链式参考（同时作为 DB 存储的 fallback）
-          try {
-            const { fetchAssetImageAsBase64 } = await import('../../services/imageGen')
-            const asB64 = await fetchAssetImageAsBase64(imgUrl)
-            curB64 = asB64.base64
-            // 若 uploadExternalImageUrl 失败，用 base64 兜底入库
-            if (!uploaded && curB64) {
-              const fallbackResp = await fetch('/api/media/upload', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  base64: curB64, mimeType: asB64.mimeType, refType: 'shot',
-                  ...(selectedHistoryId ? { refId: String(selectedHistoryId) } : {}),
-                  ...(batchRec?.projectId ? { projectId: batchRec.projectId } : {}),
-                  ...(batchRec?.episodeId ? { episodeId: batchRec.episodeId } : {}),
-                }),
-              })
-              if (fallbackResp.ok) {
-                const fd = await fallbackResp.json() as { id: number; url: string }
-                imgUrl = fd.url
-                shotStore.setShotImage(idx, { url: imgUrl, prompt: structured, mediaFileId: fd.id })
-                setDbImages(prev => [...prev, { id: fd.id, url: fd.url, refType: 'shot' }])
-              }
-            }
-          } catch { curB64 = undefined }
         }
 
         if (imgUrl) setGeneratedImages(prev => ({ ...prev, [idx]: imgUrl! }))
         // 缓存本镜 b64 作为下一镜参考
         prevImageB64 = curB64
+        prevBatchIdx = idx
       } catch (e) {
         setError(String(e))
         prevImageB64 = undefined
+        prevBatchIdx = idx
       }
     }
     clearRefImageCache()
     setBatchGenerating(false)
     setBatchStatus('')
-  }, [selectedItems, rows, materialStore.materials, selectedHistoryId, history, styleKey, textSettings, imageSettings, shotStore])
+  }, [selectedItems, rows, selectedHistoryId, history, styleKey, textSettings, imageSettings, shotStore, resolveRefsForRow, selectedRow?.index])
 
   // 进入项目模式时加载项目列表
   useEffect(() => {
@@ -575,46 +726,12 @@ const ImageGenPage: React.FC<{ selectedRowIndex?: number | null }> = ({ selected
     loadHistory,
   ])
 
-  // 有资产图的参考图（可勾选传给 API）
-  const currentRefs = selectedRow
-    ? collectRefImages(selectedRow.prompt, materialStore.materials)
-    : []
-
-  // 所有匹配到的 @标签素材（含无图的，用于展示）
-  const allMatchedRefs = useMemo(() => {
-    if (!selectedRow) return []
-    const tagRe = /@([^\s[\]（()]+)/g
-    const tags = new Set<string>()
-    let m: RegExpExecArray | null
-    while ((m = tagRe.exec(selectedRow.prompt)) !== null) tags.add(m[1])
-    const result: { tag: string; name: string; typeLabel: string; imageUrl?: string; hasImage: boolean }[] = []
-    const typeLabels: Record<string, string> = { character: '角色', image: '场景', props: '道具' }
-    for (const tag of tags) {
-      for (const t of ['character', 'image', 'props'] as const) {
-        const slot = materialStore.materials[t].find(s => s.name === tag)
-        if (slot) {
-          result.push({
-            tag: `@${tag}`,
-            name: slot.name,
-            typeLabel: typeLabels[t],
-            imageUrl: slot.imageUrl,
-            hasImage: !!(slot.imageUrl && slot.imageFileId),
-          })
-          break
-        }
-      }
-    }
-    return result
-  }, [selectedRow, materialStore.materials])
-
   const handleCloseGridModal = useCallback(() => {
     setShowGridModal(false)
     if (!selectedRow) return
     const saved = useShotStore.getState().editedPrompts[selectedRow.index]
     if (saved) setEditedPrompt(saved)
   }, [selectedRow])
-
-  void currentRefs
 
   return (
     <div className="flex flex-col h-full bg-gray-950 text-white">
@@ -834,7 +951,14 @@ const ImageGenPage: React.FC<{ selectedRowIndex?: number | null }> = ({ selected
                   <div className="flex items-center justify-between mb-1.5 shrink-0">
                     <label className="text-xs text-gray-400">提示词（可编辑）</label>
                     <button
-                      onClick={() => { setEditedPrompt(originalPrompt); setError('') }}
+                      onClick={() => {
+                        setEditedPrompt(originalPrompt)
+                        setError('')
+                        if (selectedRow) {
+                          shotStore.setEditedPrompt(selectedRow.index, originalPrompt)
+                          void persistShotPrompt(selectedRow.index, originalPrompt)
+                        }
+                      }}
                       className="text-xs text-gray-500 hover:text-gray-300"
                     >
                       ↺ 恢复原始
@@ -845,6 +969,10 @@ const ImageGenPage: React.FC<{ selectedRowIndex?: number | null }> = ({ selected
                     onChange={e => {
                       setEditedPrompt(e.target.value)
                       if (selectedRow) shotStore.setEditedPrompt(selectedRow.index, e.target.value)
+                    }}
+                    onBlur={() => {
+                      if (!selectedRow) return
+                      void persistShotPrompt(selectedRow.index, editedPrompt)
                     }}
                     className="flex-1 min-h-0 w-full bg-gray-800 border border-gray-700 text-gray-200 text-xs px-3 py-2 rounded-lg focus:outline-none focus:border-amber-500 resize-none"
                   />
@@ -896,37 +1024,19 @@ const ImageGenPage: React.FC<{ selectedRowIndex?: number | null }> = ({ selected
                     </div>
                   </div>
                   <div className="flex gap-2 overflow-x-auto pb-1 min-h-[44px] items-start">
-                    {/* 自动匹配的 @标签素材 */}
-                    {allMatchedRefs.map(ref => ref.hasImage ? (
-                      <label key={ref.tag} className="flex items-center gap-1.5 bg-gray-800 rounded-lg px-2 py-1.5 cursor-pointer text-xs shrink-0">
-                        <input
-                          type="checkbox"
-                          checked={refImageChecks[ref.tag] !== false}
-                          onChange={e => setRefImageChecks(prev => ({ ...prev, [ref.tag]: e.target.checked }))}
-                        />
-                        <img
-                          src={ref.imageUrl}
-                          alt={ref.name}
-                          className="w-8 h-8 object-cover rounded cursor-zoom-in"
-                          onClick={e => { e.preventDefault(); setLightboxSrc(ref.imageUrl!) }}
-                        />
-                        <div>
-                          <div className="text-gray-200 leading-tight">{ref.name}</div>
-                          <div className="text-gray-500 text-[10px]">{ref.typeLabel} · 自动</div>
-                        </div>
-                      </label>
-                    ) : (
-                      <div key={ref.tag} className="flex items-center gap-1.5 bg-gray-800/40 rounded-lg px-2 py-1.5 text-xs shrink-0 opacity-50">
-                        <div className="w-8 h-8 rounded bg-gray-700 flex items-center justify-center text-gray-500">?</div>
-                        <div>
-                          <div className="text-gray-400 leading-tight">{ref.name}</div>
-                          <div className="text-gray-600 text-[10px]">{ref.typeLabel} · 暂无图</div>
-                        </div>
-                      </div>
-                    ))}
-                    {/* 手动添加的素材库参考图 */}
-                    {manualRefs.map(ref => (
-                      <div key={`manual_${ref.imageFileId}`} className="relative flex items-center gap-1.5 bg-amber-900/30 border border-amber-800/50 rounded-lg px-2 py-1.5 text-xs shrink-0">
+                    {currentDisplayRefs.map(ref => ref.kind === 'material' ? (
+                      <div key={ref.key} className={`relative flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs shrink-0 ${
+                        ref.source === '自动'
+                          ? 'bg-gray-800'
+                          : 'bg-amber-900/30 border border-amber-800/50'
+                      }`}>
+                        {ref.source === '自动' && ref.tag ? (
+                          <input
+                            type="checkbox"
+                            checked={refImageChecks[ref.tag] !== false}
+                            onChange={e => setRefImageChecks(prev => ({ ...prev, [ref.tag!]: e.target.checked }))}
+                          />
+                        ) : null}
                         <img
                           src={ref.imageUrl}
                           alt={ref.name}
@@ -935,34 +1045,36 @@ const ImageGenPage: React.FC<{ selectedRowIndex?: number | null }> = ({ selected
                         />
                         <div>
                           <div className="text-gray-200 leading-tight">{ref.name}</div>
-                          <div className="text-amber-600 text-[10px]">手动</div>
+                          <div className={`text-[10px] ${ref.source === '自动' ? 'text-gray-500' : 'text-amber-600'}`}>
+                            {ref.typeLabel} · {ref.source}
+                          </div>
                         </div>
-                        <button
-                          onClick={() => setManualRefs(prev => prev.filter(r => r.imageFileId !== ref.imageFileId))}
-                          className="absolute -top-1 -right-1 w-4 h-4 bg-gray-700 hover:bg-red-700 rounded-full flex items-center justify-center text-gray-400 hover:text-white text-[9px]"
-                        >✕</button>
+                        {ref.source === '手动' ? (
+                          <button
+                            onClick={() => setManualRefs(prev => prev.filter(item => item.imageFileId !== ref.imageFileId))}
+                            className="absolute -top-1 -right-1 w-4 h-4 bg-gray-700 hover:bg-red-700 rounded-full flex items-center justify-center text-gray-400 hover:text-white text-[9px]"
+                          >✕</button>
+                        ) : null}
                       </div>
-                    ))}
-                    {/* 本地上传的临时参考图 */}
-                    {localUploads.map(up => (
-                      <div key={up.id} className="relative flex items-center gap-1.5 bg-blue-900/30 border border-blue-800/50 rounded-lg px-2 py-1.5 text-xs shrink-0">
+                    ) : (
+                      <div key={ref.key} className="relative flex items-center gap-1.5 bg-blue-900/30 border border-blue-800/50 rounded-lg px-2 py-1.5 text-xs shrink-0">
                         <img
-                          src={`data:${up.mimeType};base64,${up.base64}`}
-                          alt={up.name}
+                          src={ref.imageUrl}
+                          alt={ref.name}
                           className="w-8 h-8 object-cover rounded cursor-zoom-in"
-                          onClick={() => setLightboxSrc(`data:${up.mimeType};base64,${up.base64}`)}
+                          onClick={() => setLightboxSrc(ref.imageUrl)}
                         />
                         <div>
-                          <div className="text-gray-200 leading-tight truncate max-w-[60px]">{up.name}</div>
-                          <div className="text-blue-400 text-[10px]">本地</div>
+                          <div className="text-gray-200 leading-tight truncate max-w-[60px]">{ref.name}</div>
+                          <div className="text-blue-400 text-[10px]">{ref.source}</div>
                         </div>
                         <button
-                          onClick={() => setLocalUploads(prev => prev.filter(u => u.id !== up.id))}
+                          onClick={() => setLocalUploads(prev => prev.filter(item => item.id !== ref.id))}
                           className="absolute -top-1 -right-1 w-4 h-4 bg-gray-700 hover:bg-red-700 rounded-full flex items-center justify-center text-gray-400 hover:text-white text-[9px]"
                         >✕</button>
                       </div>
                     ))}
-                    {allMatchedRefs.length === 0 && manualRefs.length === 0 && localUploads.length === 0 && (
+                    {currentDisplayRefs.length === 0 && (
                       <p className="text-xs text-gray-600 self-center">未匹配到 @标签素材，可手动添加</p>
                     )}
                   </div>
@@ -1033,8 +1145,8 @@ const ImageGenPage: React.FC<{ selectedRowIndex?: number | null }> = ({ selected
           {/* 分镜图 */}
           <div className="flex items-center gap-1 mb-2">
             {(() => {
-              const localShotCount = Object.values(generatedImages).filter(url => !dbImages.some(d => d.url === url)).length
-              const count = dbImages.length + localShotCount
+              const shotImageEntries = Object.entries(useShotStore.getState().shotImages)
+              const count = shotImageEntries.length
               return (
                 <button
                   type="button"
@@ -1056,45 +1168,20 @@ const ImageGenPage: React.FC<{ selectedRowIndex?: number | null }> = ({ selected
             </button>
           </div>
           <div className="flex gap-2 overflow-x-auto pb-1">
-            {/* DB 分镜图 */}
-            {dbImages
-              .filter(d => d.refType === galleryTab)
-              .map(d => (
-                <div key={`db-${d.id}`} className="relative shrink-0 group">
+            {/* 每个镜头只显示最新的一张图 */}
+            {Object.entries(shotStore.shotImages)
+              .sort(([a], [b]) => Number(a) - Number(b))
+              .map(([idx, info]) => (
+                <div key={`shot-${idx}`} className="relative shrink-0 group">
                   <img
-                    src={d.url}
-                    alt="分镜图"
+                    src={info.url}
+                    alt={`镜头${Number(idx) + 1}`}
                     className="h-20 w-20 object-cover rounded-lg cursor-pointer"
-                    onClick={() => setLightboxSrc(d.url)}
+                    onClick={() => setLightboxSrc(info.url)}
                   />
                   <div className="absolute top-0 left-0 text-xs px-1 rounded-tl-lg bg-black/60 text-white">
-                    镜
-                  </div>
-                </div>
-              ))}
-            {/* 本次会话新生成但未持久化的图（用于提示用户已生成） */}
-            {Object.entries(generatedImages)
-              .filter(([, url]) => !dbImages.some(d => d.url === url))
-              .map(([idx, url]) => (
-                <div key={`local-${idx}`} className="relative shrink-0 group">
-                  <img
-                    src={url}
-                    alt={`镜头${Number(idx) + 1}`}
-                    className="h-20 w-20 object-cover rounded-lg cursor-pointer opacity-70"
-                    onClick={() => setLightboxSrc(url)}
-                  />
-                  <div className="absolute top-0 left-0 text-xs bg-black/60 text-white px-1 rounded-tl-lg">
                     #{Number(idx) + 1}
                   </div>
-                  <button
-                    onClick={() => {
-                      setGeneratedImages(prev => { const n = { ...prev }; delete n[Number(idx)]; return n })
-                      shotStore.clearShotImage(Number(idx))
-                    }}
-                    className="absolute top-0 right-0 text-xs bg-red-600/80 text-white px-1 rounded-tr-lg opacity-0 group-hover:opacity-100"
-                  >
-                    ✕
-                  </button>
                 </div>
               ))}
           </div>

@@ -222,5 +222,5 @@ export async function refinePromptViaAI(
     textSettings
   )
 
-  return clampText(result.trim(), 320)
+  return result.trim()
 }

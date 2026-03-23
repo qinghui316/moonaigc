@@ -13,6 +13,7 @@ import type { TabId } from './components/layout/TabNav'
 import type { Episode } from './types'
 import { useSettingsStore } from './store/useSettingsStore'
 import { useMaterialStore } from './store/useMaterialStore'
+import { useHistoryStore } from './store/useHistoryStore'
 import { useThemeStore } from './store/useThemeStore'
 
 const App: React.FC = () => {
@@ -21,6 +22,7 @@ const App: React.FC = () => {
   const [loadedEpisode, setLoadedEpisode] = useState<Episode | null>(null)
   const { load: loadSettings } = useSettingsStore()
   const { load: loadMaterials } = useMaterialStore()
+  const { load: loadHistory } = useHistoryStore()
   const theme = useThemeStore(s => s.theme)
 
   useEffect(() => {
@@ -30,6 +32,7 @@ const App: React.FC = () => {
   useEffect(() => {
     loadSettings()
     loadMaterials()
+    loadHistory()
 
     // Ctrl+Enter 快捷键全局绑定
     const handler = (e: KeyboardEvent) => {

@@ -65,7 +65,7 @@ export async function uploadExternalImageUrl(
   externalUrl: string,
   opts: { refType?: string; refId?: string; filename?: string; projectId?: string; episodeId?: string } = {},
   signal?: AbortSignal,
-): Promise<{ url: string; id: number } | null> {
+): Promise<{ url: string; id: number; base64?: string; mimeType?: string } | null> {
   try {
     const uploadResp = await fetch('/api/media/upload-from-url', {
       method: 'POST',
@@ -74,7 +74,7 @@ export async function uploadExternalImageUrl(
       signal,
     })
     if (!uploadResp.ok) return null
-    return await uploadResp.json() as { url: string; id: number }
+    return await uploadResp.json() as { url: string; id: number; base64?: string; mimeType?: string }
   } catch {
     return null
   }
