@@ -869,14 +869,14 @@ const ImageGenPage: React.FC<{ selectedRowIndex?: number | null }> = ({ selected
             <button
               onClick={handleBatchGenerate}
               disabled={batchGenerating || selectedItems.size === 0}
-              className="ml-auto text-xs bg-indigo-600 hover:bg-indigo-500 text-white px-2 py-1 rounded disabled:opacity-50"
+              className="btn-press ml-auto text-xs bg-indigo-600 hover:bg-indigo-500 text-white px-2 py-1 rounded disabled:opacity-50"
             >
               {batchGenerating ? (batchStatus || '生成中...') : `批量生图(${selectedItems.size})`}
             </button>
             <button
               onClick={() => setShowGridModal(true)}
               disabled={rows.length === 0}
-              className="text-xs bg-indigo-700 hover:bg-indigo-600 text-white px-2 py-1 rounded disabled:opacity-50"
+              className="btn-press text-xs bg-indigo-700 hover:bg-indigo-600 text-white px-2 py-1 rounded disabled:opacity-50"
               title="宫格生成"
             >
               宫格
@@ -1096,7 +1096,7 @@ const ImageGenPage: React.FC<{ selectedRowIndex?: number | null }> = ({ selected
                   <button
                     onClick={() => handleGenerate(selectedRow.index)}
                     disabled={!!generating[selectedRow.index] || refining}
-                    className="flex-1 py-2 bg-brand-600 hover:bg-brand-500 text-white text-sm font-medium rounded-lg transition-colors shadow-sm shadow-brand-600/20 disabled:opacity-50"
+                    className="btn-press flex-1 py-2 bg-brand-600 hover:bg-brand-500 text-white text-sm font-medium rounded-lg transition-colors shadow-sm shadow-brand-600/20 disabled:opacity-50"
                   >
                     {generating[selectedRow.index] ? '🎨 生成中...' : '🎨 开始生图'}
                   </button>
@@ -1193,7 +1193,7 @@ const ImageGenPage: React.FC<{ selectedRowIndex?: number | null }> = ({ selected
       {/* 灯箱 */}
       {lightboxSrc && (
         <div
-          className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4"
+          className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4 animate-fade-in"
           onClick={() => setLightboxSrc(null)}
         >
           <img src={lightboxSrc} alt="放大" className="max-h-full max-w-full rounded-lg" />
@@ -1206,6 +1206,7 @@ const ImageGenPage: React.FC<{ selectedRowIndex?: number | null }> = ({ selected
         const rec = history.find(h => h.id === selectedHistoryId)
         return (
           <GridModal
+            open={showGridModal}
             shots={rows.map(r => ({
               time: r.time, shotType: r.shotType, camera: '',
               scene: r.scene, lighting: '', drama: '', prompt: r.prompt,

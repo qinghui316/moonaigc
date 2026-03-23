@@ -10,6 +10,7 @@ import SafetyModal from '../modals/SafetyModal'
 import VisionModal from '../modals/VisionModal'
 import StcModal from '../modals/StcModal'
 import ScriptPasteModal from '../modals/ScriptPasteModal'
+import AnimatedOverlay from '../common/AnimatedOverlay'
 import { useSettingsStore } from '../../store/useSettingsStore'
 import { useChainStore } from '../../store/useChainStore'
 import { useHistoryStore } from '../../store/useHistoryStore'
@@ -28,6 +29,7 @@ import { exportTxt } from '../../utils/exportTxt'
 import { exportExcel } from '../../utils/exportExcel'
 import { exportWord } from '../../utils/exportWord'
 import { playCompletionSound, playErrorSound } from '../../utils/sound'
+import { toast } from '../../store/useToastStore'
 import {
   splitScript, buildInitialScenes, generateScene, extractBridge,
 } from '../../services/chainEngine'
@@ -456,7 +458,7 @@ const CreatePage: React.FC<{ loadedRecord?: HistoryRecord | null; loadedEpisode?
   const handleCopyAll = () => {
     const prompts = extractPrompts(storyboard)
     navigator.clipboard.writeText(prompts.join('\n\n---\n\n'))
-    alert(`已复制 ${prompts.length} 条提示词`)
+    toast.success(`已复制 ${prompts.length} 条提示词`)
   }
 
   const handleIntegrate = async () => {
@@ -508,12 +510,12 @@ const CreatePage: React.FC<{ loadedRecord?: HistoryRecord | null; loadedEpisode?
     const parsedShots = useShotStore.getState().parseFromMarkdown(storyboard)
     await useShotStore.getState().saveShotsToDB(histId, parsedShots)
     setActiveHistoryRecordId(histId)
-    alert('✅ 已保存到历史记录')
+    toast.success('已保存到历史记录')
   }
 
   const handleExport = async (type: 'txt' | 'excel' | 'word') => {
     const shots = extractShotData(storyboard)
-    if (!shots.length) { alert('暂无可导出的分镜数据'); return }
+    if (!shots.length) { toast.warning('暂无可导出的分镜数据'); return }
     const title = plot.slice(0, 30)
     const directorName = selectedDirector.name
     const dur = `${duration}秒`
@@ -526,7 +528,7 @@ const CreatePage: React.FC<{ loadedRecord?: HistoryRecord | null; loadedEpisode?
   const handleFileImport = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
-    if (!file.name.endsWith('.txt')) { alert('请选择 .txt 格式的剧本文件'); return }
+    if (!file.name.endsWith('.txt')) { toast.warning('请选择 .txt 格式的剧本文件'); return }
     const reader = new FileReader()
     reader.onload = (ev) => {
       const text = ev.target?.result as string
@@ -814,7 +816,7 @@ const CreatePage: React.FC<{ loadedRecord?: HistoryRecord | null; loadedEpisode?
                   onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) handleRefine() }}
                 />
                 <button onClick={handleRefine} disabled={isRefining || !refineText.trim()}
-                  className="px-3 py-2 text-xs bg-brand-600 text-white border border-indigo-500/50 rounded-md hover:bg-brand-500 disabled:opacity-50 transition-colors">
+                  className="btn-press px-3 py-2 text-xs bg-brand-600 text-white border border-indigo-500/50 rounded-md hover:bg-brand-500 disabled:opacity-50 transition-colors">
                   {isRefining ? '修改中...' : '全局修改'}
                 </button>
               </div>
@@ -860,7 +862,7 @@ const CreatePage: React.FC<{ loadedRecord?: HistoryRecord | null; loadedEpisode?
                         <button
                           onClick={() => {
                             navigator.clipboard.writeText(integratedPrompt)
-                            alert('✅ 整合提示词已复制！')
+                            toast.success('整合提示词已复制！')
                           }}
                           className="px-2 py-0.5 text-xs text-indigo-400 border border-indigo-800/30 rounded hover:bg-indigo-900/20">
                           📋 复制全部
@@ -891,12 +893,12 @@ const CreatePage: React.FC<{ loadedRecord?: HistoryRecord | null; loadedEpisode?
         <div className="flex-1" />
         {(isStreaming || chainStore.isRunning) ? (
           <button onClick={handleCancel}
-            className="px-6 py-2.5 bg-red-600 hover:bg-red-500 text-white font-semibold rounded-lg text-sm transition-colors shadow-lg shadow-red-900/30">
+            className="btn-press px-6 py-2.5 bg-red-600 hover:bg-red-500 text-white font-semibold rounded-lg text-sm transition-colors shadow-lg shadow-red-900/30">
             ⛔ 停止生成
           </button>
         ) : (
           <button onClick={handleGenerate} data-action="generate"
-            className="px-8 py-2.5 bg-brand-600 hover:bg-brand-500 text-white font-bold rounded-lg text-sm transition-all shadow-lg shadow-indigo-900/40 hover:shadow-indigo-900/60">
+            className="btn-press px-8 py-2.5 bg-brand-600 hover:bg-brand-500 text-white font-bold rounded-lg text-sm transition-all shadow-lg shadow-indigo-900/40 hover:shadow-indigo-900/60">
             ⚡ 生成分镜  <span className="text-xs opacity-70 ml-1">Ctrl+Enter</span>
           </button>
         )}
@@ -906,15 +908,14 @@ const CreatePage: React.FC<{ loadedRecord?: HistoryRecord | null; loadedEpisode?
       {!isStreaming && !chainStore.isRunning && storyboard && (
         <button
           onClick={handleGenerate}
-          className="fixed right-6 bottom-20 w-12 h-12 bg-brand-600 hover:bg-brand-500 text-white rounded-full shadow-lg shadow-indigo-900/50 flex items-center justify-center text-lg transition-all hover:scale-110 z-40"
+          className="btn-press fixed right-6 bottom-20 w-12 h-12 bg-brand-600 hover:bg-brand-500 text-white rounded-full shadow-lg shadow-indigo-900/50 flex items-center justify-center text-lg transition-all hover:scale-110 z-40"
           title="重新生成">
           ⚡
         </button>
       )}
 
       {/* Modals */}
-      {showHistoryPicker && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+      <AnimatedOverlay open={showHistoryPicker} onClose={() => setShowHistoryPicker(false)}>
           <div className="w-full max-w-6xl h-[80vh] bg-surface-1 border border-divider rounded-lg shadow-2xl overflow-hidden">
             <HistoryPage
               embedded
@@ -925,8 +926,7 @@ const CreatePage: React.FC<{ loadedRecord?: HistoryRecord | null; loadedEpisode?
               currentRecordId={activeHistoryRecordId}
             />
           </div>
-        </div>
-      )}
+      </AnimatedOverlay>
 
       {editModal && (
         <ShotEditModal
@@ -962,26 +962,25 @@ const CreatePage: React.FC<{ loadedRecord?: HistoryRecord | null; loadedEpisode?
 
       {showVision && (
         <VisionModal
+          open={showVision}
           onClose={() => setShowVision(false)}
           onFillPlot={p => { setPlot(p); setShowVision(false) }}
         />
       )}
 
-      {showStc && (
-        <StcModal
-          storyboardContent={storyboard}
-          originalPlot={plot}
-          onClose={() => setShowStc(false)}
-        />
-      )}
+      <StcModal
+        open={showStc}
+        storyboardContent={storyboard}
+        originalPlot={plot}
+        onClose={() => setShowStc(false)}
+      />
 
-      {showPasteModal && (
-        <ScriptPasteModal
-          onClose={() => setShowPasteModal(false)}
-          onExtract={handlePasteExtract}
-          isExtracting={isExtracting}
-        />
-      )}
+      <ScriptPasteModal
+        open={showPasteModal}
+        onClose={() => setShowPasteModal(false)}
+        onExtract={handlePasteExtract}
+        isExtracting={isExtracting}
+      />
     </div>
   )
 }

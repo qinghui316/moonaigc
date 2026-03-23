@@ -3,6 +3,9 @@ import { useProjectStore } from '../../store/useProjectStore'
 import { useSettingsStore } from '../../store/useSettingsStore'
 import { useMaterialStore } from '../../store/useMaterialStore'
 import { GENRE_LIST } from '../../data/drama/genreGuide'
+import { toast } from '../../store/useToastStore'
+import { confirmDialog } from '../../store/useToastStore'
+import AnimatedOverlay from '../common/AnimatedOverlay'
 import {
   tryRuleSplit, aiSplitScript,
   generateImportCreativePlan, generateImportCharacterDoc,
@@ -124,7 +127,7 @@ const ProjectPage: React.FC<ProjectPageProps> = ({ onNavigate }) => {
 
   const handleImport = useCallback(async () => {
     if (!form.name.trim() || !importText.trim()) return
-    if (!textSettings.key) { alert('请先在设置中配置文字 AI API Key'); return }
+    if (!textSettings.key) { toast.warning('请先在设置中配置文字 AI API Key'); return }
     setSaving(true)
     setImportProgress('创建项目...')
 
@@ -236,7 +239,7 @@ const ProjectPage: React.FC<ProjectPageProps> = ({ onNavigate }) => {
         importStatus: 'failed',
         importError: String(e),
       })
-      alert(`导入失败：${String(e)}`)
+      toast.error(`导入失败：${String(e)}`)
     }
 
     setSaving(false)
@@ -261,7 +264,8 @@ const ProjectPage: React.FC<ProjectPageProps> = ({ onNavigate }) => {
   }
 
   const handleDelete = async (id: string, name: string) => {
-    if (!confirm(`确定要删除项目「${name}」吗？该项目下的所有剧集和素材将一并删除。`)) return
+    const ok = await confirmDialog({ title: '确认删除', message: `确定要删除项目「${name}」吗？该项目下的所有剧集和素材将一并删除。`, variant: 'danger', confirmText: '删除' })
+    if (!ok) return
     await deleteProject(id)
   }
 
@@ -298,7 +302,7 @@ const ProjectPage: React.FC<ProjectPageProps> = ({ onNavigate }) => {
             {projects.map(p => (
               <div
                 key={p.id}
-                className="bg-surface-2/50 border border-divider rounded-lg p-4 hover:border-gray-600 transition-colors group cursor-pointer"
+                className="bg-surface-2/50 border border-divider rounded-lg p-4 hover:border-gray-600 card-hover group cursor-pointer"
                 onClick={() => handleOpen(p)}
               >
                 <div className="flex items-start justify-between gap-3">
@@ -351,8 +355,7 @@ const ProjectPage: React.FC<ProjectPageProps> = ({ onNavigate }) => {
       </div>
 
       {/* 新建项目弹窗 */}
-      {showForm && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <AnimatedOverlay open={showForm} onClose={() => { setShowForm(false); setImportProgress(''); setImportAudience(''); setImportTone(''); setImportEndingType('') }}>
           <div className="bg-surface-1 border border-divider-strong rounded-xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col">
             <div className="flex items-center justify-between px-5 py-4 border-b border-divider">
               <h3 className="text-gray-100 font-semibold">新建项目</h3>
@@ -681,7 +684,7 @@ const ProjectPage: React.FC<ProjectPageProps> = ({ onNavigate }) => {
                 <button
                   onClick={handleCreate}
                   disabled={saving || !form.name.trim() || form.genre.length === 0}
-                  className="flex-1 py-2 text-sm bg-brand-600 text-white rounded-lg hover:bg-brand-500 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                  className="btn-press flex-1 py-2 text-sm bg-brand-600 text-white rounded-lg hover:bg-brand-500 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                 >
                   {saving ? '创建中…' : '创建并进入工作台'}
                 </button>
@@ -689,7 +692,7 @@ const ProjectPage: React.FC<ProjectPageProps> = ({ onNavigate }) => {
                 <button
                   onClick={handleImport}
                   disabled={saving || !form.name.trim() || !importText.trim()}
-                  className="flex-1 py-2 text-sm bg-brand-600 text-white rounded-lg hover:bg-brand-500 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                  className="btn-press flex-1 py-2 text-sm bg-brand-600 text-white rounded-lg hover:bg-brand-500 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                   title={!form.name.trim() ? '请填写项目名称' : !importText.trim() ? '请粘贴原始文本' : ''}
                 >
                   {saving ? (importProgress || '处理中…') : '📄 导入并生成'}
@@ -697,8 +700,7 @@ const ProjectPage: React.FC<ProjectPageProps> = ({ onNavigate }) => {
               )}
             </div>
           </div>
-        </div>
-      )}
+      </AnimatedOverlay>
     </div>
   )
 }

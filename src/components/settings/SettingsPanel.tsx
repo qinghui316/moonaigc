@@ -2,13 +2,17 @@ import React, { useState } from 'react'
 import { useSettingsStore } from '../../store/useSettingsStore'
 import { TEXT_PLATFORMS, VISION_PLATFORMS, IMAGE_PLATFORMS } from '../../data/platforms'
 import { generate } from '../../services/api'
+import { confirmDialog } from '../../store/useToastStore'
+import { toast } from '../../store/useToastStore'
+import AnimatedOverlay from '../common/AnimatedOverlay'
 import type { Platform } from '../../types'
 
 interface SettingsPanelProps {
+  open: boolean
   onClose: () => void
 }
 
-const SettingsPanel: React.FC<SettingsPanelProps> = ({ onClose }) => {
+const SettingsPanel: React.FC<SettingsPanelProps> = ({ open, onClose }) => {
   const {
     textSettings, visionSettings, imageSettings,
     autoSafety, autoSound, enableWordFilter, autoSaveHistory,
@@ -72,7 +76,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ onClose }) => {
   }
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <AnimatedOverlay open={open} onClose={onClose}>
       <div className="bg-surface-1 border border-divider-strong rounded-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-divider">
@@ -101,7 +105,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ onClose }) => {
                 <button
                   key={platform.id}
                   onClick={() => handlePlatformSelect(platform)}
-                  className={`p-2.5 rounded-lg border text-left transition-colors ${
+                  className={`card-hover p-2.5 rounded-lg border text-left ${
                     settings.platformId === platform.id
                       ? 'border-indigo-500 bg-indigo-900/30 text-indigo-300'
                       : 'border-divider bg-surface-2 text-gray-300 hover:border-gray-600'
@@ -196,7 +200,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ onClose }) => {
             <button
               onClick={handleTest}
               disabled={testing}
-              className="px-4 py-2 bg-brand-600 hover:bg-brand-500 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
+              className="btn-press px-4 py-2 bg-brand-600 hover:bg-brand-500 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
             >
               {testing ? '测试中...' : '🔌 测试连接'}
             </button>
@@ -233,24 +237,25 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ onClose }) => {
 
         <div className="p-4 pt-0 space-y-2">
           <button
-            onClick={() => {
-              if (!confirm('⚠️ 确认清除所有已保存的 API Key 和设置？\n\n此操作将清除所有平台的 Key，不可恢复。')) return
+            onClick={async () => {
+              const ok = await confirmDialog({ title: '确认清除', message: '确认清除所有已保存的 API Key 和设置？此操作将清除所有平台的 Key，不可恢复。', variant: 'danger', confirmText: '清除' })
+              if (!ok) return
               useSettingsStore.getState().clearAllKeys()
-              alert('✅ 已清除所有平台的 API Key')
+              toast.success('已清除所有平台的 API Key')
             }}
-            className="w-full py-2 text-sm text-red-400 border border-red-800/30 bg-red-900/10 hover:bg-red-900/20 font-medium rounded-lg transition-colors"
+            className="btn-press w-full py-2 text-sm text-red-400 border border-red-800/30 bg-red-900/10 hover:bg-red-900/20 font-medium rounded-lg transition-colors"
           >
             🗑 清除所有 Key
           </button>
           <button
             onClick={onClose}
-            className="w-full py-2.5 bg-brand-600 hover:bg-brand-500 text-white font-medium rounded-lg transition-colors"
+            className="btn-press w-full py-2.5 bg-brand-600 hover:bg-brand-500 text-white font-medium rounded-lg transition-colors"
           >
             保存并关闭
           </button>
         </div>
       </div>
-    </div>
+    </AnimatedOverlay>
   )
 }
 

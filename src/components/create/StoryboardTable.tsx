@@ -24,7 +24,11 @@ const StoryboardTable: React.FC<StoryboardTableProps> = ({ markdown, isStreaming
     if (isStreaming) {
       return (
         <div className="p-4 text-gray-500 text-sm flex items-center gap-2">
-          <span className="inline-block w-2 h-4 bg-indigo-400 animate-pulse rounded-sm" />
+          <span className="streaming-dots inline-flex gap-0.5 items-center">
+            <span className="w-1.5 h-1.5 rounded-full bg-indigo-400" />
+            <span className="w-1.5 h-1.5 rounded-full bg-indigo-400" />
+            <span className="w-1.5 h-1.5 rounded-full bg-indigo-400" />
+          </span>
           正在生成分镜...
         </div>
       )
@@ -102,7 +106,11 @@ const StoryboardTable: React.FC<StoryboardTableProps> = ({ markdown, isStreaming
           {isStreaming && (
             <tr>
               <td colSpan={headers.length + 2} className="px-2 py-2">
-                <span className="inline-block w-2 h-4 bg-indigo-400 animate-pulse rounded-sm" />
+                <span className="streaming-dots inline-flex gap-0.5 items-center">
+                  <span className="w-1.5 h-1.5 rounded-full bg-indigo-400" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-indigo-400" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-indigo-400" />
+                </span>
               </td>
             </tr>
           )}

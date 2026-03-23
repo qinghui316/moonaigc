@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { useSettingsStore } from '../../store/useSettingsStore'
 import { generate } from '../../services/api'
 import { buildSingleShotSystemPrompt, buildSingleShotUserPrompt } from '../../prompts/singleShot'
+import { toast } from '../../store/useToastStore'
 
 interface ShotEditModalProps {
   shotRow: string
@@ -29,7 +30,7 @@ const ShotEditModal: React.FC<ShotEditModalProps> = ({ shotRow, shotIndex, onClo
       )
       setResult(newRow.trim())
     } catch (e) {
-      alert(`修改失败：${String(e)}`)
+      toast.error(`修改失败：${String(e)}`)
     }
     setLoading(false)
   }
@@ -42,8 +43,8 @@ const ShotEditModal: React.FC<ShotEditModalProps> = ({ shotRow, shotIndex, onClo
   }
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-surface-1 border border-divider-strong rounded-xl w-full max-w-lg shadow-2xl">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
+      <div className="bg-surface-1 border border-divider-strong rounded-xl w-full max-w-lg shadow-2xl animate-scale-in">
         <div className="flex items-center justify-between p-4 border-b border-divider">
           <h3 className="text-indigo-400 font-semibold">✏️ 单镜精准修改 · 第{shotIndex + 1}镜</h3>
           <button onClick={onClose} className="text-gray-400 hover:text-white">✕</button>
@@ -88,7 +89,7 @@ const ShotEditModal: React.FC<ShotEditModalProps> = ({ shotRow, shotIndex, onClo
             </button>
           ) : (
             <button onClick={handleEdit} disabled={loading || !instruction.trim()}
-              className="flex-1 py-2 text-sm bg-brand-600 hover:bg-brand-500 text-white rounded-lg transition-colors disabled:opacity-50">
+              className="btn-press flex-1 py-2 text-sm bg-brand-600 hover:bg-brand-500 text-white rounded-lg transition-colors disabled:opacity-50">
               {loading ? 'AI修改中...' : '🎯 AI修改'}
             </button>
           )}

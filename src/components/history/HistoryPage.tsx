@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { useHistoryStore } from '../../store/useHistoryStore'
+import Skeleton from '../common/Skeleton'
 import type { HistoryRecord } from '../../types'
 
 interface HistoryPageProps {
@@ -44,7 +45,17 @@ const HistoryPage: React.FC<HistoryPageProps> = ({
   const scopeLabel = scope === 'episode' ? '当前集历史' : '全部历史'
 
   if (isLoading) {
-    return <div className="flex-1 flex items-center justify-center text-gray-500 text-sm">加载中...</div>
+    return (
+      <div className="flex-1 p-4 space-y-3">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <div key={i} className="rounded-lg p-3 space-y-2">
+            <Skeleton className="h-4 w-32 rounded" />
+            <Skeleton className="h-3 w-full rounded" />
+            <Skeleton className="h-3 w-3/4 rounded" />
+          </div>
+        ))}
+      </div>
+    )
   }
 
   return (

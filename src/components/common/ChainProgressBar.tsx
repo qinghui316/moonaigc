@@ -26,9 +26,18 @@ const ChainProgressBar: React.FC<ChainProgressBarProps> = ({ label, current, tot
       </div>
       <div className="w-full h-1.5 bg-surface-3 rounded-full overflow-hidden">
         <div
-          className="h-full bg-indigo-500 rounded-full transition-all duration-500"
+          className="h-full bg-indigo-500 rounded-full transition-all duration-500 relative overflow-hidden"
           style={{ width: `${pct}%` }}
-        />
+        >
+          <div
+            className="absolute inset-0"
+            style={{
+              background: 'linear-gradient(90deg, transparent 25%, rgba(255,255,255,0.15) 50%, transparent 75%)',
+              backgroundSize: '200% 100%',
+              animation: 'shimmer 1.5s ease-in-out infinite',
+            }}
+          />
+        </div>
       </div>
       <div className="text-right text-xs text-gray-600 mt-0.5">{pct}%</div>
     </div>

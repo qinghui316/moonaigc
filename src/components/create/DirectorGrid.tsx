@@ -73,7 +73,7 @@ const DirectorGrid: React.FC<DirectorGridProps> = ({ selectedId, onSelect }) => 
           <button
             key={director.id}
             onClick={() => onSelect(director)}
-            className={`flex-shrink-0 w-32 p-2.5 rounded-lg border text-left transition-all ${
+            className={`flex-shrink-0 w-32 p-2.5 rounded-lg border text-left card-hover ${
               selectedId === director.id
                 ? 'border-indigo-500 bg-indigo-900/30 shadow-lg shadow-indigo-900/20'
                 : 'border-divider bg-surface-2/50 hover:border-gray-600 hover:bg-surface-2'

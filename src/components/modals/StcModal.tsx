@@ -2,9 +2,11 @@ import React, { useState } from 'react'
 import { useSettingsStore } from '../../store/useSettingsStore'
 import { generate } from '../../services/api'
 import { buildStcCheckPrompt } from '../../prompts/stcCheck'
+import AnimatedOverlay from '../common/AnimatedOverlay'
 import type { StcQaResult } from '../../types'
 
 interface StcModalProps {
+  open: boolean
   storyboardContent: string
   originalPlot?: string
   onClose: () => void
@@ -13,7 +15,7 @@ interface StcModalProps {
 const STATUS_ICON = { pass: '✅', warn: '⚠️', fail: '❌' }
 const STATUS_COLOR = { pass: 'text-green-400', warn: 'text-yellow-400', fail: 'text-red-400' }
 
-const StcModal: React.FC<StcModalProps> = ({ storyboardContent, originalPlot = '', onClose }) => {
+const StcModal: React.FC<StcModalProps> = ({ open, storyboardContent, originalPlot = '', onClose }) => {
   const { textSettings } = useSettingsStore()
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<StcQaResult | null>(null)
@@ -37,7 +39,7 @@ const StcModal: React.FC<StcModalProps> = ({ storyboardContent, originalPlot = '
   }
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <AnimatedOverlay open={open} onClose={onClose}>
       <div className="bg-surface-1 border border-divider-strong rounded-xl w-full max-w-xl shadow-2xl max-h-[85vh] overflow-y-auto">
         <div className="flex items-center justify-between p-4 border-b border-divider sticky top-0 bg-surface-1">
           <h3 className="text-indigo-400 font-semibold">🐱 STC 质量自检</h3>
@@ -51,7 +53,7 @@ const StcModal: React.FC<StcModalProps> = ({ storyboardContent, originalPlot = '
 
           {!result && !loading && (
             <button onClick={handleCheck}
-              className="w-full py-3 bg-brand-600 hover:bg-brand-500 text-white font-semibold rounded-lg transition-colors">
+              className="btn-press w-full py-3 bg-brand-600 hover:bg-brand-500 text-white font-semibold rounded-lg transition-colors">
               🚀 开始 STC 自检
             </button>
           )}
@@ -128,7 +130,7 @@ const StcModal: React.FC<StcModalProps> = ({ storyboardContent, originalPlot = '
           )}
         </div>
       </div>
-    </div>
+    </AnimatedOverlay>
   )
 }
 

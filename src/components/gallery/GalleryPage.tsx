@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { useProjectStore } from '../../store/useProjectStore'
+import { confirmDialog } from '../../store/useToastStore'
+import Skeleton from '../common/Skeleton'
 
 interface MediaItem {
   id: number
@@ -53,7 +55,8 @@ const GalleryPage: React.FC = () => {
   }, [filterProject, filterType]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleDelete = async (id: number) => {
-    if (!confirm('确认删除这张图片？')) return
+    const ok = await confirmDialog({ title: '确认删除', message: '确认删除这张图片？', variant: 'danger', confirmText: '删除' })
+    if (!ok) return
     await fetch(`/api/media/${id}`, { method: 'DELETE' })
     setItems(prev => prev.filter(i => i.id !== id))
     setTotal(prev => prev - 1)
@@ -93,7 +96,11 @@ const GalleryPage: React.FC = () => {
       {/* 图片网格 */}
       <div className="flex-1 overflow-y-auto p-4">
         {loading && items.length === 0 && (
-          <div className="flex items-center justify-center h-40 text-gray-600">加载中...</div>
+          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2">
+            {Array.from({ length: 16 }).map((_, i) => (
+              <Skeleton key={i} className="aspect-square rounded-lg" />
+            ))}
+          </div>
         )}
         {!loading && items.length === 0 && (
           <div className="flex flex-col items-center justify-center h-40 text-gray-600 gap-2">
@@ -103,7 +110,7 @@ const GalleryPage: React.FC = () => {
         )}
         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2">
           {items.map(item => (
-            <div key={item.id} className="relative group aspect-square bg-surface-2 rounded-lg overflow-hidden">
+            <div key={item.id} className="relative group aspect-square bg-surface-2 rounded-lg overflow-hidden transition-transform duration-150 hover:scale-[1.02]">
               <img
                 src={item.url}
                 alt={item.fileName}
@@ -151,7 +158,7 @@ const GalleryPage: React.FC = () => {
       {/* 灯箱 */}
       {lightboxSrc && (
         <div
-          className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4"
+          className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4 animate-fade-in"
           onClick={() => setLightboxSrc(null)}
         >
           <img src={lightboxSrc} alt="放大" className="max-h-full max-w-full rounded-lg" />

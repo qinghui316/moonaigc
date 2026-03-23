@@ -6,6 +6,8 @@ import { callImageGenAPI, uploadExternalImageUrl } from '../../services/imageGen
 import { EXTRACT_SYSTEM_PROMPT, buildExtractUserPrompt } from '../../prompts/extract'
 import { ASSET_IMAGE_PROMPTS } from '../../prompts/assetImage'
 import { STYLE_MAP, STYLE_OPTIONS } from '../../data/styleMap'
+import { toast } from '../../store/useToastStore'
+import AnimatedOverlay from '../common/AnimatedOverlay'
 import AssetImageGenModal from './AssetImageGenModal'
 import type { AssetType, ExtractionResult } from '../../types'
 
@@ -81,7 +83,7 @@ const MaterialPage: React.FC = () => {
       }
       setShowExtractModal(false)
     } catch (err) {
-      alert(`提取失败：${String(err)}`)
+      toast.error(`提取失败：${String(err)}`)
     } finally {
       setExtracting(false)
     }
@@ -93,7 +95,7 @@ const MaterialPage: React.FC = () => {
       return
     }
     if (!imageSettings.key) {
-      alert('请先在设置中配置图片生成 API Key')
+      toast.warning('请先在设置中配置图片生成 API Key')
       return
     }
 
@@ -102,7 +104,7 @@ const MaterialPage: React.FC = () => {
       .filter(({ slot }) => !!slot.name && !slot.imageFileId)
 
     if (pendingSlots.length === 0) {
-      alert('当前类型没有剩余素材可生成')
+      toast.warning('当前类型没有剩余素材可生成')
       return
     }
 
@@ -188,7 +190,7 @@ const MaterialPage: React.FC = () => {
 
   const handleReverseImage = useCallback(async (slotIndex: number, imageUrl: string) => {
     if (!textSettings.key) {
-      alert('请先配置文字 AI API Key')
+      toast.warning('请先配置文字 AI API Key')
       return
     }
     setReversingSlot(slotIndex)
@@ -220,7 +222,7 @@ const MaterialPage: React.FC = () => {
         setSlot(activeType, slotIndex, { desc: result.trim() })
       }
     } catch (err) {
-      alert(`反推失败：${String(err)}`)
+      toast.error(`反推失败：${String(err)}`)
     } finally {
       setReversingSlot(null)
     }
@@ -407,7 +409,7 @@ const MaterialPage: React.FC = () => {
 
       {lightboxSrc && (
         <div
-          className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in"
           onClick={() => setLightboxSrc(null)}
         >
           <img src={lightboxSrc} alt="预览" className="max-w-full max-h-full rounded-lg shadow-2xl" />
@@ -420,8 +422,7 @@ const MaterialPage: React.FC = () => {
         </div>
       )}
 
-      {showExtractModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <AnimatedOverlay open={showExtractModal} onClose={() => setShowExtractModal(false)}>
           <div className="bg-surface-1 border border-divider-strong rounded-xl shadow-2xl w-full max-w-lg">
             <div className="flex items-center justify-between p-4 border-b border-divider">
               <h3 className="text-indigo-400 font-semibold">✨ AI自动提取素材</h3>
@@ -447,14 +448,13 @@ const MaterialPage: React.FC = () => {
               <button
                 onClick={handleExtract}
                 disabled={extracting || !extractPlot.trim()}
-                className="flex-1 py-2 text-sm bg-brand-600 hover:bg-brand-500 text-white rounded-lg transition-colors disabled:opacity-50"
+                className="btn-press flex-1 py-2 text-sm bg-brand-600 hover:bg-brand-500 text-white rounded-lg transition-colors disabled:opacity-50"
               >
                 {extracting ? '提取中...' : '开始提取'}
               </button>
             </div>
           </div>
-        </div>
-      )}
+      </AnimatedOverlay>
     </div>
   )
 }

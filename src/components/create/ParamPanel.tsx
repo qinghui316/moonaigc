@@ -60,8 +60,15 @@ const ParamPanel: React.FC<ParamPanelProps> = ({ params, onChange, collapsed, on
         </div>
       )}
 
-      {!collapsed && (
-        <>
+      {/* Animated collapsible content */}
+      <div
+        style={{
+          maxHeight: collapsed ? 0 : 1000,
+          opacity: collapsed ? 0 : 1,
+          overflow: 'hidden',
+          transition: 'max-height 300ms ease-out, opacity 200ms ease-out',
+        }}
+      >
           {/* SubTab Nav */}
           <div className="flex gap-1 bg-surface-2 p-1 rounded-lg mb-3">
             {(['basic', 'camera', 'lighting', 'style'] as const).map(t => (
@@ -272,8 +279,7 @@ const ParamPanel: React.FC<ParamPanelProps> = ({ params, onChange, collapsed, on
               </div>
             </div>
           )}
-        </>
-      )}
+      </div>
     </div>
   )
 }

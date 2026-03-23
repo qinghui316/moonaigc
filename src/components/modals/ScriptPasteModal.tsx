@@ -1,12 +1,14 @@
 import React, { useState } from 'react'
+import AnimatedOverlay from '../common/AnimatedOverlay'
 
 interface ScriptPasteModalProps {
+  open: boolean
   onClose: () => void
   onExtract: (text: string) => void
   isExtracting: boolean
 }
 
-const ScriptPasteModal: React.FC<ScriptPasteModalProps> = ({ onClose, onExtract, isExtracting }) => {
+const ScriptPasteModal: React.FC<ScriptPasteModalProps> = ({ open, onClose, onExtract, isExtracting }) => {
   const [text, setText] = useState('')
 
   const handleExtract = () => {
@@ -15,7 +17,7 @@ const ScriptPasteModal: React.FC<ScriptPasteModalProps> = ({ onClose, onExtract,
   }
 
   return (
-    <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={onClose}>
+    <AnimatedOverlay open={open} onClose={onClose}>
       <div className="bg-surface-1 rounded-xl w-full max-w-2xl shadow-2xl border border-divider-strong max-h-[90vh] flex flex-col"
         onClick={e => e.stopPropagation()}>
         {/* Header */}
@@ -50,12 +52,12 @@ const ScriptPasteModal: React.FC<ScriptPasteModalProps> = ({ onClose, onExtract,
           <button
             onClick={handleExtract}
             disabled={!text.trim() || isExtracting}
-            className="px-6 py-2 text-sm bg-brand-600 hover:bg-brand-500 text-white font-semibold rounded-lg disabled:opacity-50 transition-colors">
+            className="btn-press px-6 py-2 text-sm bg-brand-600 hover:bg-brand-500 text-white font-semibold rounded-lg disabled:opacity-50 transition-colors">
             {isExtracting ? '🔍 提取中...' : '🚀 AI提取资产'}
           </button>
         </div>
       </div>
-    </div>
+    </AnimatedOverlay>
   )
 }
 

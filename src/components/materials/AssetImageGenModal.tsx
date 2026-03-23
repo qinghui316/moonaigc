@@ -102,9 +102,9 @@ const AssetImageGenModal: React.FC<Props> = ({ type, index, name, desc, styleKey
   const typeLabel = ASSET_IMAGE_TYPE_LABELS[type] ?? '资产图'
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
       {/* 宽弹窗：左控制区 + 右预览区 */}
-      <div className="bg-surface-1 border border-divider-strong rounded-xl w-full max-w-2xl shadow-2xl flex flex-col">
+      <div className="bg-surface-1 border border-divider-strong rounded-xl w-full max-w-2xl shadow-2xl flex flex-col animate-scale-in">
         {/* 标题栏 */}
         <div className="flex items-center justify-between px-5 py-3 border-b border-divider shrink-0">
           <h3 className="text-indigo-400 font-bold text-sm">🎨 生成资产图 — {name}（{typeLabel}）</h3>
@@ -157,7 +157,7 @@ const AssetImageGenModal: React.FC<Props> = ({ type, index, name, desc, styleKey
               <button
                 onClick={handleGenerate}
                 disabled={generating}
-                className="flex-1 py-2 bg-brand-600 hover:bg-brand-500 text-white font-medium text-sm rounded-lg disabled:opacity-50 transition-colors"
+                className="btn-press flex-1 py-2 bg-brand-600 hover:bg-brand-500 text-white font-medium text-sm rounded-lg disabled:opacity-50 transition-colors"
               >
                 {generating ? '🎨 生成中...' : '🚀 开始生成'}
               </button>

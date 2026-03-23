@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useRef, useLayoutEffect, useState, useCallback } from 'react'
 
 export type TabId = 'projects' | 'scriptwork' | 'create' | 'imagegen' | 'materials' | 'gallery'
 
@@ -14,6 +14,32 @@ interface TabNavProps {
 }
 
 const TabNav: React.FC<TabNavProps> = ({ activeTab, onChange }) => {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const tabRefs = useRef<Map<TabId, HTMLButtonElement>>(new Map())
+  const [indicator, setIndicator] = useState({ left: 0, width: 0 })
+  const [ready, setReady] = useState(false)
+
+  const measure = useCallback(() => {
+    const el = tabRefs.current.get(activeTab)
+    if (el) {
+      setIndicator({ left: el.offsetLeft, width: el.offsetWidth })
+    }
+  }, [activeTab])
+
+  useLayoutEffect(() => {
+    measure()
+    // Enable transition only after first measurement
+    requestAnimationFrame(() => setReady(true))
+  }, [measure])
+
+  useLayoutEffect(() => {
+    const container = containerRef.current
+    if (!container) return
+    const observer = new ResizeObserver(() => measure())
+    observer.observe(container)
+    return () => observer.disconnect()
+  }, [measure])
+
   const tabs: Tab[] = [
     {
       id: 'projects',
@@ -72,21 +98,31 @@ const TabNav: React.FC<TabNavProps> = ({ activeTab, onChange }) => {
   ]
 
   return (
-    <div className="flex bg-surface-1 border-b border-divider shrink-0">
+    <div ref={containerRef} className="relative flex bg-surface-1 border-b border-divider shrink-0">
       {tabs.map(tab => (
         <button
           key={tab.id}
+          ref={el => { if (el) tabRefs.current.set(tab.id, el) }}
           onClick={() => onChange(tab.id)}
-          className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-colors border-b-2 ${
+          className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-colors ${
             activeTab === tab.id
-              ? 'border-brand-500 text-indigo-400 bg-brand-500/8'
-              : 'border-transparent text-gray-400 hover:text-gray-200 hover:bg-surface-2/50'
+              ? 'text-indigo-400 bg-brand-500/8'
+              : 'text-gray-400 hover:text-gray-200 hover:bg-surface-2/50'
           }`}
         >
           {tab.icon}
           <span>{tab.label}</span>
         </button>
       ))}
+      {/* Sliding indicator */}
+      <div
+        className="absolute bottom-0 h-0.5 bg-brand-500"
+        style={{
+          transform: `translateX(${indicator.left}px)`,
+          width: `${indicator.width}px`,
+          transition: ready ? 'transform 200ms cubic-bezier(0.16, 1, 0.3, 1), width 200ms cubic-bezier(0.16, 1, 0.3, 1)' : 'none',
+        }}
+      />
     </div>
   )
 }

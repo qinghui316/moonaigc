@@ -4,6 +4,7 @@ import { useMaterialStore } from '../../store/useMaterialStore'
 import { useHistoryStore } from '../../store/useHistoryStore'
 import { useProjectStore } from '../../store/useProjectStore'
 import { useShotStore } from '../../store/useShotStore'
+import { confirmDialog } from '../../store/useToastStore'
 import { parseTableRows } from '../../utils/parseTable'
 import { STYLE_MAP } from '../../data/styleMap'
 import { IMAGE_PLATFORMS } from '../../data/platforms'
@@ -957,7 +958,7 @@ const GridResultWorkspace: React.FC<GridResultWorkspaceProps> = ({ styleKey, onS
 
   const handleDeleteResult = useCallback(async () => {
     if (!selectedResultId || deleting) return
-    const confirmed = window.confirm('删除当前宫格结果后，将解除源分镜冻结，确定继续吗？')
+    const confirmed = await confirmDialog({ title: '确认删除', message: '删除当前宫格结果后，将解除源分镜冻结，确定继续吗？', variant: 'danger', confirmText: '删除' })
     if (!confirmed) return
 
     setDeleting(true)
@@ -1362,7 +1363,7 @@ const GridResultWorkspace: React.FC<GridResultWorkspaceProps> = ({ styleKey, onS
 
       {lightboxSrc && (
         <div
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in"
           onClick={() => setLightboxSrc(null)}
         >
           <img src={lightboxSrc} alt="预览" className="max-w-full max-h-full rounded-lg shadow-2xl" />

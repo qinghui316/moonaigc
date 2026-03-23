@@ -1,4 +1,5 @@
 import { downloadFile } from './download'
+import { toast } from '../store/useToastStore'
 import type { ShotData } from '../types'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -8,7 +9,7 @@ export const exportExcel = async (shots: ShotData[], title: string, director: st
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const XLSX: any = getXLSX()
   if (!XLSX) {
-    alert('Excel导出需要 XLSX 库，请检查页面加载状态')
+    toast.error('Excel导出需要 XLSX 库，请检查页面加载状态')
     return
   }
 

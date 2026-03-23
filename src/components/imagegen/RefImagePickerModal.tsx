@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react'
 import { useMaterialStore } from '../../store/useMaterialStore'
+import AnimatedOverlay from '../common/AnimatedOverlay'
 import type { AssetType } from '../../types'
 
 export interface ManualRefItem {
@@ -61,7 +62,7 @@ const RefImagePickerModal: React.FC<RefImagePickerModalProps> = ({ open, onClose
   if (!open) return null
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={onClose}>
+    <AnimatedOverlay open={open} onClose={onClose}>
       <div
         className="bg-surface-1 rounded-xl border border-divider-strong w-full max-w-lg max-h-[80vh] flex flex-col shadow-2xl"
         onClick={e => e.stopPropagation()}
@@ -149,7 +150,7 @@ const RefImagePickerModal: React.FC<RefImagePickerModalProps> = ({ open, onClose
           </div>
         </div>
       </div>
-    </div>
+    </AnimatedOverlay>
   )
 }
 

@@ -9,6 +9,8 @@ import MaterialPage from './components/materials/MaterialPage'
 import ProjectPage from './components/projects/ProjectPage'
 import ScriptWorkPage from './components/scriptwork/ScriptWorkPage'
 import GalleryPage from './components/gallery/GalleryPage'
+import ToastContainer from './components/common/ToastContainer'
+import ConfirmDialog from './components/common/ConfirmDialog'
 import type { TabId } from './components/layout/TabNav'
 import type { Episode } from './types'
 import { useSettingsStore } from './store/useSettingsStore'
@@ -80,8 +82,10 @@ const App: React.FC = () => {
       </main>
 
       <Footer />
+      <ToastContainer />
+      <ConfirmDialog />
 
-      {showSettings && <SettingsPanel onClose={() => setShowSettings(false)} />}
+      <SettingsPanel open={showSettings} onClose={() => setShowSettings(false)} />
     </div>
   )
 }

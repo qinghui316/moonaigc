@@ -14,6 +14,12 @@
   --color-divider: oklch(22% 0.008 270);
   --color-divider-strong: oklch(28% 0.010 270);
   --font-sans: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+
+  --duration-fast: 150ms;
+  --duration-normal: 200ms;
+  --duration-slow: 300ms;
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 @layer base {
@@ -122,4 +128,85 @@
 
 .streaming-cursor {
   animation: blink 1s step-end infinite;
+}
+
+/* ── Interaction keyframes ── */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes fade-out {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.95) translateY(8px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+@keyframes scale-out {
+  from { opacity: 1; transform: scale(1) translateY(0); }
+  to   { opacity: 0; transform: scale(0.95) translateY(8px); }
+}
+@keyframes toast-in {
+  from { opacity: 0; transform: translateX(100%); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes toast-out {
+  from { opacity: 1; transform: translateX(0); }
+  to   { opacity: 0; transform: translateX(100%); }
+}
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+@keyframes typing-dot {
+  0%, 80%, 100% { opacity: 0.3; transform: translateY(0); }
+  40%           { opacity: 1; transform: translateY(-4px); }
+}
+
+/* ── Animation utility classes ── */
+.animate-fade-in  { animation: fade-in var(--duration-normal) var(--ease-out-expo) both; }
+.animate-fade-out { animation: fade-out var(--duration-normal) var(--ease-out-expo) both; }
+.animate-scale-in  { animation: scale-in var(--duration-slow) var(--ease-spring) both; }
+.animate-scale-out { animation: scale-out var(--duration-normal) var(--ease-out-expo) both; }
+.animate-toast-in  { animation: toast-in var(--duration-slow) var(--ease-out-expo) both; }
+.animate-toast-out { animation: toast-out var(--duration-normal) var(--ease-out-expo) both; }
+
+.skeleton {
+  background: linear-gradient(90deg, var(--color-surface-2) 25%, var(--color-surface-3) 50%, var(--color-surface-2) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+  border-radius: 0.5rem;
+}
+
+.streaming-dots span {
+  animation: typing-dot 1.4s ease-in-out infinite;
+}
+.streaming-dots span:nth-child(2) { animation-delay: 0.2s; }
+.streaming-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+@layer components {
+  .btn-press {
+    transition: transform 80ms ease-out;
+  }
+  .btn-press:active:not(:disabled) {
+    transform: scale(0.97);
+  }
+
+  .card-hover {
+    transition: transform var(--duration-fast) var(--ease-out-expo),
+                box-shadow var(--duration-fast) var(--ease-out-expo);
+  }
+  .card-hover:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  }
+}
+
+/* ── Reduced motion ── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }

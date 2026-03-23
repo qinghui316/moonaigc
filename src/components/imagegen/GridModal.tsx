@@ -10,9 +10,11 @@ import { GLOBAL_NEGATIVE_PROMPT, STYLE_NEGATIVE_PROMPTS } from '../../data/negat
 import { useSettingsStore } from '../../store/useSettingsStore'
 import { useMaterialStore } from '../../store/useMaterialStore'
 import { useShotStore } from '../../store/useShotStore'
+import AnimatedOverlay from '../common/AnimatedOverlay'
 import type { ShotData } from '../../types'
 
 interface GridModalProps {
+  open: boolean
   shots: ShotData[]
   styleKey: string
   projectId?: string
@@ -21,7 +23,7 @@ interface GridModalProps {
   onGridSaved?: (url: string) => void
 }
 
-const GridModal: React.FC<GridModalProps> = ({ shots, styleKey, projectId, episodeId, onClose, onGridSaved }) => {
+const GridModal: React.FC<GridModalProps> = ({ open, shots, styleKey, projectId, episodeId, onClose, onGridSaved }) => {
   const { textSettings, imageSettings } = useSettingsStore()
   const { materials } = useMaterialStore()
   const { shotImages, setEditedPrompt } = useShotStore()
@@ -258,7 +260,7 @@ const GridModal: React.FC<GridModalProps> = ({ shots, styleKey, projectId, episo
   }
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={onClose}>
+    <AnimatedOverlay open={open} onClose={onClose}>
       <div
         className="bg-surface-1 rounded-xl border border-divider-strong w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl"
         onClick={e => e.stopPropagation()}
@@ -328,7 +330,7 @@ const GridModal: React.FC<GridModalProps> = ({ shots, styleKey, projectId, episo
             <button
               onClick={handleGenerate}
               disabled={generating}
-              className="flex-1 py-2.5 bg-brand-600 hover:bg-brand-500 text-white text-sm font-medium rounded-lg shadow-sm shadow-brand-600/20 disabled:opacity-50 transition-colors"
+              className="btn-press flex-1 py-2.5 bg-brand-600 hover:bg-brand-500 text-white text-sm font-medium rounded-lg shadow-sm shadow-brand-600/20 disabled:opacity-50 transition-colors"
             >
               {generating ? (progress || '生成中...') : '🎬 开始生成宫格'}
             </button>
@@ -356,7 +358,7 @@ const GridModal: React.FC<GridModalProps> = ({ shots, styleKey, projectId, episo
           )}
         </div>
       </div>
-    </div>
+    </AnimatedOverlay>
   )
 }
 

@@ -2,14 +2,17 @@ import React, { useState, useRef } from 'react'
 import { useSettingsStore } from '../../store/useSettingsStore'
 import { analyzeImage, analyzeVideo, extractVideoFrames, fileToBase64 } from '../../services/vision'
 import { useMaterialStore } from '../../store/useMaterialStore'
+import { toast } from '../../store/useToastStore'
+import AnimatedOverlay from '../common/AnimatedOverlay'
 import type { VisionResult } from '../../types'
 
 interface VisionModalProps {
+  open: boolean
   onClose: () => void
   onFillPlot?: (plot: string) => void
 }
 
-const VisionModal: React.FC<VisionModalProps> = ({ onClose, onFillPlot }) => {
+const VisionModal: React.FC<VisionModalProps> = ({ open, onClose, onFillPlot }) => {
   const { visionSettings } = useSettingsStore()
   const { bulkFill } = useMaterialStore()
   const [activeMode, setActiveMode] = useState<'image' | 'video'>('image')
@@ -21,7 +24,7 @@ const VisionModal: React.FC<VisionModalProps> = ({ onClose, onFillPlot }) => {
 
   const handleAnalyze = async () => {
     if (!files.length) return
-    if (!visionSettings.key) { alert('请先配置视觉分析平台的 API Key'); return }
+    if (!visionSettings.key) { toast.warning('请先配置视觉分析平台的 API Key'); return }
     setLoading(true)
     setResult(null)
     try {
@@ -38,7 +41,7 @@ const VisionModal: React.FC<VisionModalProps> = ({ onClose, onFillPlot }) => {
       }
       setResult(res)
     } catch (e) {
-      alert(`分析失败：${String(e)}`)
+      toast.error(`分析失败：${String(e)}`)
     }
     setLoading(false)
     setProgress('')
@@ -55,11 +58,11 @@ const VisionModal: React.FC<VisionModalProps> = ({ onClose, onFillPlot }) => {
     if (result.props?.length) {
       bulkFill('props', result.props.map(p => ({ name: p.name, desc: p.visual_desc })))
     }
-    alert('已填入素材库！')
+    toast.success('已填入素材库！')
   }
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <AnimatedOverlay open={open} onClose={onClose}>
       <div className="bg-surface-1 border border-divider-strong rounded-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl">
         <div className="flex items-center justify-between p-4 border-b border-divider">
           <h3 className="text-indigo-400 font-semibold">👁️ 视觉反推</h3>
@@ -150,12 +153,12 @@ const VisionModal: React.FC<VisionModalProps> = ({ onClose, onFillPlot }) => {
             关闭
           </button>
           <button onClick={handleAnalyze} disabled={loading || !files.length}
-            className="flex-1 py-2 text-sm bg-brand-600 hover:bg-brand-500 text-white rounded-lg transition-colors disabled:opacity-50">
+            className="btn-press flex-1 py-2 text-sm bg-brand-600 hover:bg-brand-500 text-white rounded-lg transition-colors disabled:opacity-50">
             {loading ? progress || '分析中...' : '🚀 开始分析'}
           </button>
         </div>
       </div>
-    </div>
+    </AnimatedOverlay>
   )
 }
 

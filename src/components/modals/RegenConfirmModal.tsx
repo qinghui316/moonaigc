@@ -17,8 +17,8 @@ const RegenConfirmModal: React.FC<RegenConfirmModalProps> = ({ title, preview, o
     : preview
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-surface-1 border border-divider-strong rounded-xl w-full max-w-lg shadow-2xl">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
+      <div className="bg-surface-1 border border-divider-strong rounded-xl w-full max-w-lg shadow-2xl animate-scale-in">
         <div className="flex items-center justify-between p-4 border-b border-divider">
           <h3 className="text-indigo-400 font-semibold text-sm">{title}</h3>
           <button onClick={onClose} className="text-gray-400 hover:text-white text-lg leading-none">✕</button>
@@ -54,7 +54,7 @@ const RegenConfirmModal: React.FC<RegenConfirmModalProps> = ({ title, preview, o
           </button>
           <button
             onClick={() => onConfirm(instruction.trim())}
-            className="flex-1 py-2 text-sm bg-brand-600 hover:bg-brand-500 text-white rounded-lg transition-colors"
+            className="btn-press flex-1 py-2 text-sm bg-brand-600 hover:bg-brand-500 text-white rounded-lg transition-colors"
           >
             确认重新生成
           </button>
