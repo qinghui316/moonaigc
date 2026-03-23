@@ -49,7 +49,7 @@ const StorylineTimeline: React.FC<StorylineTimelineProps> = ({
                   ? 'border-green-700 bg-green-900/20 text-green-400 hover:bg-green-900/30 cursor-pointer'
                   : isError
                   ? 'border-red-700 bg-red-900/20 text-red-400 hover:bg-red-900/30 cursor-pointer'
-                  : 'border-gray-700 bg-gray-800/50 text-gray-500'
+                  : 'border-divider bg-surface-2/50 text-gray-500'
               }`}
             >
               <div className={`w-1.5 h-1.5 rounded-full ${scene.beatColorClass}`} />

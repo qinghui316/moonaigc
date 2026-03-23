@@ -7,6 +7,12 @@
   --color-brand-500: #6366F1;
   --color-brand-600: #4F46E5;
   --color-brand-700: #4338CA;
+  --color-surface-0: oklch(8% 0.012 270);
+  --color-surface-1: oklch(13% 0.012 270);
+  --color-surface-2: oklch(17% 0.012 270);
+  --color-surface-3: oklch(21% 0.012 270);
+  --color-divider: oklch(22% 0.008 270);
+  --color-divider-strong: oklch(28% 0.010 270);
   --font-sans: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
 }
 
@@ -14,7 +20,7 @@
   html, body, #root {
     height: 100%;
     overflow: hidden;
-    background-color: #030712;
+    background-color: var(--color-surface-0);
     color: #E5E7EB;
     font-family: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
   }
@@ -31,11 +37,11 @@
     background: transparent;
   }
   ::-webkit-scrollbar-thumb {
-    background: #374151;
+    background: var(--color-divider-strong);
     border-radius: 2px;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: #4B5563;
+    background: oklch(32% 0.010 270);
   }
 }
 
@@ -63,6 +69,13 @@
 
 /* Light theme overrides */
 [data-theme="light"] {
+  --color-surface-0: oklch(99% 0.005 270);
+  --color-surface-1: oklch(96% 0.005 270);
+  --color-surface-2: oklch(93% 0.005 270);
+  --color-surface-3: oklch(88% 0.005 270);
+  --color-divider: oklch(85% 0.004 270);
+  --color-divider-strong: oklch(78% 0.006 270);
+
   --color-gray-50:  oklch(13% 0 0);
   --color-gray-100: oklch(18% 0 0);
   --color-gray-200: oklch(22% 0 0);     /* 主文字 */
@@ -90,15 +103,15 @@
 [data-theme="light"] body,
 [data-theme="light"] html,
 [data-theme="light"] #root {
-  background-color: #ffffff;
+  background-color: var(--color-surface-0);
   color: #1e293b;
 }
 
 [data-theme="light"] ::-webkit-scrollbar-thumb {
-  background: #d1d5db;
+  background: var(--color-divider);
 }
 [data-theme="light"] ::-webkit-scrollbar-thumb:hover {
-  background: #b0b8c4;
+  background: var(--color-divider-strong);
 }
 
 /* Streaming cursor animation */

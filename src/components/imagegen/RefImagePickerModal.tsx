@@ -61,13 +61,13 @@ const RefImagePickerModal: React.FC<RefImagePickerModalProps> = ({ open, onClose
   if (!open) return null
 
   return (
-    <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4" onClick={onClose}>
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={onClose}>
       <div
-        className="bg-gray-900 rounded-lg border border-gray-700 w-full max-w-lg max-h-[80vh] flex flex-col"
+        className="bg-surface-1 rounded-xl border border-divider-strong w-full max-w-lg max-h-[80vh] flex flex-col shadow-2xl"
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-700 shrink-0">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-divider shrink-0">
           <span className="text-sm font-medium text-white">从素材库选择参考图</span>
           <button onClick={onClose} className="text-gray-400 hover:text-white text-lg leading-none">✕</button>
         </div>
@@ -79,7 +79,7 @@ const RefImagePickerModal: React.FC<RefImagePickerModalProps> = ({ open, onClose
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="搜索名称或描述..."
-            className="w-full bg-gray-800 border border-gray-700 text-gray-200 text-sm px-3 py-1.5 rounded-lg focus:outline-none focus:border-indigo-500"
+            className="w-full bg-surface-2 border border-divider text-gray-200 text-sm px-3 py-1.5 rounded-lg focus:outline-none focus:ring-1 focus:ring-brand-500/40 focus:border-brand-500/60"
           />
         </div>
 
@@ -89,7 +89,7 @@ const RefImagePickerModal: React.FC<RefImagePickerModalProps> = ({ open, onClose
             <button
               key={t.key}
               onClick={() => { setActiveTab(t.key); setSearch('') }}
-              className={`px-3 py-1 text-xs rounded-full transition-colors ${activeTab === t.key ? 'bg-indigo-600 text-white' : 'bg-gray-800 text-gray-400 hover:text-gray-200'}`}
+              className={`px-3 py-1 text-xs rounded-full transition-colors ${activeTab === t.key ? 'bg-brand-600 text-white' : 'bg-surface-2 text-gray-400 hover:text-gray-200'}`}
             >
               {t.label}
             </button>
@@ -131,18 +131,18 @@ const RefImagePickerModal: React.FC<RefImagePickerModalProps> = ({ open, onClose
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between px-4 py-3 border-t border-gray-700 shrink-0">
+        <div className="flex items-center justify-between px-4 py-3 border-t border-divider shrink-0">
           <span className="text-xs text-gray-400">已选 {localSelected.length} 项</span>
           <div className="flex gap-2">
             <button
               onClick={onClose}
-              className="px-4 py-1.5 text-sm bg-gray-800 hover:bg-gray-700 text-gray-200 rounded-lg"
+              className="px-4 py-1.5 text-sm bg-surface-2 hover:bg-surface-3 text-gray-200 rounded-lg"
             >
               取消
             </button>
             <button
               onClick={() => { onConfirm(localSelected); onClose() }}
-              className="px-4 py-1.5 text-sm bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg"
+              className="px-4 py-1.5 text-sm bg-brand-600 hover:bg-brand-500 text-white rounded-lg shadow-sm shadow-brand-600/20"
             >
               确定
             </button>

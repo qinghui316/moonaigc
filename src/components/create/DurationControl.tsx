@@ -48,7 +48,7 @@ const DurationControl: React.FC<DurationControlProps> = ({ seconds, onChange }) 
             className={`px-2 py-1 text-xs rounded border transition-colors ${
               seconds === p.value
                 ? 'border-indigo-500 bg-indigo-900/30 text-indigo-300'
-                : 'border-gray-700 text-gray-500 hover:border-gray-600 hover:text-gray-300'
+                : 'border-divider text-gray-500 hover:border-gray-600 hover:text-gray-300'
             }`}
           >
             {p.label}

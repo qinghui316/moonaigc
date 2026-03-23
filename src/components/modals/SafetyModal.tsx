@@ -13,8 +13,8 @@ const SafetyModal: React.FC<SafetyModalProps> = ({ result, onApply, onClose }) =
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-gray-900 border border-gray-700 rounded-lg w-full max-w-lg shadow-2xl max-h-[80vh] overflow-y-auto">
-        <div className="flex items-center justify-between p-4 border-b border-gray-800 sticky top-0 bg-gray-900">
+      <div className="bg-surface-1 border border-divider-strong rounded-xl w-full max-w-lg shadow-2xl max-h-[80vh] overflow-y-auto">
+        <div className="flex items-center justify-between p-4 border-b border-divider sticky top-0 bg-surface-1">
           <h3 className="text-indigo-400 font-semibold">🛡️ 安全审核报告</h3>
           <button onClick={onClose} className="text-gray-400 hover:text-white">✕</button>
         </div>
@@ -117,17 +117,17 @@ const SafetyModal: React.FC<SafetyModalProps> = ({ result, onApply, onClose }) =
           )}
 
           {result.replaced.length > 0 && (
-            <div className="bg-gray-800 rounded-lg p-3 text-xs text-gray-400">
+            <div className="bg-surface-2 rounded-lg p-3 text-xs text-gray-400">
               <div>共替换 <span className="text-indigo-400 font-bold">{result.replaced.length}</span> 处违禁词</div>
             </div>
           )}
         </div>
 
-        <div className="flex gap-2 p-4 pt-0 sticky bottom-0 bg-gray-900">
-          <button onClick={onClose} className="flex-1 py-2 text-sm text-gray-400 border border-gray-700 rounded-lg hover:bg-gray-800 transition-colors">
+        <div className="flex gap-2 p-4 pt-0 sticky bottom-0 bg-surface-1">
+          <button onClick={onClose} className="flex-1 py-2 text-sm text-gray-400 border border-divider rounded-lg hover:bg-surface-3 transition-colors">
             查看内容
           </button>
-          <button onClick={onApply} className="flex-1 py-2 text-sm bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg transition-colors">
+          <button onClick={onApply} className="flex-1 py-2 text-sm bg-brand-600 hover:bg-brand-500 text-white rounded-lg transition-colors">
             应用替换并继续
           </button>
         </div>

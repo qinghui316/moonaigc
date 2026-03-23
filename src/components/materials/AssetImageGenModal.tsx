@@ -102,19 +102,19 @@ const AssetImageGenModal: React.FC<Props> = ({ type, index, name, desc, styleKey
   const typeLabel = ASSET_IMAGE_TYPE_LABELS[type] ?? '资产图'
 
   return (
-    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       {/* 宽弹窗：左控制区 + 右预览区 */}
-      <div className="bg-gray-900 border border-gray-700 rounded-lg w-full max-w-2xl shadow-2xl flex flex-col">
+      <div className="bg-surface-1 border border-divider-strong rounded-xl w-full max-w-2xl shadow-2xl flex flex-col">
         {/* 标题栏 */}
-        <div className="flex items-center justify-between px-5 py-3 border-b border-gray-800 shrink-0">
+        <div className="flex items-center justify-between px-5 py-3 border-b border-divider shrink-0">
           <h3 className="text-indigo-400 font-bold text-sm">🎨 生成资产图 — {name}（{typeLabel}）</h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-white w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-800">✕</button>
+          <button onClick={onClose} className="text-gray-400 hover:text-white w-8 h-8 flex items-center justify-center rounded-lg hover:bg-surface-3">✕</button>
         </div>
 
         {/* 主体：左右分栏 */}
         <div className="flex flex-1 min-h-0 gap-0">
           {/* 左侧：控制区 */}
-          <div className="flex flex-col gap-3 p-4 w-[52%] border-r border-gray-800">
+          <div className="flex flex-col gap-3 p-4 w-[52%] border-r border-divider">
             {/* 提示词 */}
             <div>
               <div className="flex items-center justify-between mb-1.5">
@@ -125,7 +125,7 @@ const AssetImageGenModal: React.FC<Props> = ({ type, index, name, desc, styleKey
                 value={prompt}
                 onChange={e => setPrompt(e.target.value)}
                 rows={6}
-                className="w-full bg-gray-800 border border-gray-700 text-gray-200 text-xs px-3 py-2 rounded-lg focus:outline-none focus:border-indigo-500 resize-none"
+                className="w-full bg-surface-2 border border-divider text-gray-200 text-xs px-3 py-2 rounded-lg focus:outline-none focus:ring-1 focus:ring-brand-500/40 focus:border-brand-500/60 resize-none"
               />
             </div>
 
@@ -135,7 +135,7 @@ const AssetImageGenModal: React.FC<Props> = ({ type, index, name, desc, styleKey
               <select
                 value={imageSettings.aspectRatio}
                 onChange={e => useSettingsStore.getState().setImageSettings({ aspectRatio: e.target.value as ImageGenSettings['aspectRatio'] })}
-                className="flex-1 bg-gray-800 border border-gray-700 text-gray-200 text-xs px-2 py-1.5 rounded-lg focus:outline-none focus:border-indigo-500"
+                className="flex-1 bg-surface-2 border border-divider text-gray-200 text-xs px-2 py-1.5 rounded-lg focus:outline-none focus:ring-1 focus:ring-brand-500/40 focus:border-brand-500/60"
               >
                 {effectiveAspectRatios.map(r => <option key={r} value={r}>{r}</option>)}
               </select>
@@ -143,7 +143,7 @@ const AssetImageGenModal: React.FC<Props> = ({ type, index, name, desc, styleKey
               <select
                 value={imageSettings.imageResolution}
                 onChange={e => useSettingsStore.getState().setImageSettings({ imageResolution: e.target.value as ImageGenSettings['imageResolution'] })}
-                className="flex-1 bg-gray-800 border border-gray-700 text-gray-200 text-xs px-2 py-1.5 rounded-lg focus:outline-none focus:border-indigo-500"
+                className="flex-1 bg-surface-2 border border-divider text-gray-200 text-xs px-2 py-1.5 rounded-lg focus:outline-none focus:ring-1 focus:ring-brand-500/40 focus:border-brand-500/60"
               >
                 {effectiveResolutions.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
               </select>
@@ -153,11 +153,11 @@ const AssetImageGenModal: React.FC<Props> = ({ type, index, name, desc, styleKey
 
             {/* 按钮 */}
             <div className="flex gap-2 mt-auto">
-              <button onClick={onClose} className="flex-1 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 text-sm rounded-lg transition-colors">取消</button>
+              <button onClick={onClose} className="flex-1 py-2 bg-surface-2 hover:bg-surface-3 text-gray-300 text-sm rounded-lg transition-colors">取消</button>
               <button
                 onClick={handleGenerate}
                 disabled={generating}
-                className="flex-1 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-sm rounded-lg disabled:opacity-50 transition-colors"
+                className="flex-1 py-2 bg-brand-600 hover:bg-brand-500 text-white font-medium text-sm rounded-lg disabled:opacity-50 transition-colors"
               >
                 {generating ? '🎨 生成中...' : '🚀 开始生成'}
               </button>
@@ -179,7 +179,7 @@ const AssetImageGenModal: React.FC<Props> = ({ type, index, name, desc, styleKey
                 onClick={() => window.open(previewUrl, '_blank')}
               />
             ) : (
-              <div className="w-full h-full min-h-[200px] flex flex-col items-center justify-center border border-dashed border-gray-700 rounded-lg text-gray-600 gap-2">
+              <div className="w-full h-full min-h-[200px] flex flex-col items-center justify-center border border-dashed border-divider rounded-lg text-gray-600 gap-2">
                 <span className="text-3xl">🖼️</span>
                 <span className="text-xs">点击「开始生成」后在此预览</span>
               </div>

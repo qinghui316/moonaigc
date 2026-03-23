@@ -63,11 +63,11 @@ const ParamPanel: React.FC<ParamPanelProps> = ({ params, onChange, collapsed, on
       {!collapsed && (
         <>
           {/* SubTab Nav */}
-          <div className="flex gap-1 bg-gray-800 p-1 rounded-lg mb-3">
+          <div className="flex gap-1 bg-surface-2 p-1 rounded-lg mb-3">
             {(['basic', 'camera', 'lighting', 'style'] as const).map(t => (
               <button key={t} onClick={() => setSubTab(t)}
                 className={`flex-1 py-1 text-xs rounded-md font-medium transition-colors ${
-                  subTab === t ? 'bg-indigo-600 text-white' : 'text-gray-400 hover:text-gray-200'
+                  subTab === t ? 'bg-brand-600 text-white' : 'text-gray-400 hover:text-gray-200'
                 }`}>
                 {t === 'basic' ? '基础' : t === 'camera' ? '运镜' : t === 'lighting' ? '光影' : '风格'}
               </button>
@@ -109,7 +109,7 @@ const ParamPanel: React.FC<ParamPanelProps> = ({ params, onChange, collapsed, on
                       className={`px-2.5 py-1 text-xs rounded border transition-colors ${
                         params.aspectRatio === r
                           ? 'border-indigo-500 bg-indigo-900/30 text-indigo-300'
-                          : 'border-gray-700 text-gray-400 hover:border-gray-600'
+                          : 'border-divider text-gray-400 hover:border-gray-600'
                       }`}>
                       {r}
                     </button>
@@ -139,7 +139,7 @@ const ParamPanel: React.FC<ParamPanelProps> = ({ params, onChange, collapsed, on
                     className={`px-2.5 py-1.5 text-xs rounded border transition-colors whitespace-nowrap ${
                       params.shotCount === '智能'
                         ? 'border-indigo-500 bg-indigo-900/30 text-indigo-300'
-                        : 'border-gray-700 text-gray-400'
+                        : 'border-divider text-gray-400'
                     }`}>
                     智能
                   </button>
@@ -148,7 +148,7 @@ const ParamPanel: React.FC<ParamPanelProps> = ({ params, onChange, collapsed, on
                       className={`px-2.5 py-1.5 text-xs rounded border transition-colors ${
                         params.shotCount === String(n)
                           ? 'border-indigo-500 bg-indigo-900/30 text-indigo-300'
-                          : 'border-gray-700 text-gray-400 hover:border-gray-600'
+                          : 'border-divider text-gray-400 hover:border-gray-600'
                       }`}>
                       {n}
                     </button>
@@ -156,7 +156,7 @@ const ParamPanel: React.FC<ParamPanelProps> = ({ params, onChange, collapsed, on
                   <input type="number" min={4} max={50} placeholder="自定义"
                     value={params.shotCount !== '智能' && ![8,10,12,15,20].includes(Number(params.shotCount)) ? params.shotCount : ''}
                     onChange={e => onChange({ shotCount: e.target.value })}
-                    className="w-16 bg-gray-800 border border-gray-700 text-gray-200 text-xs px-2 py-1.5 rounded focus:outline-none focus:border-indigo-500"
+                    className="w-16 bg-surface-2 border border-divider text-gray-200 text-xs px-2 py-1.5 rounded focus:outline-none focus:ring-1 focus:ring-brand-500/40 focus:border-brand-500/60"
                   />
                 </div>
               </div>
@@ -174,7 +174,7 @@ const ParamPanel: React.FC<ParamPanelProps> = ({ params, onChange, collapsed, on
                       className={`p-2 rounded border text-left transition-colors ${
                         params.narrativeMode === m.value
                           ? 'border-indigo-500 bg-indigo-900/20 text-indigo-300'
-                          : 'border-gray-700 text-gray-400 hover:border-gray-600'
+                          : 'border-divider text-gray-400 hover:border-gray-600'
                       }`}>
                       <div className="text-xs font-medium">{m.label}</div>
                       <div className="text-xs opacity-60 mt-0.5">{m.desc}</div>

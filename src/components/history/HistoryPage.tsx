@@ -49,25 +49,25 @@ const HistoryPage: React.FC<HistoryPageProps> = ({
 
   return (
     <div className="h-full flex flex-col overflow-hidden">
-      <div className={`flex items-center justify-between gap-3 shrink-0 ${embedded ? 'px-5 py-4 border-b border-gray-800 bg-gray-900' : 'px-4 py-3 border-b border-gray-800'}`}>
+      <div className={`flex items-center justify-between gap-3 shrink-0 ${embedded ? 'px-5 py-4 border-b border-divider bg-surface-1' : 'px-4 py-3 border-b border-divider'}`}>
         <div>
           <h2 className="text-indigo-400 font-semibold">历史版本</h2>
           <p className="text-xs text-gray-500 mt-1">{scopeLabel}</p>
         </div>
         <div className="flex items-center gap-2">
           {currentEpisodeId && (
-            <div className="flex items-center gap-1 rounded-lg border border-gray-700 bg-gray-800/60 p-1">
+            <div className="flex items-center gap-1 rounded-lg border border-divider bg-surface-2/60 p-1">
               <button
                 type="button"
                 onClick={() => setScope('episode')}
-                className={`px-2.5 py-1 text-xs rounded-md transition-colors ${scope === 'episode' ? 'bg-indigo-600 text-white' : 'text-gray-400 hover:text-gray-200'}`}
+                className={`px-2.5 py-1 text-xs rounded-md transition-colors ${scope === 'episode' ? 'bg-brand-600 text-white' : 'text-gray-400 hover:text-gray-200'}`}
               >
                 当前集
               </button>
               <button
                 type="button"
                 onClick={() => setScope('all')}
-                className={`px-2.5 py-1 text-xs rounded-md transition-colors ${scope === 'all' ? 'bg-indigo-600 text-white' : 'text-gray-400 hover:text-gray-200'}`}
+                className={`px-2.5 py-1 text-xs rounded-md transition-colors ${scope === 'all' ? 'bg-brand-600 text-white' : 'text-gray-400 hover:text-gray-200'}`}
               >
                 全部历史
               </button>
@@ -77,7 +77,7 @@ const HistoryPage: React.FC<HistoryPageProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="px-2.5 py-1 text-xs text-gray-400 border border-gray-700 rounded-lg hover:text-gray-200 hover:border-gray-600 transition-colors"
+              className="px-2.5 py-1 text-xs text-gray-400 border border-divider rounded-lg hover:text-gray-200 hover:border-gray-600 transition-colors"
             >
               关闭
             </button>
@@ -99,8 +99,8 @@ const HistoryPage: React.FC<HistoryPageProps> = ({
               return (
                 <div
                   key={record.id}
-                  className={`bg-gray-800/50 border rounded-lg p-3 transition-colors group ${
-                    active ? 'border-indigo-600/60 shadow-[0_0_0_1px_rgba(217,119,6,0.35)]' : 'border-gray-700 hover:border-gray-600'
+                  className={`bg-surface-2/50 border rounded-lg p-3 transition-colors group ${
+                    active ? 'border-indigo-600/60 shadow-[0_0_0_1px_rgba(217,119,6,0.35)]' : 'border-divider hover:border-gray-600'
                   }`}
                 >
                   <div className="flex items-start justify-between gap-3">

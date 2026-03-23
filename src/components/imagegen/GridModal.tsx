@@ -258,12 +258,12 @@ const GridModal: React.FC<GridModalProps> = ({ shots, styleKey, projectId, episo
   }
 
   return (
-    <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4" onClick={onClose}>
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={onClose}>
       <div
-        className="bg-gray-900 rounded-lg border border-gray-700 w-full max-w-2xl max-h-[90vh] overflow-y-auto"
+        className="bg-surface-1 rounded-xl border border-divider-strong w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl"
         onClick={e => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between p-4 border-b border-gray-700">
+        <div className="flex items-center justify-between p-4 border-b border-divider">
           <h2 className="text-white font-medium">宫格生成</h2>
           <button onClick={onClose} className="text-gray-400 hover:text-white text-xl">✕</button>
         </div>
@@ -276,7 +276,7 @@ const GridModal: React.FC<GridModalProps> = ({ shots, styleKey, projectId, episo
               <select
                 value={layoutIdx}
                 onChange={e => setLayoutIdx(Number(e.target.value))}
-                className="w-full bg-gray-800 border border-gray-700 text-gray-200 text-sm px-3 py-2 rounded-lg focus:outline-none"
+                className="w-full bg-surface-2 border border-divider text-gray-200 text-sm px-3 py-2 rounded-lg focus:outline-none focus:ring-1 focus:ring-brand-500/40"
               >
                 {GRID_LAYOUTS.map((l, i) => (
                   <option key={i} value={i}>{l.label}</option>
@@ -288,7 +288,7 @@ const GridModal: React.FC<GridModalProps> = ({ shots, styleKey, projectId, episo
               <select
                 value={cellAspect}
                 onChange={e => setCellAspect(e.target.value)}
-                className="w-full bg-gray-800 border border-gray-700 text-gray-200 text-sm px-3 py-2 rounded-lg focus:outline-none"
+                className="w-full bg-surface-2 border border-divider text-gray-200 text-sm px-3 py-2 rounded-lg focus:outline-none focus:ring-1 focus:ring-brand-500/40"
               >
                 {CELL_ASPECT_RATIOS.map(r => (
                   <option key={r} value={r}>{r}</option>
@@ -300,13 +300,13 @@ const GridModal: React.FC<GridModalProps> = ({ shots, styleKey, projectId, episo
               <div className="flex gap-2">
                 <button
                   onClick={() => setGenMode('compose')}
-                  className={`flex-1 py-2 text-sm rounded-lg border transition-colors ${genMode === 'compose' ? 'bg-indigo-600 border-indigo-600 text-white' : 'bg-gray-800 border-gray-700 text-gray-400 hover:text-gray-200'}`}
+                  className={`flex-1 py-2 text-sm rounded-lg border transition-colors ${genMode === 'compose' ? 'bg-brand-600 border-brand-600 text-white shadow-sm shadow-brand-600/20' : 'bg-surface-2 border-divider text-gray-400 hover:text-gray-200'}`}
                 >
                   逐格合成
                 </button>
                 <button
                   onClick={() => setGenMode('direct')}
-                  className={`flex-1 py-2 text-sm rounded-lg border transition-colors ${genMode === 'direct' ? 'bg-indigo-600 border-indigo-600 text-white' : 'bg-gray-800 border-gray-700 text-gray-400 hover:text-gray-200'}`}
+                  className={`flex-1 py-2 text-sm rounded-lg border transition-colors ${genMode === 'direct' ? 'bg-brand-600 border-brand-600 text-white shadow-sm shadow-brand-600/20' : 'bg-surface-2 border-divider text-gray-400 hover:text-gray-200'}`}
                 >
                   单次直出（快速）
                 </button>
@@ -328,14 +328,14 @@ const GridModal: React.FC<GridModalProps> = ({ shots, styleKey, projectId, episo
             <button
               onClick={handleGenerate}
               disabled={generating}
-              className="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-lg disabled:opacity-50 transition-colors"
+              className="flex-1 py-2.5 bg-brand-600 hover:bg-brand-500 text-white text-sm font-medium rounded-lg shadow-sm shadow-brand-600/20 disabled:opacity-50 transition-colors"
             >
               {generating ? (progress || '生成中...') : '🎬 开始生成宫格'}
             </button>
             {generating && (
               <button
                 onClick={() => abortRef.current?.abort()}
-                className="px-4 py-2.5 bg-gray-700 hover:bg-gray-600 text-gray-200 text-sm rounded-lg"
+                className="px-4 py-2.5 bg-surface-2 hover:bg-surface-3 text-gray-200 text-sm rounded-lg"
               >
                 取消
               </button>
@@ -348,7 +348,7 @@ const GridModal: React.FC<GridModalProps> = ({ shots, styleKey, projectId, episo
               <img src={resultUrl} alt="宫格预览" className="w-full rounded-lg" />
               <button
                 onClick={handleDownload}
-                className="w-full py-2 bg-gray-800 hover:bg-gray-700 text-gray-200 text-sm rounded-lg"
+                className="w-full py-2 bg-surface-2 hover:bg-surface-3 text-gray-200 text-sm rounded-lg"
               >
                 ⬇ 下载宫格图
               </button>

@@ -72,15 +72,15 @@ const TabNav: React.FC<TabNavProps> = ({ activeTab, onChange }) => {
   ]
 
   return (
-    <div className="flex bg-gray-900 border-b border-gray-800 shrink-0">
+    <div className="flex bg-surface-1 border-b border-divider shrink-0">
       {tabs.map(tab => (
         <button
           key={tab.id}
           onClick={() => onChange(tab.id)}
           className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-colors border-b-2 ${
             activeTab === tab.id
-              ? 'border-indigo-500 text-indigo-400 bg-indigo-900/10'
-              : 'border-transparent text-gray-400 hover:text-gray-200 hover:bg-gray-800/50'
+              ? 'border-brand-500 text-indigo-400 bg-brand-500/8'
+              : 'border-transparent text-gray-400 hover:text-gray-200 hover:bg-surface-2/50'
           }`}
         >
           {tab.icon}

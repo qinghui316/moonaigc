@@ -11,7 +11,7 @@ interface ChainProgressBarProps {
 const ChainProgressBar: React.FC<ChainProgressBarProps> = ({ label, current, total, detail, onStop }) => {
   const pct = Math.round((current / total) * 100)
   return (
-    <div className="mx-4 mt-3 mb-1 bg-gray-800/80 border border-gray-700 rounded-lg px-3 py-2.5 shrink-0">
+    <div className="mx-4 mt-3 mb-1 bg-surface-2/80 border border-divider rounded-lg px-3 py-2.5 shrink-0">
       <div className="flex items-center justify-between mb-1.5">
         <span className="text-xs text-indigo-400 flex items-center gap-1.5">
           <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse inline-block" />
@@ -24,7 +24,7 @@ const ChainProgressBar: React.FC<ChainProgressBarProps> = ({ label, current, tot
           停止
         </button>
       </div>
-      <div className="w-full h-1.5 bg-gray-700 rounded-full overflow-hidden">
+      <div className="w-full h-1.5 bg-surface-3 rounded-full overflow-hidden">
         <div
           className="h-full bg-indigo-500 rounded-full transition-all duration-500"
           style={{ width: `${pct}%` }}

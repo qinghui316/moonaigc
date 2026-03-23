@@ -593,7 +593,7 @@ const CreatePage: React.FC<{ loadedRecord?: HistoryRecord | null; loadedEpisode?
       {/* Left + Right Layout */}
       <div className="flex-1 flex overflow-hidden">
         {/* Left Panel: Config */}
-        <div className="w-80 min-w-[280px] max-w-[360px] border-r border-gray-800 flex flex-col overflow-y-auto overflow-x-hidden bg-gray-900/50 shrink-0">
+        <div className="w-80 min-w-[280px] max-w-[360px] border-r border-divider flex flex-col overflow-y-auto overflow-x-hidden bg-surface-1/50 shrink-0">
           <div className="p-3 space-y-4">
             {/* Director */}
             <div>
@@ -609,12 +609,12 @@ const CreatePage: React.FC<{ loadedRecord?: HistoryRecord | null; loadedEpisode?
             </div>
 
             {/* Duration */}
-            <div className="bg-gray-800/50 rounded-lg p-3 border border-gray-700/50">
+            <div className="bg-surface-2/50 rounded-lg p-3 border border-divider/50">
               <DurationControl seconds={duration} onChange={setDuration} />
             </div>
 
             {/* Mode Switch */}
-            <div className="bg-gray-800/50 rounded-lg p-3 border border-gray-700/50">
+            <div className="bg-surface-2/50 rounded-lg p-3 border border-divider/50">
               <div className="text-xs text-gray-400 mb-2">生成模式</div>
               <div className="flex gap-1.5">
                 <button
@@ -622,13 +622,13 @@ const CreatePage: React.FC<{ loadedRecord?: HistoryRecord | null; loadedEpisode?
                   disabled={duration < 15}
                   title={duration < 15 ? '极速瞬间模式（<15s）不支持链式分段' : ''}
                   className={`flex-1 py-1.5 text-xs rounded-lg border font-medium transition-colors ${
-                    mode === 'chain' && duration >= 15 ? 'border-indigo-500 bg-indigo-900/30 text-indigo-300' : 'border-gray-700 text-gray-400'
+                    mode === 'chain' && duration >= 15 ? 'border-indigo-500 bg-indigo-900/30 text-indigo-300' : 'border-divider text-gray-400'
                   } ${duration < 15 ? 'opacity-40 cursor-not-allowed' : ''}`}>
                   ⛓️ 链式引擎
                 </button>
                 <button onClick={() => setMode('single')}
                   className={`flex-1 py-1.5 text-xs rounded-lg border font-medium transition-colors ${
-                    mode === 'single' ? 'border-indigo-500 bg-indigo-900/30 text-indigo-300' : 'border-gray-700 text-gray-400'
+                    mode === 'single' ? 'border-indigo-500 bg-indigo-900/30 text-indigo-300' : 'border-divider text-gray-400'
                   }`}>
                   📄 单段生成
                 </button>
@@ -636,7 +636,7 @@ const CreatePage: React.FC<{ loadedRecord?: HistoryRecord | null; loadedEpisode?
             </div>
 
             {/* Params */}
-            <div className="bg-gray-800/50 rounded-lg p-3 border border-gray-700/50">
+            <div className="bg-surface-2/50 rounded-lg p-3 border border-divider/50">
               <ParamPanel
                 params={params}
                 onChange={u => setParams(p => ({ ...p, ...u }))}
@@ -651,7 +651,7 @@ const CreatePage: React.FC<{ loadedRecord?: HistoryRecord | null; loadedEpisode?
         <div className="flex-1 overflow-y-auto min-w-0">
           {/* 项目面包屑导航 */}
           {currentProject && currentEpisode && (
-            <div className="px-3 py-2 border-b border-gray-800 bg-indigo-900/10 flex items-center gap-2">
+            <div className="px-3 py-2 border-b border-divider bg-indigo-900/10 flex items-center gap-2">
               <svg className="w-3.5 h-3.5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V7z" />
               </svg>
@@ -663,7 +663,7 @@ const CreatePage: React.FC<{ loadedRecord?: HistoryRecord | null; loadedEpisode?
             </div>
           )}
           {/* Plot Input */}
-          <div className="border-b border-gray-800 p-3">
+          <div className="border-b border-divider p-3">
             <div className="flex items-center gap-2 mb-2">
               <span className="text-xs text-gray-500">📝 故事情节</span>
               <span className="text-xs text-gray-700">{plot.length} 字</span>
@@ -679,24 +679,24 @@ const CreatePage: React.FC<{ loadedRecord?: HistoryRecord | null; loadedEpisode?
                   className={`px-2 py-1 text-xs rounded-lg border transition-colors ${
                     enableWordFilter
                       ? 'text-emerald-400 bg-emerald-900/20 border-emerald-800/30'
-                      : 'text-gray-500 bg-gray-800/30 border-gray-700'
+                      : 'text-gray-500 bg-surface-2/30 border-divider'
                   }`}>
                   🛡️ 词过滤: {enableWordFilter ? '开' : '关'}
                 </button>
                 {/* Script import buttons */}
                 <button
                   onClick={() => fileInputRef.current?.click()}
-                  className="px-2 py-1 text-xs text-gray-300 bg-gray-800/60 border border-gray-700/50 rounded-md hover:bg-gray-800 transition-colors">
+                  className="px-2 py-1 text-xs text-gray-300 bg-surface-2/60 border border-divider/50 rounded-md hover:bg-surface-3 transition-colors">
                   📂 导入剧本
                 </button>
                 <button
                   onClick={() => setShowPasteModal(true)}
-                  className="px-2 py-1 text-xs text-gray-300 bg-gray-800/60 border border-gray-700/50 rounded-md hover:bg-gray-800 transition-colors">
+                  className="px-2 py-1 text-xs text-gray-300 bg-surface-2/60 border border-divider/50 rounded-md hover:bg-surface-3 transition-colors">
                   📋 粘贴提取
                 </button>
                 <button
                   onClick={() => setShowHistoryPicker(true)}
-                  className="px-2 py-1 text-xs text-gray-300 bg-gray-800/60 border border-gray-700/50 rounded-md hover:bg-gray-800 transition-colors"
+                  className="px-2 py-1 text-xs text-gray-300 bg-surface-2/60 border border-divider/50 rounded-md hover:bg-surface-3 transition-colors"
                 >
                   历史版本
                 </button>
@@ -708,11 +708,11 @@ const CreatePage: React.FC<{ loadedRecord?: HistoryRecord | null; loadedEpisode?
                   onChange={handleFileImport}
                 />
                 <button onClick={() => setShowVision(true)}
-                  className="px-2 py-1 text-xs text-gray-300 bg-gray-800/60 border border-gray-700/50 rounded-md hover:bg-gray-800 transition-colors">
+                  className="px-2 py-1 text-xs text-gray-300 bg-surface-2/60 border border-divider/50 rounded-md hover:bg-surface-3 transition-colors">
                   👁️ 视觉反推
                 </button>
                 <button onClick={handleAnalyze} disabled={isAnalyzing}
-                  className="px-2 py-1 text-xs text-gray-300 bg-gray-800/60 border border-gray-700/50 rounded-md hover:bg-gray-800 transition-colors disabled:opacity-50">
+                  className="px-2 py-1 text-xs text-gray-300 bg-surface-2/60 border border-divider/50 rounded-md hover:bg-surface-3 transition-colors disabled:opacity-50">
                   {isAnalyzing ? '分析中...' : '🔬 AI分析'}
                 </button>
               </div>
@@ -722,7 +722,7 @@ const CreatePage: React.FC<{ loadedRecord?: HistoryRecord | null; loadedEpisode?
               onChange={e => setPlot(e.target.value)}
               placeholder="在此输入故事情节、剧本大纲或分镜描述..."
               rows={5}
-              className="w-full bg-gray-800/60 border border-gray-700 text-sm text-gray-200 placeholder-gray-600 px-3 py-2.5 rounded-lg focus:outline-none focus:border-indigo-500 resize-none leading-relaxed"
+              className="w-full bg-surface-2/60 border border-divider text-sm text-gray-200 placeholder-gray-600 px-3 py-2.5 rounded-lg focus:outline-none focus:ring-1 focus:ring-brand-500/40 focus:border-brand-500/60 resize-none leading-relaxed"
             />
 
             {/* Extract status */}
@@ -738,7 +738,7 @@ const CreatePage: React.FC<{ loadedRecord?: HistoryRecord | null; loadedEpisode?
 
             {/* Analysis Card */}
             {analysisResult && showAnalysis && (
-              <div className="mt-2 bg-gray-800/60 border border-gray-700/50 rounded-lg p-3">
+              <div className="mt-2 bg-surface-2/60 border border-divider/50 rounded-lg p-3">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-xs text-indigo-400 font-medium">🔬 AI分析结果</span>
                   <button onClick={() => setShowAnalysis(false)} className="text-gray-500 hover:text-gray-300 text-xs">收起</button>
@@ -760,7 +760,7 @@ const CreatePage: React.FC<{ loadedRecord?: HistoryRecord | null; loadedEpisode?
 
           {/* Timeline (Chain Mode) */}
           {mode === 'chain' && chainStore.scenes.length > 0 && (
-            <div className="border-b border-gray-800 p-3 shrink-0">
+            <div className="border-b border-divider p-3 shrink-0">
               <StorylineTimeline
                 scenes={chainStore.scenes}
                 sceneContents={chainStore.sceneContents}
@@ -803,49 +803,49 @@ const CreatePage: React.FC<{ loadedRecord?: HistoryRecord | null; loadedEpisode?
 
           {/* Refine & Export Bar */}
           {storyboard && (
-            <div className="border-t border-gray-800 p-3 space-y-2">
+            <div className="border-t border-divider p-3 space-y-2">
               <div className="flex gap-2">
                 <input
                   type="text"
                   value={refineText}
                   onChange={e => setRefineText(e.target.value)}
                   placeholder="全局修改意见（如：增强动作感、调整为夜景风格...）"
-                  className="flex-1 bg-gray-800 border border-gray-700 text-xs text-gray-200 placeholder-gray-600 px-3 py-2 rounded-lg focus:outline-none focus:border-indigo-500"
+                  className="flex-1 bg-surface-2 border border-divider text-xs text-gray-200 placeholder-gray-600 px-3 py-2 rounded-lg focus:outline-none focus:ring-1 focus:ring-brand-500/40 focus:border-brand-500/60"
                   onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) handleRefine() }}
                 />
                 <button onClick={handleRefine} disabled={isRefining || !refineText.trim()}
-                  className="px-3 py-2 text-xs bg-indigo-600 text-white border border-indigo-500/50 rounded-md hover:bg-indigo-500 disabled:opacity-50 transition-colors">
+                  className="px-3 py-2 text-xs bg-brand-600 text-white border border-indigo-500/50 rounded-md hover:bg-brand-500 disabled:opacity-50 transition-colors">
                   {isRefining ? '修改中...' : '全局修改'}
                 </button>
               </div>
 
               <div className="flex gap-1.5 flex-wrap">
                 <button onClick={() => setShowStc(true)}
-                  className="px-3 py-1.5 text-xs bg-gray-800/60 text-gray-300 rounded-md hover:bg-gray-800 transition-colors border border-gray-700/50">
+                  className="px-3 py-1.5 text-xs bg-surface-2/60 text-gray-300 rounded-md hover:bg-surface-3 transition-colors border border-divider/50">
                   🐱 STC自检
                 </button>
                 <button onClick={handleIntegrate} disabled={isIntegrating}
-                  className="px-3 py-1.5 text-xs bg-gray-800/60 text-gray-300 rounded-md hover:bg-gray-800 transition-colors border border-gray-700/50 disabled:opacity-50">
+                  className="px-3 py-1.5 text-xs bg-surface-2/60 text-gray-300 rounded-md hover:bg-surface-3 transition-colors border border-divider/50 disabled:opacity-50">
                   {isIntegrating ? '整合中...' : '✨ 整合提示词'}
                 </button>
                 <button onClick={handleCopyAll}
-                  className="px-3 py-1.5 text-xs bg-gray-800/60 text-gray-300 rounded-md hover:bg-gray-800 transition-colors border border-gray-700/50">
+                  className="px-3 py-1.5 text-xs bg-surface-2/60 text-gray-300 rounded-md hover:bg-surface-3 transition-colors border border-divider/50">
                   📋 复制提示词
                 </button>
                 <button onClick={handleSaveHistory}
-                  className="px-3 py-1.5 text-xs bg-gray-800/60 text-gray-300 rounded-md hover:bg-gray-800 transition-colors border border-gray-700/50">
+                  className="px-3 py-1.5 text-xs bg-surface-2/60 text-gray-300 rounded-md hover:bg-surface-3 transition-colors border border-divider/50">
                   💾 保存历史
                 </button>
                 <button onClick={() => handleExport('txt')}
-                  className="px-3 py-1.5 text-xs bg-gray-800/60 text-gray-300 rounded-md hover:bg-gray-800 transition-colors border border-gray-700/50">
+                  className="px-3 py-1.5 text-xs bg-surface-2/60 text-gray-300 rounded-md hover:bg-surface-3 transition-colors border border-divider/50">
                   📄 导出TXT
                 </button>
                 <button onClick={() => handleExport('excel')}
-                  className="px-3 py-1.5 text-xs bg-gray-800/60 text-gray-300 rounded-md hover:bg-gray-800 transition-colors border border-gray-700/50">
+                  className="px-3 py-1.5 text-xs bg-surface-2/60 text-gray-300 rounded-md hover:bg-surface-3 transition-colors border border-divider/50">
                   📊 导出Excel
                 </button>
                 <button onClick={() => handleExport('word')}
-                  className="px-3 py-1.5 text-xs bg-gray-800/60 text-gray-300 rounded-md hover:bg-gray-800 transition-colors border border-gray-700/50">
+                  className="px-3 py-1.5 text-xs bg-surface-2/60 text-gray-300 rounded-md hover:bg-surface-3 transition-colors border border-divider/50">
                   📝 导出Word
                 </button>
               </div>
@@ -875,7 +875,7 @@ const CreatePage: React.FC<{ loadedRecord?: HistoryRecord | null; loadedEpisode?
                       整合中...
                     </div>
                   ) : (
-                    <div className="text-xs text-gray-300 leading-relaxed whitespace-pre-wrap font-mono bg-gray-800/50 rounded-lg p-3 max-h-48 overflow-y-auto select-all">
+                    <div className="text-xs text-gray-300 leading-relaxed whitespace-pre-wrap font-mono bg-surface-2/50 rounded-lg p-3 max-h-48 overflow-y-auto select-all">
                       {integratedPrompt || '暂无内容'}
                     </div>
                   )}
@@ -887,7 +887,7 @@ const CreatePage: React.FC<{ loadedRecord?: HistoryRecord | null; loadedEpisode?
       </div>
 
       {/* Generate Button (Fixed Bottom) */}
-      <div className="border-t border-gray-800 bg-gray-900 px-4 py-3 flex items-center gap-3 shrink-0">
+      <div className="border-t border-divider bg-surface-1 px-4 py-3 flex items-center gap-3 shrink-0">
         <div className="flex-1" />
         {(isStreaming || chainStore.isRunning) ? (
           <button onClick={handleCancel}
@@ -896,7 +896,7 @@ const CreatePage: React.FC<{ loadedRecord?: HistoryRecord | null; loadedEpisode?
           </button>
         ) : (
           <button onClick={handleGenerate} data-action="generate"
-            className="px-8 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-lg text-sm transition-all shadow-lg shadow-indigo-900/40 hover:shadow-indigo-900/60">
+            className="px-8 py-2.5 bg-brand-600 hover:bg-brand-500 text-white font-bold rounded-lg text-sm transition-all shadow-lg shadow-indigo-900/40 hover:shadow-indigo-900/60">
             ⚡ 生成分镜  <span className="text-xs opacity-70 ml-1">Ctrl+Enter</span>
           </button>
         )}
@@ -906,7 +906,7 @@ const CreatePage: React.FC<{ loadedRecord?: HistoryRecord | null; loadedEpisode?
       {!isStreaming && !chainStore.isRunning && storyboard && (
         <button
           onClick={handleGenerate}
-          className="fixed right-6 bottom-20 w-12 h-12 bg-indigo-600 hover:bg-indigo-500 text-white rounded-full shadow-lg shadow-indigo-900/50 flex items-center justify-center text-lg transition-all hover:scale-110 z-40"
+          className="fixed right-6 bottom-20 w-12 h-12 bg-brand-600 hover:bg-brand-500 text-white rounded-full shadow-lg shadow-indigo-900/50 flex items-center justify-center text-lg transition-all hover:scale-110 z-40"
           title="重新生成">
           ⚡
         </button>
@@ -915,7 +915,7 @@ const CreatePage: React.FC<{ loadedRecord?: HistoryRecord | null; loadedEpisode?
       {/* Modals */}
       {showHistoryPicker && (
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="w-full max-w-6xl h-[80vh] bg-gray-900 border border-gray-800 rounded-lg shadow-2xl overflow-hidden">
+          <div className="w-full max-w-6xl h-[80vh] bg-surface-1 border border-divider rounded-lg shadow-2xl overflow-hidden">
             <HistoryPage
               embedded
               onClose={() => setShowHistoryPicker(false)}

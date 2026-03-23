@@ -230,13 +230,13 @@ const MaterialPage: React.FC = () => {
 
   return (
     <div className="h-full flex flex-col overflow-hidden">
-      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-800 shrink-0">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-divider shrink-0">
         <h2 className="text-indigo-400 font-semibold">素材资产库</h2>
         <div className="flex items-center gap-2">
           <select
             value={assetStyleKey}
             onChange={e => setAssetStyleKey(e.target.value)}
-            className="px-2 py-1.5 bg-gray-800 text-gray-300 border border-gray-700 rounded-lg text-xs focus:outline-none focus:border-indigo-500"
+            className="px-2 py-1.5 bg-surface-2 text-gray-300 border border-divider rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-brand-500/40 focus:border-brand-500/60"
             title="生图风格"
           >
             {STYLE_OPTIONS.map(option => (
@@ -259,12 +259,12 @@ const MaterialPage: React.FC = () => {
       </div>
 
       {batchProgress && (
-        <div className="px-4 py-2 border-b border-gray-800 text-xs text-indigo-400 shrink-0">
+        <div className="px-4 py-2 border-b border-divider text-xs text-indigo-400 shrink-0">
           {batchProgress}
         </div>
       )}
 
-      <div className="flex gap-2 px-4 py-2 border-b border-gray-800 shrink-0">
+      <div className="flex gap-2 px-4 py-2 border-b border-divider shrink-0">
         {(['character', 'image', 'props'] as AssetType[]).map(type => {
           const filled = materials[type].filter(item => item.name).length
           const withImg = materials[type].filter(item => item.imageUrl).length
@@ -273,7 +273,7 @@ const MaterialPage: React.FC = () => {
               key={type}
               onClick={() => setActiveType(type)}
               className={`px-3 py-1.5 text-xs rounded-lg border transition-colors ${
-                activeType === type ? 'border-indigo-500 bg-indigo-900/30 text-indigo-300' : 'border-gray-700 text-gray-400 hover:border-gray-600'
+                activeType === type ? 'border-indigo-500 bg-indigo-900/30 text-indigo-300' : 'border-divider text-gray-400 hover:border-gray-600'
               }`}
             >
               {TYPE_LABELS[type]}
@@ -284,7 +284,7 @@ const MaterialPage: React.FC = () => {
         })}
       </div>
 
-      <div className="flex items-center justify-between px-4 py-2 bg-gray-800/30 border-b border-gray-800 shrink-0">
+      <div className="flex items-center justify-between px-4 py-2 bg-surface-2/30 border-b border-divider shrink-0">
         <span className="text-xs text-gray-500">
           {tagMode[activeType] ? '✅ @标签模式：AI提示词中将使用 @标签 引用资产' : '📝 描述模式：AI提示词中将直接使用文字描述'}
         </span>
@@ -292,7 +292,7 @@ const MaterialPage: React.FC = () => {
           <span className="text-xs text-gray-400">@标签模式</span>
           <div
             onClick={() => setTagMode(activeType, !tagMode[activeType])}
-            className={`w-10 h-5 rounded-full transition-colors cursor-pointer relative ${tagMode[activeType] ? 'bg-indigo-500' : 'bg-gray-700'}`}
+            className={`w-10 h-5 rounded-full transition-colors cursor-pointer relative ${tagMode[activeType] ? 'bg-indigo-500' : 'bg-surface-3'}`}
           >
             <div className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${tagMode[activeType] ? 'translate-x-5' : 'translate-x-0.5'}`} />
           </div>
@@ -308,11 +308,11 @@ const MaterialPage: React.FC = () => {
             return (
               <div
                 key={index}
-                className={`bg-gray-800/50 rounded-lg border p-3 flex gap-3 ${isEmpty ? 'border-gray-700/50 border-dashed' : 'border-gray-700'}`}
+                className={`bg-surface-2/50 rounded-lg border p-3 flex gap-3 ${isEmpty ? 'border-divider/50 border-dashed' : 'border-divider'}`}
               >
                 <div className="flex-1 min-w-0 flex flex-col">
                   <div className="flex items-center gap-2 mb-2">
-                    <div className={`w-5 h-5 rounded flex items-center justify-center text-xs font-bold shrink-0 ${isEmpty ? 'bg-gray-700 text-gray-500' : 'bg-indigo-600 text-white'}`}>
+                    <div className={`w-5 h-5 rounded flex items-center justify-center text-xs font-bold shrink-0 ${isEmpty ? 'bg-surface-3 text-gray-500' : 'bg-indigo-600 text-white'}`}>
                       {index + 1}
                     </div>
                     <input
@@ -320,7 +320,7 @@ const MaterialPage: React.FC = () => {
                       placeholder={`${activeType === 'character' ? '角色名' : activeType === 'image' ? '场景名' : '道具名'}...`}
                       value={slot?.name ?? ''}
                       onChange={e => setSlot(activeType, index, { name: e.target.value })}
-                      className="flex-1 min-w-0 bg-transparent text-xs text-gray-200 placeholder-gray-600 border-b border-transparent hover:border-gray-600 focus:border-indigo-500 focus:outline-none px-1 py-0.5"
+                      className="flex-1 min-w-0 bg-transparent text-xs text-gray-200 placeholder-gray-600 border-b border-transparent hover:border-gray-600 focus:ring-1 focus:ring-brand-500/40 focus:border-brand-500/60 focus:outline-none px-1 py-0.5"
                     />
                     {!isEmpty && (
                       <button
@@ -337,7 +337,7 @@ const MaterialPage: React.FC = () => {
                     value={slot?.desc ?? ''}
                     onChange={e => setSlot(activeType, index, { desc: e.target.value })}
                     rows={3}
-                    className="w-full bg-gray-900/50 border border-gray-700 rounded-lg text-xs text-gray-300 placeholder-gray-600 px-2 py-1.5 resize-none focus:outline-none focus:border-indigo-500 flex-1"
+                    className="w-full bg-surface-1/50 border border-divider rounded-lg text-xs text-gray-300 placeholder-gray-600 px-2 py-1.5 resize-none focus:outline-none focus:ring-1 focus:ring-brand-500/40 focus:border-brand-500/60 flex-1"
                   />
 
                   {tagMode[activeType] && slot?.name && (
@@ -382,7 +382,7 @@ const MaterialPage: React.FC = () => {
                       </button>
                     </>
                   ) : (
-                    <div className="w-full h-full flex flex-col items-center justify-center bg-gray-900/40 border border-dashed border-gray-700 rounded-lg text-gray-700 min-h-[80px]">
+                    <div className="w-full h-full flex flex-col items-center justify-center bg-surface-1/40 border border-dashed border-divider rounded-lg text-gray-700 min-h-[80px]">
                       <span className="text-xl">🖼️</span>
                       <span className="text-xs mt-0.5">暂无图</span>
                     </div>
@@ -422,8 +422,8 @@ const MaterialPage: React.FC = () => {
 
       {showExtractModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-gray-900 border border-gray-700 rounded-lg w-full max-w-lg shadow-2xl">
-            <div className="flex items-center justify-between p-4 border-b border-gray-800">
+          <div className="bg-surface-1 border border-divider-strong rounded-xl shadow-2xl w-full max-w-lg">
+            <div className="flex items-center justify-between p-4 border-b border-divider">
               <h3 className="text-indigo-400 font-semibold">✨ AI自动提取素材</h3>
               <button onClick={() => setShowExtractModal(false)} className="text-gray-400 hover:text-white">×</button>
             </div>
@@ -434,20 +434,20 @@ const MaterialPage: React.FC = () => {
                 onChange={e => setExtractPlot(e.target.value)}
                 rows={6}
                 placeholder="粘贴故事情节..."
-                className="w-full bg-gray-800 border border-gray-700 text-sm text-gray-200 px-3 py-2 rounded-lg focus:outline-none focus:border-indigo-500 resize-none"
+                className="w-full bg-surface-2 border border-divider text-sm text-gray-200 px-3 py-2 rounded-lg focus:outline-none focus:ring-1 focus:ring-brand-500/40 focus:border-brand-500/60 resize-none"
               />
             </div>
             <div className="flex gap-2 p-4 pt-0">
               <button
                 onClick={() => setShowExtractModal(false)}
-                className="flex-1 py-2 text-sm text-gray-400 border border-gray-700 rounded-lg hover:bg-gray-800 transition-colors"
+                className="flex-1 py-2 text-sm text-gray-400 border border-divider rounded-lg hover:bg-surface-3 transition-colors"
               >
                 取消
               </button>
               <button
                 onClick={handleExtract}
                 disabled={extracting || !extractPlot.trim()}
-                className="flex-1 py-2 text-sm bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg transition-colors disabled:opacity-50"
+                className="flex-1 py-2 text-sm bg-brand-600 hover:bg-brand-500 text-white rounded-lg transition-colors disabled:opacity-50"
               >
                 {extracting ? '提取中...' : '开始提取'}
               </button>

@@ -987,14 +987,14 @@ const GridResultWorkspace: React.FC<GridResultWorkspaceProps> = ({ styleKey, onS
 
   return (
     <div className="flex flex-1 min-h-0 overflow-hidden flex-col">
-      <div className="border-b border-gray-800 px-3 py-2">
+      <div className="border-b border-divider bg-surface-1 px-3 py-2">
         <div className="flex flex-wrap items-end gap-2.5">
           <label className="w-[200px] min-w-0">
-            <span className="mb-1 block text-[11px] font-medium text-gray-500">项目</span>
+            <span className="mb-1 block text-xs font-medium text-gray-400 tracking-wide">项目</span>
             <select
               value={selectedProjectId}
               onChange={e => void handleSelectProject(e.target.value)}
-              className="h-10 w-full bg-gray-800 border border-gray-700 text-gray-200 text-sm px-3 rounded-lg focus:outline-none focus:border-indigo-500"
+              className="h-10 w-full bg-surface-2 border border-divider text-gray-200 text-sm px-3 rounded-lg focus:outline-none focus:ring-1 focus:ring-brand-500/40 focus:border-brand-500/60"
             >
               <option value="">选择项目</option>
               {projects.map(project => (
@@ -1004,12 +1004,12 @@ const GridResultWorkspace: React.FC<GridResultWorkspaceProps> = ({ styleKey, onS
           </label>
 
           <label className="w-[240px] min-w-0">
-            <span className="mb-1 block text-[11px] font-medium text-gray-500">集数</span>
+            <span className="mb-1 block text-xs font-medium text-gray-400 tracking-wide">集数</span>
             <select
               value={selectedHistoryId ?? ''}
               onChange={e => e.target.value && void handleSelectHistory(Number(e.target.value))}
               disabled={!selectedProjectId}
-              className="h-10 w-full bg-gray-800 border border-gray-700 text-gray-200 text-sm px-3 rounded-lg focus:outline-none focus:border-indigo-500 disabled:opacity-60"
+              className="h-10 w-full bg-surface-2 border border-divider text-gray-200 text-sm px-3 rounded-lg focus:outline-none focus:ring-1 focus:ring-brand-500/40 focus:border-brand-500/60 disabled:opacity-60"
             >
               <option value="">选择集数</option>
               {episodesWithRecord.map(({ episode, record }) => (
@@ -1021,11 +1021,11 @@ const GridResultWorkspace: React.FC<GridResultWorkspaceProps> = ({ styleKey, onS
           </label>
 
           <label className="min-w-[140px] flex-1">
-            <span className="mb-1 block text-[11px] font-medium text-gray-500">视觉风格</span>
+            <span className="mb-1 block text-xs font-medium text-gray-400 tracking-wide">视觉风格</span>
             <select
               value={styleKey}
               onChange={e => onStyleChange(e.target.value)}
-              className="h-10 w-full bg-gray-800 border border-gray-700 text-gray-200 text-sm px-3 rounded-lg focus:outline-none focus:border-indigo-500"
+              className="h-10 w-full bg-surface-2 border border-divider text-gray-200 text-sm px-3 rounded-lg focus:outline-none focus:ring-1 focus:ring-brand-500/40 focus:border-brand-500/60"
             >
               {Object.entries(STYLE_MAP).map(([key, label]) => (
                 <option key={key} value={key}>{label}</option>
@@ -1034,11 +1034,11 @@ const GridResultWorkspace: React.FC<GridResultWorkspaceProps> = ({ styleKey, onS
           </label>
 
           <label className="w-[96px] min-w-0">
-            <span className="mb-1 block text-[11px] font-medium text-gray-500">比例</span>
+            <span className="mb-1 block text-xs font-medium text-gray-400 tracking-wide">比例</span>
             <select
               value={imageSettings.aspectRatio}
               onChange={e => useSettingsStore.getState().setImageSettings({ aspectRatio: e.target.value as ImageGenSettings['aspectRatio'] })}
-              className="h-10 w-full bg-gray-800 border border-gray-700 text-gray-200 text-sm px-3 rounded-lg focus:outline-none focus:border-indigo-500"
+              className="h-10 w-full bg-surface-2 border border-divider text-gray-200 text-sm px-3 rounded-lg focus:outline-none focus:ring-1 focus:ring-brand-500/40 focus:border-brand-500/60"
             >
               {effectiveAspectRatios.map(ratio => (
                 <option key={ratio} value={ratio}>{ratio}</option>
@@ -1047,11 +1047,11 @@ const GridResultWorkspace: React.FC<GridResultWorkspaceProps> = ({ styleKey, onS
           </label>
 
           <label className="w-[160px] min-w-0">
-            <span className="mb-1 block text-[11px] font-medium text-gray-500">分辨率</span>
+            <span className="mb-1 block text-xs font-medium text-gray-400 tracking-wide">分辨率</span>
             <select
               value={imageSettings.imageResolution}
               onChange={e => useSettingsStore.getState().setImageSettings({ imageResolution: e.target.value as ImageGenSettings['imageResolution'] })}
-              className="h-10 w-full bg-gray-800 border border-gray-700 text-gray-200 text-sm px-3 rounded-lg focus:outline-none focus:border-indigo-500"
+              className="h-10 w-full bg-surface-2 border border-divider text-gray-200 text-sm px-3 rounded-lg focus:outline-none focus:ring-1 focus:ring-brand-500/40 focus:border-brand-500/60"
             >
               {effectiveResolutions.map(item => (
                 <option key={item.value} value={item.value}>{item.label}</option>
@@ -1089,21 +1089,21 @@ const GridResultWorkspace: React.FC<GridResultWorkspaceProps> = ({ styleKey, onS
                 <button
                   onClick={() => void handleGenerate(2, 2)}
                   disabled={selectedSourceShots.length === 0}
-                  className="h-10 text-sm bg-indigo-700 hover:bg-indigo-600 text-white px-5 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                  className="h-10 text-sm bg-brand-600 hover:bg-brand-500 text-white px-5 rounded-lg shadow-sm shadow-brand-600/20 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
                 >
                   4宫格生图
                 </button>
                 <button
                   onClick={() => void handleGenerate(3, 2)}
                   disabled={selectedSourceShots.length === 0}
-                  className="h-10 text-sm bg-indigo-700 hover:bg-indigo-600 text-white px-5 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                  className="h-10 text-sm bg-brand-600 hover:bg-brand-500 text-white px-5 rounded-lg shadow-sm shadow-brand-600/20 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
                 >
                   6宫格生图
                 </button>
                 <button
                   onClick={() => void handleGenerate(3, 3)}
                   disabled={selectedSourceShots.length === 0}
-                  className="h-10 text-sm bg-indigo-700 hover:bg-indigo-600 text-white px-5 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                  className="h-10 text-sm bg-brand-600 hover:bg-brand-500 text-white px-5 rounded-lg shadow-sm shadow-brand-600/20 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
                 >
                   9宫格生图
                 </button>
@@ -1135,8 +1135,8 @@ const GridResultWorkspace: React.FC<GridResultWorkspaceProps> = ({ styleKey, onS
       </div>
 
       <div className="flex flex-1 min-h-0 overflow-hidden">
-        <div className="w-96 border-r border-gray-800 flex flex-col overflow-hidden shrink-0">
-          <div className="px-4 py-3 border-b border-gray-800">
+        <div className="w-96 bg-surface-1 flex flex-col overflow-hidden shrink-0">
+          <div className="px-4 py-3 border-b border-divider">
             <div className="text-sm text-gray-200 font-medium">源分镜列表</div>
             <div className="mt-1 text-xs text-gray-500">选择要参与本次宫格生成的原始分镜</div>
           </div>
@@ -1154,8 +1154,8 @@ const GridResultWorkspace: React.FC<GridResultWorkspaceProps> = ({ styleKey, onS
                 return (
                   <label
                     key={row.index}
-                    className={`block p-3 border-b border-gray-800 transition-colors ${
-                      checked ? 'bg-gray-800/70' : 'hover:bg-gray-800/40'
+                    className={`block p-3 border-b border-divider/60 transition-colors ${
+                      checked ? 'bg-surface-2' : 'hover:bg-surface-3/50'
                     } ${occupied || groupLocked ? 'cursor-not-allowed' : 'cursor-pointer'}`}
                   >
                     <div className="flex items-start gap-2">
@@ -1179,7 +1179,7 @@ const GridResultWorkspace: React.FC<GridResultWorkspaceProps> = ({ styleKey, onS
                           <span className={`rounded-full border px-1.5 py-0.5 text-[10px] ${
                             rowGroup === 'shot-image'
                               ? 'border-emerald-700/50 bg-emerald-900/20 text-emerald-300'
-                              : 'border-gray-700 bg-gray-800 text-gray-400'
+                              : 'border-divider bg-surface-2 text-gray-400'
                           }`}>
                             {rowGroup === 'shot-image' ? '有分镜图' : '无分镜图'}
                           </span>
@@ -1195,8 +1195,8 @@ const GridResultWorkspace: React.FC<GridResultWorkspaceProps> = ({ styleKey, onS
           </div>
         </div>
 
-        <div className="w-64 border-r border-gray-800 flex flex-col overflow-hidden shrink-0">
-          <div className="px-3 py-2 border-b border-gray-800 text-sm text-gray-300">宫格结果列表</div>
+        <div className="w-64 bg-surface-1/50 flex flex-col overflow-hidden shrink-0">
+          <div className="px-3 py-2 border-b border-divider text-sm text-gray-300">宫格结果列表</div>
           <div className="flex-1 overflow-y-auto">
             {loadingResults && <div className="p-4 text-xs text-gray-500">加载中...</div>}
             {!loadingResults && results.length === 0 && (
@@ -1206,8 +1206,8 @@ const GridResultWorkspace: React.FC<GridResultWorkspaceProps> = ({ styleKey, onS
               <button
                 key={result.id}
                 onClick={() => void loadResultDetail(result.id)}
-                className={`w-full text-left p-3 border-b border-gray-800 transition-colors ${
-                  selectedResultId === result.id ? 'bg-gray-800/70' : 'hover:bg-gray-800/40'
+                className={`w-full text-left p-3 border-b border-divider/60 transition-colors ${
+                  selectedResultId === result.id ? 'bg-surface-2' : 'hover:bg-surface-3/50'
                 }`}
               >
                 <div className="flex items-center gap-2">
@@ -1222,7 +1222,7 @@ const GridResultWorkspace: React.FC<GridResultWorkspaceProps> = ({ styleKey, onS
                       }}
                     />
                   ) : (
-                    <div className="w-16 h-10 rounded bg-gray-800 border border-dashed border-gray-700" />
+                    <div className="w-16 h-10 rounded bg-surface-2 border border-dashed border-divider" />
                   )}
                   <div className="min-w-0">
                     <div className="text-xs text-gray-200">结果{resultDisplayNumbers.get(result.id) ?? result.id}</div>
@@ -1257,11 +1257,11 @@ const GridResultWorkspace: React.FC<GridResultWorkspaceProps> = ({ styleKey, onS
                     <img
                       src={selectedResult.mediaUrl}
                       alt={`grid-result-${selectedResult.id}`}
-                      className="w-full rounded-lg border border-gray-800 cursor-zoom-in"
+                      className="w-full rounded-lg border border-divider cursor-zoom-in"
                       onClick={() => setLightboxSrc(selectedResult.mediaUrl ?? null)}
                     />
                   ) : (
-                    <div className="w-full aspect-video rounded-lg border border-dashed border-gray-800 flex items-center justify-center text-sm text-gray-600">
+                    <div className="w-full aspect-video rounded-lg border border-dashed border-divider flex items-center justify-center text-sm text-gray-600">
                       暂无宫格图
                     </div>
                   )}
@@ -1300,7 +1300,7 @@ const GridResultWorkspace: React.FC<GridResultWorkspaceProps> = ({ styleKey, onS
                           className={`px-2 py-1 rounded-full border text-xs ${
                             selectedSourceRefSet.has(ref)
                               ? 'border-indigo-600/60 bg-indigo-900/30 text-indigo-300'
-                              : 'border-gray-700 bg-gray-800 text-gray-300'
+                              : 'border-divider bg-surface-2 text-gray-300'
                           }`}
                         >
                           {ref}
@@ -1316,16 +1316,16 @@ const GridResultWorkspace: React.FC<GridResultWorkspaceProps> = ({ styleKey, onS
                         {selectedResult.usedReferenceImages.map((ref, index) => (
                           <div
                             key={`${selectedResult.id}-used-ref-${index}-${ref.name}`}
-                            className="flex items-center gap-2 rounded-lg border border-gray-800 bg-gray-900/70 px-2 py-1.5"
+                            className="flex items-center gap-2 rounded-lg border border-divider bg-surface-1 px-2 py-1.5"
                           >
                             {ref.imageUrl ? (
                               <img
                                 src={ref.imageUrl}
                                 alt={ref.name}
-                                className="w-8 h-8 rounded object-cover border border-gray-700"
+                                className="w-8 h-8 rounded object-cover border border-divider"
                               />
                             ) : (
-                              <div className="w-8 h-8 rounded border border-dashed border-gray-700 bg-gray-800 flex items-center justify-center text-[10px] text-gray-500">
+                              <div className="w-8 h-8 rounded border border-dashed border-divider bg-surface-2 flex items-center justify-center text-[10px] text-gray-500">
                                 本地
                               </div>
                             )}
@@ -1362,7 +1362,7 @@ const GridResultWorkspace: React.FC<GridResultWorkspaceProps> = ({ styleKey, onS
 
       {lightboxSrc && (
         <div
-          className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
           onClick={() => setLightboxSrc(null)}
         >
           <img src={lightboxSrc} alt="预览" className="max-w-full max-h-full rounded-lg shadow-2xl" />

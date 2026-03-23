@@ -17,7 +17,7 @@ const Header: React.FC<HeaderProps> = ({ onSettingsClick }) => {
     : textSettings.model
 
   return (
-    <header className="bg-gray-950 border-b border-gray-800 px-4 py-3 flex items-center justify-between shrink-0">
+    <header className="bg-surface-1 border-b border-divider px-4 py-3 flex items-center justify-between shrink-0">
       <div className="flex items-center gap-2.5">
         <span className="text-lg">🌙</span>
         <div>
@@ -32,7 +32,7 @@ const Header: React.FC<HeaderProps> = ({ onSettingsClick }) => {
         {activePlatform && (
           <button
             onClick={onSettingsClick}
-            className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 text-xs text-gray-400 bg-gray-800/60 border border-gray-800/50 rounded-md hover:border-gray-700 hover:text-gray-300 transition-colors cursor-pointer"
+            className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 text-xs text-gray-400 bg-surface-2/60 border border-divider/50 rounded-md hover:bg-surface-3 hover:text-gray-300 transition-colors cursor-pointer"
             title={`当前平台：${activePlatform.name}\n模型：${textSettings.model}\n点击修改`}
           >
             <span>{activePlatform.icon}</span>
@@ -53,7 +53,7 @@ const Header: React.FC<HeaderProps> = ({ onSettingsClick }) => {
 
         <button
           onClick={toggleTheme}
-          className="p-1.5 text-gray-400 hover:text-indigo-400 bg-gray-900/60 hover:bg-gray-800/80 border border-gray-800/50 rounded-md transition-colors"
+          className="p-1.5 text-gray-400 hover:text-indigo-400 bg-surface-2/60 hover:bg-surface-3 border border-divider/50 rounded-md transition-colors"
           title={theme === 'dark' ? '切换到亮色模式' : '切换到暗色模式'}
         >
           {theme === 'dark' ? (
@@ -68,7 +68,7 @@ const Header: React.FC<HeaderProps> = ({ onSettingsClick }) => {
         </button>
         <button
           onClick={onSettingsClick}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-400 bg-gray-800/60 hover:bg-gray-800 border border-gray-800/50 rounded-md transition-colors"
+          className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-400 bg-surface-2/60 hover:bg-surface-3 border border-divider/50 rounded-md transition-colors"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
