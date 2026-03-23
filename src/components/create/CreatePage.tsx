@@ -600,7 +600,7 @@ const CreatePage: React.FC<{ loadedRecord?: HistoryRecord | null; loadedEpisode?
               <div className="flex items-center gap-2 mb-2">
                 <span className="text-xs text-gray-500 font-medium">🎬 导演风格</span>
                 {selectedDirector.id !== 'generic' && (
-                  <span className="text-xs text-amber-400 bg-amber-900/20 px-1.5 py-0.5 rounded border border-amber-800/30">
+                  <span className="text-xs text-indigo-400 bg-indigo-900/20 px-1.5 py-0.5 rounded border border-indigo-800/30">
                     {selectedDirector.name}
                   </span>
                 )}
@@ -609,12 +609,12 @@ const CreatePage: React.FC<{ loadedRecord?: HistoryRecord | null; loadedEpisode?
             </div>
 
             {/* Duration */}
-            <div className="bg-gray-800/50 rounded-xl p-3 border border-gray-700/50">
+            <div className="bg-gray-800/50 rounded-lg p-3 border border-gray-700/50">
               <DurationControl seconds={duration} onChange={setDuration} />
             </div>
 
             {/* Mode Switch */}
-            <div className="bg-gray-800/50 rounded-xl p-3 border border-gray-700/50">
+            <div className="bg-gray-800/50 rounded-lg p-3 border border-gray-700/50">
               <div className="text-xs text-gray-400 mb-2">生成模式</div>
               <div className="flex gap-1.5">
                 <button
@@ -622,13 +622,13 @@ const CreatePage: React.FC<{ loadedRecord?: HistoryRecord | null; loadedEpisode?
                   disabled={duration < 15}
                   title={duration < 15 ? '极速瞬间模式（<15s）不支持链式分段' : ''}
                   className={`flex-1 py-1.5 text-xs rounded-lg border font-medium transition-colors ${
-                    mode === 'chain' && duration >= 15 ? 'border-amber-500 bg-amber-900/30 text-amber-300' : 'border-gray-700 text-gray-400'
+                    mode === 'chain' && duration >= 15 ? 'border-indigo-500 bg-indigo-900/30 text-indigo-300' : 'border-gray-700 text-gray-400'
                   } ${duration < 15 ? 'opacity-40 cursor-not-allowed' : ''}`}>
                   ⛓️ 链式引擎
                 </button>
                 <button onClick={() => setMode('single')}
                   className={`flex-1 py-1.5 text-xs rounded-lg border font-medium transition-colors ${
-                    mode === 'single' ? 'border-amber-500 bg-amber-900/30 text-amber-300' : 'border-gray-700 text-gray-400'
+                    mode === 'single' ? 'border-indigo-500 bg-indigo-900/30 text-indigo-300' : 'border-gray-700 text-gray-400'
                   }`}>
                   📄 单段生成
                 </button>
@@ -636,7 +636,7 @@ const CreatePage: React.FC<{ loadedRecord?: HistoryRecord | null; loadedEpisode?
             </div>
 
             {/* Params */}
-            <div className="bg-gray-800/50 rounded-xl p-3 border border-gray-700/50">
+            <div className="bg-gray-800/50 rounded-lg p-3 border border-gray-700/50">
               <ParamPanel
                 params={params}
                 onChange={u => setParams(p => ({ ...p, ...u }))}
@@ -651,11 +651,11 @@ const CreatePage: React.FC<{ loadedRecord?: HistoryRecord | null; loadedEpisode?
         <div className="flex-1 overflow-y-auto min-w-0">
           {/* 项目面包屑导航 */}
           {currentProject && currentEpisode && (
-            <div className="px-3 py-2 border-b border-gray-800 bg-amber-900/10 flex items-center gap-2">
-              <svg className="w-3.5 h-3.5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="px-3 py-2 border-b border-gray-800 bg-indigo-900/10 flex items-center gap-2">
+              <svg className="w-3.5 h-3.5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V7z" />
               </svg>
-              <span className="text-xs text-amber-400 font-medium">{currentProject.name}</span>
+              <span className="text-xs text-indigo-400 font-medium">{currentProject.name}</span>
               <span className="text-gray-600">›</span>
               <span className="text-xs text-gray-300">第{currentEpisode.episodeNumber}集：{currentEpisode.title}</span>
               {currentEpisode.mark === 'fire' && <span className="text-xs">🔥</span>}
@@ -686,17 +686,17 @@ const CreatePage: React.FC<{ loadedRecord?: HistoryRecord | null; loadedEpisode?
                 {/* Script import buttons */}
                 <button
                   onClick={() => fileInputRef.current?.click()}
-                  className="px-2 py-1 text-xs text-amber-400 bg-amber-900/20 border border-amber-800/30 rounded-lg hover:bg-amber-900/30 transition-colors">
+                  className="px-2 py-1 text-xs text-gray-300 bg-gray-800/60 border border-gray-700/50 rounded-md hover:bg-gray-800 transition-colors">
                   📂 导入剧本
                 </button>
                 <button
                   onClick={() => setShowPasteModal(true)}
-                  className="px-2 py-1 text-xs text-amber-400 bg-amber-900/20 border border-amber-800/30 rounded-lg hover:bg-amber-900/30 transition-colors">
+                  className="px-2 py-1 text-xs text-gray-300 bg-gray-800/60 border border-gray-700/50 rounded-md hover:bg-gray-800 transition-colors">
                   📋 粘贴提取
                 </button>
                 <button
                   onClick={() => setShowHistoryPicker(true)}
-                  className="px-2 py-1 text-xs text-teal-400 bg-teal-900/20 border border-teal-800/30 rounded-lg hover:bg-teal-900/30 transition-colors"
+                  className="px-2 py-1 text-xs text-gray-300 bg-gray-800/60 border border-gray-700/50 rounded-md hover:bg-gray-800 transition-colors"
                 >
                   历史版本
                 </button>
@@ -708,11 +708,11 @@ const CreatePage: React.FC<{ loadedRecord?: HistoryRecord | null; loadedEpisode?
                   onChange={handleFileImport}
                 />
                 <button onClick={() => setShowVision(true)}
-                  className="px-2 py-1 text-xs text-purple-400 bg-purple-900/20 border border-purple-800/30 rounded-lg hover:bg-purple-900/30 transition-colors">
+                  className="px-2 py-1 text-xs text-gray-300 bg-gray-800/60 border border-gray-700/50 rounded-md hover:bg-gray-800 transition-colors">
                   👁️ 视觉反推
                 </button>
                 <button onClick={handleAnalyze} disabled={isAnalyzing}
-                  className="px-2 py-1 text-xs text-sky-400 bg-sky-900/20 border border-sky-800/30 rounded-lg hover:bg-sky-900/30 transition-colors disabled:opacity-50">
+                  className="px-2 py-1 text-xs text-gray-300 bg-gray-800/60 border border-gray-700/50 rounded-md hover:bg-gray-800 transition-colors disabled:opacity-50">
                   {isAnalyzing ? '分析中...' : '🔬 AI分析'}
                 </button>
               </div>
@@ -722,7 +722,7 @@ const CreatePage: React.FC<{ loadedRecord?: HistoryRecord | null; loadedEpisode?
               onChange={e => setPlot(e.target.value)}
               placeholder="在此输入故事情节、剧本大纲或分镜描述..."
               rows={5}
-              className="w-full bg-gray-800/60 border border-gray-700 text-sm text-gray-200 placeholder-gray-600 px-3 py-2.5 rounded-xl focus:outline-none focus:border-amber-500 resize-none leading-relaxed"
+              className="w-full bg-gray-800/60 border border-gray-700 text-sm text-gray-200 placeholder-gray-600 px-3 py-2.5 rounded-lg focus:outline-none focus:border-indigo-500 resize-none leading-relaxed"
             />
 
             {/* Extract status */}
@@ -730,7 +730,7 @@ const CreatePage: React.FC<{ loadedRecord?: HistoryRecord | null; loadedEpisode?
               <div className={`mt-1.5 text-xs px-3 py-1.5 rounded-lg border ${
                 extractStatus.includes('✅') ? 'text-emerald-400 bg-emerald-900/20 border-emerald-800/30' :
                 extractStatus.includes('❌') ? 'text-red-400 bg-red-900/20 border-red-800/30' :
-                'text-amber-400 bg-amber-900/20 border-amber-800/30'
+                'text-indigo-400 bg-indigo-900/20 border-indigo-800/30'
               }`}>
                 {extractStatus}
               </div>
@@ -738,15 +738,15 @@ const CreatePage: React.FC<{ loadedRecord?: HistoryRecord | null; loadedEpisode?
 
             {/* Analysis Card */}
             {analysisResult && showAnalysis && (
-              <div className="mt-2 bg-sky-900/20 border border-sky-700/30 rounded-xl p-3">
+              <div className="mt-2 bg-gray-800/60 border border-gray-700/50 rounded-lg p-3">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs text-sky-400 font-medium">🔬 AI分析结果</span>
+                  <span className="text-xs text-indigo-400 font-medium">🔬 AI分析结果</span>
                   <button onClick={() => setShowAnalysis(false)} className="text-gray-500 hover:text-gray-300 text-xs">收起</button>
                 </div>
                 <div className="space-y-1 text-xs text-gray-400">
-                  <div><span className="text-sky-300">主题：</span>{analysisResult.themeStatement}</div>
-                  <div><span className="text-sky-300">情绪基调：</span>{analysisResult.emotion}</div>
-                  <div><span className="text-sky-300">推荐镜头：</span>{analysisResult.recommendedShots}</div>
+                  <div><span className="text-gray-300">主题：</span>{analysisResult.themeStatement}</div>
+                  <div><span className="text-gray-300">情绪基调：</span>{analysisResult.emotion}</div>
+                  <div><span className="text-gray-300">推荐镜头：</span>{analysisResult.recommendedShots}</div>
                 </div>
               </div>
             )}
@@ -770,7 +770,7 @@ const CreatePage: React.FC<{ loadedRecord?: HistoryRecord | null; loadedEpisode?
               />
               {viewSceneId !== null && (
                 <div className="mt-2 flex items-center gap-2">
-                  <span className="text-xs text-amber-400">
+                  <span className="text-xs text-indigo-400">
                     查看: {chainStore.scenes.find(s => s.id === viewSceneId)?.beatName}
                   </span>
                   <button onClick={() => setViewSceneId(null)} className="text-xs text-gray-500 hover:text-gray-300">
@@ -810,51 +810,51 @@ const CreatePage: React.FC<{ loadedRecord?: HistoryRecord | null; loadedEpisode?
                   value={refineText}
                   onChange={e => setRefineText(e.target.value)}
                   placeholder="全局修改意见（如：增强动作感、调整为夜景风格...）"
-                  className="flex-1 bg-gray-800 border border-gray-700 text-xs text-gray-200 placeholder-gray-600 px-3 py-2 rounded-lg focus:outline-none focus:border-amber-500"
+                  className="flex-1 bg-gray-800 border border-gray-700 text-xs text-gray-200 placeholder-gray-600 px-3 py-2 rounded-lg focus:outline-none focus:border-indigo-500"
                   onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) handleRefine() }}
                 />
                 <button onClick={handleRefine} disabled={isRefining || !refineText.trim()}
-                  className="px-3 py-2 text-xs bg-sky-700/30 text-sky-400 border border-sky-700/50 rounded-lg hover:bg-sky-700/40 disabled:opacity-50 transition-colors">
+                  className="px-3 py-2 text-xs bg-indigo-600 text-white border border-indigo-500/50 rounded-md hover:bg-indigo-500 disabled:opacity-50 transition-colors">
                   {isRefining ? '修改中...' : '全局修改'}
                 </button>
               </div>
 
               <div className="flex gap-1.5 flex-wrap">
                 <button onClick={() => setShowStc(true)}
-                  className="px-3 py-1.5 text-xs bg-purple-900/30 text-purple-400 rounded-lg hover:bg-purple-900/40 transition-colors border border-purple-800/30">
+                  className="px-3 py-1.5 text-xs bg-gray-800/60 text-gray-300 rounded-md hover:bg-gray-800 transition-colors border border-gray-700/50">
                   🐱 STC自检
                 </button>
                 <button onClick={handleIntegrate} disabled={isIntegrating}
-                  className="px-3 py-1.5 text-xs bg-amber-900/30 text-amber-400 rounded-lg hover:bg-amber-900/40 transition-colors border border-amber-800/30 disabled:opacity-50">
+                  className="px-3 py-1.5 text-xs bg-gray-800/60 text-gray-300 rounded-md hover:bg-gray-800 transition-colors border border-gray-700/50 disabled:opacity-50">
                   {isIntegrating ? '整合中...' : '✨ 整合提示词'}
                 </button>
                 <button onClick={handleCopyAll}
-                  className="px-3 py-1.5 text-xs bg-gray-700/50 text-gray-300 rounded-lg hover:bg-gray-700 transition-colors border border-gray-600">
+                  className="px-3 py-1.5 text-xs bg-gray-800/60 text-gray-300 rounded-md hover:bg-gray-800 transition-colors border border-gray-700/50">
                   📋 复制提示词
                 </button>
                 <button onClick={handleSaveHistory}
-                  className="px-3 py-1.5 text-xs bg-teal-900/30 text-teal-400 rounded-lg hover:bg-teal-900/40 transition-colors border border-teal-800/30">
+                  className="px-3 py-1.5 text-xs bg-gray-800/60 text-gray-300 rounded-md hover:bg-gray-800 transition-colors border border-gray-700/50">
                   💾 保存历史
                 </button>
                 <button onClick={() => handleExport('txt')}
-                  className="px-3 py-1.5 text-xs bg-gray-700/50 text-gray-300 rounded-lg hover:bg-gray-700 transition-colors border border-gray-600">
+                  className="px-3 py-1.5 text-xs bg-gray-800/60 text-gray-300 rounded-md hover:bg-gray-800 transition-colors border border-gray-700/50">
                   📄 导出TXT
                 </button>
                 <button onClick={() => handleExport('excel')}
-                  className="px-3 py-1.5 text-xs bg-green-900/30 text-green-400 rounded-lg hover:bg-green-900/40 transition-colors border border-green-800/30">
+                  className="px-3 py-1.5 text-xs bg-gray-800/60 text-gray-300 rounded-md hover:bg-gray-800 transition-colors border border-gray-700/50">
                   📊 导出Excel
                 </button>
                 <button onClick={() => handleExport('word')}
-                  className="px-3 py-1.5 text-xs bg-blue-900/30 text-blue-400 rounded-lg hover:bg-blue-900/40 transition-colors border border-blue-800/30">
+                  className="px-3 py-1.5 text-xs bg-gray-800/60 text-gray-300 rounded-md hover:bg-gray-800 transition-colors border border-gray-700/50">
                   📝 导出Word
                 </button>
               </div>
 
               {/* Integrated Prompt Section */}
               {showIntegrated && (
-                <div className="mt-2 bg-amber-900/10 border border-amber-800/30 rounded-xl p-3">
+                <div className="mt-2 bg-indigo-900/10 border border-indigo-800/30 rounded-lg p-3">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs text-amber-400 font-semibold">✨ 整合提示词（含时间段）</span>
+                    <span className="text-xs text-indigo-400 font-semibold">✨ 整合提示词（含时间段）</span>
                     <div className="flex gap-2">
                       {integratedPrompt && !isIntegrating && (
                         <button
@@ -862,7 +862,7 @@ const CreatePage: React.FC<{ loadedRecord?: HistoryRecord | null; loadedEpisode?
                             navigator.clipboard.writeText(integratedPrompt)
                             alert('✅ 整合提示词已复制！')
                           }}
-                          className="px-2 py-0.5 text-xs text-amber-400 border border-amber-800/30 rounded hover:bg-amber-900/20">
+                          className="px-2 py-0.5 text-xs text-indigo-400 border border-indigo-800/30 rounded hover:bg-indigo-900/20">
                           📋 复制全部
                         </button>
                       )}
@@ -870,8 +870,8 @@ const CreatePage: React.FC<{ loadedRecord?: HistoryRecord | null; loadedEpisode?
                     </div>
                   </div>
                   {isIntegrating ? (
-                    <div className="flex items-center gap-2 text-xs text-amber-400 py-2">
-                      <div className="w-3.5 h-3.5 border-2 border-amber-400 border-t-transparent rounded-full animate-spin" />
+                    <div className="flex items-center gap-2 text-xs text-indigo-400 py-2">
+                      <div className="w-3.5 h-3.5 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin" />
                       整合中...
                     </div>
                   ) : (
@@ -891,12 +891,12 @@ const CreatePage: React.FC<{ loadedRecord?: HistoryRecord | null; loadedEpisode?
         <div className="flex-1" />
         {(isStreaming || chainStore.isRunning) ? (
           <button onClick={handleCancel}
-            className="px-6 py-2.5 bg-red-600 hover:bg-red-500 text-white font-semibold rounded-xl text-sm transition-colors shadow-lg shadow-red-900/30">
+            className="px-6 py-2.5 bg-red-600 hover:bg-red-500 text-white font-semibold rounded-lg text-sm transition-colors shadow-lg shadow-red-900/30">
             ⛔ 停止生成
           </button>
         ) : (
           <button onClick={handleGenerate} data-action="generate"
-            className="px-8 py-2.5 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white font-bold rounded-xl text-sm transition-all shadow-lg shadow-amber-900/40 hover:shadow-amber-900/60">
+            className="px-8 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-lg text-sm transition-all shadow-lg shadow-indigo-900/40 hover:shadow-indigo-900/60">
             ⚡ 生成分镜  <span className="text-xs opacity-70 ml-1">Ctrl+Enter</span>
           </button>
         )}
@@ -906,7 +906,7 @@ const CreatePage: React.FC<{ loadedRecord?: HistoryRecord | null; loadedEpisode?
       {!isStreaming && !chainStore.isRunning && storyboard && (
         <button
           onClick={handleGenerate}
-          className="fixed right-6 bottom-20 w-12 h-12 bg-amber-600 hover:bg-amber-500 text-white rounded-full shadow-lg shadow-amber-900/50 flex items-center justify-center text-lg transition-all hover:scale-110 z-40"
+          className="fixed right-6 bottom-20 w-12 h-12 bg-indigo-600 hover:bg-indigo-500 text-white rounded-full shadow-lg shadow-indigo-900/50 flex items-center justify-center text-lg transition-all hover:scale-110 z-40"
           title="重新生成">
           ⚡
         </button>
@@ -915,7 +915,7 @@ const CreatePage: React.FC<{ loadedRecord?: HistoryRecord | null; loadedEpisode?
       {/* Modals */}
       {showHistoryPicker && (
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="w-full max-w-6xl h-[80vh] bg-gray-900 border border-gray-800 rounded-2xl shadow-2xl overflow-hidden">
+          <div className="w-full max-w-6xl h-[80vh] bg-gray-900 border border-gray-800 rounded-lg shadow-2xl overflow-hidden">
             <HistoryPage
               embedded
               onClose={() => setShowHistoryPicker(false)}

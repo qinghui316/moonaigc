@@ -16,7 +16,7 @@ const ScriptPasteModal: React.FC<ScriptPasteModalProps> = ({ onClose, onExtract,
 
   return (
     <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={onClose}>
-      <div className="bg-gray-900 rounded-2xl w-full max-w-2xl shadow-2xl border border-gray-700 max-h-[90vh] flex flex-col"
+      <div className="bg-gray-900 rounded-lg w-full max-w-2xl shadow-2xl border border-gray-700 max-h-[90vh] flex flex-col"
         onClick={e => e.stopPropagation()}>
         {/* Header */}
         <div className="flex items-center justify-between p-5 border-b border-gray-700 shrink-0">
@@ -37,7 +37,7 @@ const ScriptPasteModal: React.FC<ScriptPasteModalProps> = ({ onClose, onExtract,
             value={text}
             onChange={e => setText(e.target.value)}
             placeholder="在此粘贴剧本内容，支持长文本（最多10000字）..."
-            className="w-full h-64 bg-gray-800 border border-gray-700 text-sm text-gray-200 placeholder-gray-600 px-3 py-2.5 rounded-xl focus:outline-none focus:border-amber-500 resize-none"
+            className="w-full h-64 bg-gray-800 border border-gray-700 text-sm text-gray-200 placeholder-gray-600 px-3 py-2.5 rounded-lg focus:outline-none focus:border-indigo-500 resize-none"
           />
           <p className="text-xs text-gray-600 mt-2">{text.length} 字</p>
         </div>
@@ -50,7 +50,7 @@ const ScriptPasteModal: React.FC<ScriptPasteModalProps> = ({ onClose, onExtract,
           <button
             onClick={handleExtract}
             disabled={!text.trim() || isExtracting}
-            className="px-6 py-2 text-sm bg-amber-600 hover:bg-amber-500 text-white font-semibold rounded-lg disabled:opacity-50 transition-colors">
+            className="px-6 py-2 text-sm bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-lg disabled:opacity-50 transition-colors">
             {isExtracting ? '🔍 提取中...' : '🚀 AI提取资产'}
           </button>
         </div>

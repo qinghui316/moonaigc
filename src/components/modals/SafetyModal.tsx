@@ -13,9 +13,9 @@ const SafetyModal: React.FC<SafetyModalProps> = ({ result, onApply, onClose }) =
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-gray-900 border border-gray-700 rounded-xl w-full max-w-lg shadow-2xl max-h-[80vh] overflow-y-auto">
+      <div className="bg-gray-900 border border-gray-700 rounded-lg w-full max-w-lg shadow-2xl max-h-[80vh] overflow-y-auto">
         <div className="flex items-center justify-between p-4 border-b border-gray-800 sticky top-0 bg-gray-900">
-          <h3 className="text-amber-400 font-semibold">🛡️ 安全审核报告</h3>
+          <h3 className="text-indigo-400 font-semibold">🛡️ 安全审核报告</h3>
           <button onClick={onClose} className="text-gray-400 hover:text-white">✕</button>
         </div>
 
@@ -73,12 +73,12 @@ const SafetyModal: React.FC<SafetyModalProps> = ({ result, onApply, onClose }) =
           )}
 
           {result.replacedIP && result.replacedIP.length > 0 && (
-            <div className="bg-purple-900/20 border border-purple-700/50 rounded-lg p-3">
-              <div className="text-purple-400 text-xs font-semibold mb-2">©️ IP词已安全替换（{result.replacedIP.length} 处）</div>
+            <div className="bg-indigo-900/20 border border-indigo-700/50 rounded-lg p-3">
+              <div className="text-indigo-400 text-xs font-semibold mb-2">©️ IP词已安全替换（{result.replacedIP.length} 处）</div>
               <div className="space-y-1">
                 {result.replacedIP.map((r, i) => (
                   <div key={i} className="text-xs flex items-center gap-2">
-                    <span className="text-purple-400 line-through">{r.bad}</span>
+                    <span className="text-indigo-400 line-through">{r.bad}</span>
                     <span className="text-gray-500">→</span>
                     <span className="text-green-400">{r.good}</span>
                   </div>
@@ -99,11 +99,11 @@ const SafetyModal: React.FC<SafetyModalProps> = ({ result, onApply, onClose }) =
           )}
 
           {result.detectedIP.length > 0 && result.replacedIP && result.replacedIP.length === 0 && (
-            <div className="bg-purple-900/20 border border-purple-700/50 rounded-lg p-3">
-              <div className="text-purple-400 text-xs font-semibold mb-2">©️ 检测到IP词（注意版权）</div>
+            <div className="bg-indigo-900/20 border border-indigo-700/50 rounded-lg p-3">
+              <div className="text-indigo-400 text-xs font-semibold mb-2">©️ 检测到IP词（注意版权）</div>
               <div className="flex flex-wrap gap-1.5">
                 {result.detectedIP.map((w, i) => (
-                  <span key={i} className="text-xs text-purple-400 bg-purple-900/30 px-1.5 py-0.5 rounded">{w}</span>
+                  <span key={i} className="text-xs text-indigo-400 bg-indigo-900/30 px-1.5 py-0.5 rounded">{w}</span>
                 ))}
               </div>
             </div>
@@ -118,7 +118,7 @@ const SafetyModal: React.FC<SafetyModalProps> = ({ result, onApply, onClose }) =
 
           {result.replaced.length > 0 && (
             <div className="bg-gray-800 rounded-lg p-3 text-xs text-gray-400">
-              <div>共替换 <span className="text-amber-400 font-bold">{result.replaced.length}</span> 处违禁词</div>
+              <div>共替换 <span className="text-indigo-400 font-bold">{result.replaced.length}</span> 处违禁词</div>
             </div>
           )}
         </div>
@@ -127,7 +127,7 @@ const SafetyModal: React.FC<SafetyModalProps> = ({ result, onApply, onClose }) =
           <button onClick={onClose} className="flex-1 py-2 text-sm text-gray-400 border border-gray-700 rounded-lg hover:bg-gray-800 transition-colors">
             查看内容
           </button>
-          <button onClick={onApply} className="flex-1 py-2 text-sm bg-amber-600 hover:bg-amber-500 text-white rounded-lg transition-colors">
+          <button onClick={onApply} className="flex-1 py-2 text-sm bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg transition-colors">
             应用替换并继续
           </button>
         </div>

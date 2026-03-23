@@ -27,7 +27,7 @@ const DurationControl: React.FC<DurationControlProps> = ({ seconds, onChange }) 
     <div className="space-y-2">
       <div className="flex items-center justify-between">
         <label className="text-xs text-gray-400">视频总时长</label>
-        <span className="text-amber-400 font-mono text-sm font-bold">{formatDuration(seconds)}</span>
+        <span className="text-indigo-400 font-mono text-sm font-bold">{formatDuration(seconds)}</span>
       </div>
 
       <input
@@ -37,7 +37,7 @@ const DurationControl: React.FC<DurationControlProps> = ({ seconds, onChange }) 
         step={5}
         value={seconds}
         onChange={e => onChange(Number(e.target.value))}
-        className="w-full accent-amber-500 cursor-pointer"
+        className="w-full accent-indigo-500 cursor-pointer"
       />
 
       <div className="flex gap-1.5 flex-wrap">
@@ -47,7 +47,7 @@ const DurationControl: React.FC<DurationControlProps> = ({ seconds, onChange }) 
             onClick={() => onChange(p.value)}
             className={`px-2 py-1 text-xs rounded border transition-colors ${
               seconds === p.value
-                ? 'border-amber-500 bg-amber-900/30 text-amber-300'
+                ? 'border-indigo-500 bg-indigo-900/30 text-indigo-300'
                 : 'border-gray-700 text-gray-500 hover:border-gray-600 hover:text-gray-300'
             }`}
           >

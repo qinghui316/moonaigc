@@ -63,7 +63,7 @@ const RefImagePickerModal: React.FC<RefImagePickerModalProps> = ({ open, onClose
   return (
     <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4" onClick={onClose}>
       <div
-        className="bg-gray-900 rounded-xl border border-gray-700 w-full max-w-lg max-h-[80vh] flex flex-col"
+        className="bg-gray-900 rounded-lg border border-gray-700 w-full max-w-lg max-h-[80vh] flex flex-col"
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
@@ -79,7 +79,7 @@ const RefImagePickerModal: React.FC<RefImagePickerModalProps> = ({ open, onClose
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="搜索名称或描述..."
-            className="w-full bg-gray-800 border border-gray-700 text-gray-200 text-sm px-3 py-1.5 rounded-lg focus:outline-none focus:border-amber-500"
+            className="w-full bg-gray-800 border border-gray-700 text-gray-200 text-sm px-3 py-1.5 rounded-lg focus:outline-none focus:border-indigo-500"
           />
         </div>
 
@@ -89,7 +89,7 @@ const RefImagePickerModal: React.FC<RefImagePickerModalProps> = ({ open, onClose
             <button
               key={t.key}
               onClick={() => { setActiveTab(t.key); setSearch('') }}
-              className={`px-3 py-1 text-xs rounded-full transition-colors ${activeTab === t.key ? 'bg-amber-600 text-white' : 'bg-gray-800 text-gray-400 hover:text-gray-200'}`}
+              className={`px-3 py-1 text-xs rounded-full transition-colors ${activeTab === t.key ? 'bg-indigo-600 text-white' : 'bg-gray-800 text-gray-400 hover:text-gray-200'}`}
             >
               {t.label}
             </button>
@@ -108,7 +108,7 @@ const RefImagePickerModal: React.FC<RefImagePickerModalProps> = ({ open, onClose
                   <button
                     key={item.imageFileId}
                     onClick={() => toggleItem(item)}
-                    className={`relative rounded-lg overflow-hidden border-2 transition-all ${selected ? 'border-amber-500' : 'border-transparent hover:border-gray-600'}`}
+                    className={`relative rounded-lg overflow-hidden border-2 transition-all ${selected ? 'border-indigo-500' : 'border-transparent hover:border-gray-600'}`}
                   >
                     <img
                       src={item.imageUrl}
@@ -116,7 +116,7 @@ const RefImagePickerModal: React.FC<RefImagePickerModalProps> = ({ open, onClose
                       className="w-full aspect-square object-cover"
                     />
                     {selected && (
-                      <div className="absolute top-1 right-1 w-4 h-4 bg-amber-500 rounded-full flex items-center justify-center">
+                      <div className="absolute top-1 right-1 w-4 h-4 bg-indigo-500 rounded-full flex items-center justify-center">
                         <span className="text-white text-[9px] font-bold">✓</span>
                       </div>
                     )}
@@ -142,7 +142,7 @@ const RefImagePickerModal: React.FC<RefImagePickerModalProps> = ({ open, onClose
             </button>
             <button
               onClick={() => { onConfirm(localSelected); onClose() }}
-              className="px-4 py-1.5 text-sm bg-amber-600 hover:bg-amber-500 text-white rounded-lg"
+              className="px-4 py-1.5 text-sm bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg"
             >
               确定
             </button>

@@ -24,7 +24,7 @@ const StoryboardTable: React.FC<StoryboardTableProps> = ({ markdown, isStreaming
     if (isStreaming) {
       return (
         <div className="p-4 text-gray-500 text-sm flex items-center gap-2">
-          <span className="inline-block w-2 h-4 bg-amber-400 animate-pulse rounded-sm" />
+          <span className="inline-block w-2 h-4 bg-indigo-400 animate-pulse rounded-sm" />
           正在生成分镜...
         </div>
       )
@@ -69,7 +69,7 @@ const StoryboardTable: React.FC<StoryboardTableProps> = ({ markdown, isStreaming
                   <button
                     onClick={() => navigator.clipboard.writeText(row[row.length - 1] || '')}
                     title="复制提示词"
-                    className="p-1 text-gray-500 hover:text-amber-400 rounded hover:bg-gray-700 transition-colors"
+                    className="p-1 text-gray-500 hover:text-indigo-400 rounded hover:bg-gray-700 transition-colors"
                   >
                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
@@ -79,7 +79,7 @@ const StoryboardTable: React.FC<StoryboardTableProps> = ({ markdown, isStreaming
                     <button
                       onClick={() => onGenImage(ri, row)}
                       title="AI 生图"
-                      className="p-1 text-gray-500 hover:text-purple-400 rounded hover:bg-gray-700 transition-colors"
+                      className="p-1 text-gray-500 hover:text-indigo-400 rounded hover:bg-gray-700 transition-colors"
                     >
                       🖼️
                     </button>
@@ -88,7 +88,7 @@ const StoryboardTable: React.FC<StoryboardTableProps> = ({ markdown, isStreaming
                     <button
                       onClick={() => onEditShot(row.join(' | '), ri)}
                       title="编辑此镜头"
-                      className="p-1 text-gray-500 hover:text-sky-400 rounded hover:bg-gray-700 transition-colors"
+                      className="p-1 text-gray-500 hover:text-indigo-400 rounded hover:bg-gray-700 transition-colors"
                     >
                       <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -102,7 +102,7 @@ const StoryboardTable: React.FC<StoryboardTableProps> = ({ markdown, isStreaming
           {isStreaming && (
             <tr>
               <td colSpan={headers.length + 2} className="px-2 py-2">
-                <span className="inline-block w-2 h-4 bg-amber-400 animate-pulse rounded-sm" />
+                <span className="inline-block w-2 h-4 bg-indigo-400 animate-pulse rounded-sm" />
               </td>
             </tr>
           )}

@@ -73,10 +73,10 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ onClose }) => {
 
   return (
     <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-gray-900 border border-gray-700 rounded-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl">
+      <div className="bg-gray-900 border border-gray-700 rounded-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-gray-800">
-          <h2 className="text-amber-400 font-bold text-lg">⚙️ API 配置</h2>
+          <h2 className="text-indigo-400 font-bold text-lg">⚙️ API 配置</h2>
           <button onClick={onClose} className="text-gray-400 hover:text-white w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-800 transition-colors">✕</button>
         </div>
 
@@ -85,7 +85,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ onClose }) => {
           {(['text', 'vision', 'image'] as const).map(t => (
             <button key={t} onClick={() => { setActiveTab(t); setTestResult(null) }}
               className={`flex-1 py-1.5 text-sm font-medium rounded-md transition-colors ${
-                activeTab === t ? 'bg-amber-600 text-white' : 'text-gray-400 hover:text-white'
+                activeTab === t ? 'bg-indigo-600 text-white' : 'text-gray-400 hover:text-white'
               }`}>
               {t === 'text' ? '🔤 文字生成' : t === 'vision' ? '👁️ 视觉分析' : '🎨 图片生成'}
             </button>
@@ -103,7 +103,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ onClose }) => {
                   onClick={() => handlePlatformSelect(platform)}
                   className={`p-2.5 rounded-lg border text-left transition-colors ${
                     settings.platformId === platform.id
-                      ? 'border-amber-500 bg-amber-900/30 text-amber-300'
+                      ? 'border-indigo-500 bg-indigo-900/30 text-indigo-300'
                       : 'border-gray-700 bg-gray-800 text-gray-300 hover:border-gray-600'
                   }`}
                 >
@@ -114,7 +114,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ onClose }) => {
                       <div className="text-xs text-gray-500">{platform.sub}</div>
                     </div>
                     {'badge' in platform && platform.badge && (
-                      <span className="ml-auto text-xs bg-amber-600 text-white px-1 rounded">
+                      <span className="ml-auto text-xs bg-indigo-600 text-white px-1 rounded">
                         {platform.badge}
                       </span>
                     )}
@@ -136,7 +136,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ onClose }) => {
                 type="text"
                 value={settings.endpoint}
                 onChange={e => setSetting({ endpoint: e.target.value } as Record<string, unknown>)}
-                className="w-full bg-gray-800 border border-gray-700 text-gray-200 text-sm px-3 py-2 rounded-lg focus:outline-none focus:border-amber-500"
+                className="w-full bg-gray-800 border border-gray-700 text-gray-200 text-sm px-3 py-2 rounded-lg focus:outline-none focus:border-indigo-500"
                 placeholder="https://api.example.com/v1/..."
               />
             )}
@@ -147,12 +147,12 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ onClose }) => {
           <div>
             <label className="text-xs text-gray-500 mb-1.5 block">模型</label>
             {'modelNote' in selectedPlatform && selectedPlatform.modelNote && (
-              <p className="text-xs text-amber-400 mb-1.5">{selectedPlatform.modelNote}</p>
+              <p className="text-xs text-indigo-400 mb-1.5">{selectedPlatform.modelNote}</p>
             )}
             <select
               value={selectedPlatform.models.some(m => m.value === settings.model) ? settings.model : 'custom'}
               onChange={e => handleModelChange(e.target.value)}
-              className="w-full bg-gray-800 border border-gray-700 text-gray-200 text-sm px-3 py-2 rounded-lg focus:outline-none focus:border-amber-500"
+              className="w-full bg-gray-800 border border-gray-700 text-gray-200 text-sm px-3 py-2 rounded-lg focus:outline-none focus:border-indigo-500"
             >
               {selectedPlatform.models.map(m => (
                 <option key={m.value} value={m.value}>{m.label}</option>
@@ -163,7 +163,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ onClose }) => {
                 type="text"
                 value={settings.model}
                 onChange={e => setSetting({ model: e.target.value } as Record<string, unknown>)}
-                className="w-full mt-1.5 bg-gray-800 border border-gray-700 text-gray-200 text-sm px-3 py-2 rounded-lg focus:outline-none focus:border-amber-500"
+                className="w-full mt-1.5 bg-gray-800 border border-gray-700 text-gray-200 text-sm px-3 py-2 rounded-lg focus:outline-none focus:border-indigo-500"
                 placeholder="输入自定义模型名..."
               />
             )}
@@ -176,7 +176,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ onClose }) => {
               API Key
               {selectedPlatform.keyLink && (
                 <a href={selectedPlatform.keyLink} target="_blank" rel="noreferrer"
-                  className="text-amber-500 hover:text-amber-400 text-xs">
+                  className="text-indigo-500 hover:text-indigo-400 text-xs">
                   获取 Key →
                 </a>
               )}
@@ -186,7 +186,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ onClose }) => {
               type="password"
               value={settings.key}
               onChange={e => setSetting({ key: e.target.value } as Record<string, unknown>)}
-              className="w-full bg-gray-800 border border-gray-700 text-gray-200 text-sm px-3 py-2 rounded-lg focus:outline-none focus:border-amber-500"
+              className="w-full bg-gray-800 border border-gray-700 text-gray-200 text-sm px-3 py-2 rounded-lg focus:outline-none focus:border-indigo-500"
               placeholder="sk-..."
             />
           </div>
@@ -196,7 +196,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ onClose }) => {
             <button
               onClick={handleTest}
               disabled={testing}
-              className="px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
+              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
             >
               {testing ? '测试中...' : '🔌 测试连接'}
             </button>
@@ -221,7 +221,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ onClose }) => {
                   <span className="text-sm text-gray-300">{label}</span>
                   <div
                     onClick={() => setFlag(key as never, !val)}
-                    className={`w-10 h-5 rounded-full transition-colors cursor-pointer relative ${val ? 'bg-amber-500' : 'bg-gray-700'}`}
+                    className={`w-10 h-5 rounded-full transition-colors cursor-pointer relative ${val ? 'bg-indigo-500' : 'bg-gray-700'}`}
                   >
                     <div className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${val ? 'translate-x-5' : 'translate-x-0.5'}`} />
                   </div>
@@ -244,7 +244,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ onClose }) => {
           </button>
           <button
             onClick={onClose}
-            className="w-full py-2.5 bg-amber-600 hover:bg-amber-500 text-white font-medium rounded-lg transition-colors"
+            className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-medium rounded-lg transition-colors"
           >
             保存并关闭
           </button>

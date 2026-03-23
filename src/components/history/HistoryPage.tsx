@@ -51,7 +51,7 @@ const HistoryPage: React.FC<HistoryPageProps> = ({
     <div className="h-full flex flex-col overflow-hidden">
       <div className={`flex items-center justify-between gap-3 shrink-0 ${embedded ? 'px-5 py-4 border-b border-gray-800 bg-gray-900' : 'px-4 py-3 border-b border-gray-800'}`}>
         <div>
-          <h2 className="text-amber-400 font-semibold">历史版本</h2>
+          <h2 className="text-indigo-400 font-semibold">历史版本</h2>
           <p className="text-xs text-gray-500 mt-1">{scopeLabel}</p>
         </div>
         <div className="flex items-center gap-2">
@@ -60,14 +60,14 @@ const HistoryPage: React.FC<HistoryPageProps> = ({
               <button
                 type="button"
                 onClick={() => setScope('episode')}
-                className={`px-2.5 py-1 text-xs rounded-md transition-colors ${scope === 'episode' ? 'bg-amber-600 text-white' : 'text-gray-400 hover:text-gray-200'}`}
+                className={`px-2.5 py-1 text-xs rounded-md transition-colors ${scope === 'episode' ? 'bg-indigo-600 text-white' : 'text-gray-400 hover:text-gray-200'}`}
               >
                 当前集
               </button>
               <button
                 type="button"
                 onClick={() => setScope('all')}
-                className={`px-2.5 py-1 text-xs rounded-md transition-colors ${scope === 'all' ? 'bg-amber-600 text-white' : 'text-gray-400 hover:text-gray-200'}`}
+                className={`px-2.5 py-1 text-xs rounded-md transition-colors ${scope === 'all' ? 'bg-indigo-600 text-white' : 'text-gray-400 hover:text-gray-200'}`}
               >
                 全部历史
               </button>
@@ -99,14 +99,14 @@ const HistoryPage: React.FC<HistoryPageProps> = ({
               return (
                 <div
                   key={record.id}
-                  className={`bg-gray-800/50 border rounded-xl p-3 transition-colors group ${
-                    active ? 'border-amber-600/60 shadow-[0_0_0_1px_rgba(217,119,6,0.35)]' : 'border-gray-700 hover:border-gray-600'
+                  className={`bg-gray-800/50 border rounded-lg p-3 transition-colors group ${
+                    active ? 'border-indigo-600/60 shadow-[0_0_0_1px_rgba(217,119,6,0.35)]' : 'border-gray-700 hover:border-gray-600'
                   }`}
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1 flex-wrap">
-                        <span className="text-xs text-amber-400 font-medium bg-amber-900/20 px-1.5 py-0.5 rounded border border-amber-800/30">
+                        <span className="text-xs text-indigo-400 font-medium bg-indigo-900/20 px-1.5 py-0.5 rounded border border-indigo-800/30">
                           {record.directorId || 'standard'}
                         </span>
                         <span className="text-xs text-gray-500">{record.time || new Date(record.createdAt).toLocaleString('zh-CN')}</span>
@@ -122,7 +122,7 @@ const HistoryPage: React.FC<HistoryPageProps> = ({
                       <button
                         type="button"
                         onClick={() => onLoad(record)}
-                        className="px-2.5 py-1 text-xs bg-amber-600/20 text-amber-400 border border-amber-700/50 rounded-lg hover:bg-amber-600/30 transition-colors"
+                        className="px-2.5 py-1 text-xs bg-indigo-600/20 text-indigo-400 border border-indigo-700/50 rounded-lg hover:bg-indigo-600/30 transition-colors"
                       >
                         载入
                       </button>

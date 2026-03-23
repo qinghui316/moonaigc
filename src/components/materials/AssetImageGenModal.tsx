@@ -104,10 +104,10 @@ const AssetImageGenModal: React.FC<Props> = ({ type, index, name, desc, styleKey
   return (
     <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       {/* 宽弹窗：左控制区 + 右预览区 */}
-      <div className="bg-gray-900 border border-gray-700 rounded-xl w-full max-w-2xl shadow-2xl flex flex-col">
+      <div className="bg-gray-900 border border-gray-700 rounded-lg w-full max-w-2xl shadow-2xl flex flex-col">
         {/* 标题栏 */}
         <div className="flex items-center justify-between px-5 py-3 border-b border-gray-800 shrink-0">
-          <h3 className="text-amber-400 font-bold text-sm">🎨 生成资产图 — {name}（{typeLabel}）</h3>
+          <h3 className="text-indigo-400 font-bold text-sm">🎨 生成资产图 — {name}（{typeLabel}）</h3>
           <button onClick={onClose} className="text-gray-400 hover:text-white w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-800">✕</button>
         </div>
 
@@ -119,13 +119,13 @@ const AssetImageGenModal: React.FC<Props> = ({ type, index, name, desc, styleKey
             <div>
               <div className="flex items-center justify-between mb-1.5">
                 <label className="text-xs text-gray-400">提示词（可编辑）</label>
-                <button onClick={() => setPrompt(defaultPrompt)} className="text-xs text-amber-500 hover:text-amber-400">恢复默认</button>
+                <button onClick={() => setPrompt(defaultPrompt)} className="text-xs text-indigo-500 hover:text-indigo-400">恢复默认</button>
               </div>
               <textarea
                 value={prompt}
                 onChange={e => setPrompt(e.target.value)}
                 rows={6}
-                className="w-full bg-gray-800 border border-gray-700 text-gray-200 text-xs px-3 py-2 rounded-lg focus:outline-none focus:border-amber-500 resize-none"
+                className="w-full bg-gray-800 border border-gray-700 text-gray-200 text-xs px-3 py-2 rounded-lg focus:outline-none focus:border-indigo-500 resize-none"
               />
             </div>
 
@@ -135,7 +135,7 @@ const AssetImageGenModal: React.FC<Props> = ({ type, index, name, desc, styleKey
               <select
                 value={imageSettings.aspectRatio}
                 onChange={e => useSettingsStore.getState().setImageSettings({ aspectRatio: e.target.value as ImageGenSettings['aspectRatio'] })}
-                className="flex-1 bg-gray-800 border border-gray-700 text-gray-200 text-xs px-2 py-1.5 rounded-lg focus:outline-none focus:border-amber-500"
+                className="flex-1 bg-gray-800 border border-gray-700 text-gray-200 text-xs px-2 py-1.5 rounded-lg focus:outline-none focus:border-indigo-500"
               >
                 {effectiveAspectRatios.map(r => <option key={r} value={r}>{r}</option>)}
               </select>
@@ -143,7 +143,7 @@ const AssetImageGenModal: React.FC<Props> = ({ type, index, name, desc, styleKey
               <select
                 value={imageSettings.imageResolution}
                 onChange={e => useSettingsStore.getState().setImageSettings({ imageResolution: e.target.value as ImageGenSettings['imageResolution'] })}
-                className="flex-1 bg-gray-800 border border-gray-700 text-gray-200 text-xs px-2 py-1.5 rounded-lg focus:outline-none focus:border-amber-500"
+                className="flex-1 bg-gray-800 border border-gray-700 text-gray-200 text-xs px-2 py-1.5 rounded-lg focus:outline-none focus:border-indigo-500"
               >
                 {effectiveResolutions.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
               </select>
@@ -157,7 +157,7 @@ const AssetImageGenModal: React.FC<Props> = ({ type, index, name, desc, styleKey
               <button
                 onClick={handleGenerate}
                 disabled={generating}
-                className="flex-1 py-2 bg-amber-600 hover:bg-amber-500 text-white font-medium text-sm rounded-lg disabled:opacity-50 transition-colors"
+                className="flex-1 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-sm rounded-lg disabled:opacity-50 transition-colors"
               >
                 {generating ? '🎨 生成中...' : '🚀 开始生成'}
               </button>
@@ -168,18 +168,18 @@ const AssetImageGenModal: React.FC<Props> = ({ type, index, name, desc, styleKey
           <div className="flex-1 p-4 flex flex-col items-center justify-center">
             {generating ? (
               <div className="flex flex-col items-center gap-3 text-gray-500">
-                <div className="w-10 h-10 border-2 border-amber-500 border-t-transparent rounded-full animate-spin" />
+                <div className="w-10 h-10 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
                 <span className="text-xs">生成中，请稍候…</span>
               </div>
             ) : previewUrl ? (
               <img
                 src={previewUrl}
                 alt="生成结果"
-                className="max-w-full max-h-[360px] rounded-xl shadow-lg object-contain cursor-zoom-in"
+                className="max-w-full max-h-[360px] rounded-lg shadow-lg object-contain cursor-zoom-in"
                 onClick={() => window.open(previewUrl, '_blank')}
               />
             ) : (
-              <div className="w-full h-full min-h-[200px] flex flex-col items-center justify-center border border-dashed border-gray-700 rounded-xl text-gray-600 gap-2">
+              <div className="w-full h-full min-h-[200px] flex flex-col items-center justify-center border border-dashed border-gray-700 rounded-lg text-gray-600 gap-2">
                 <span className="text-3xl">🖼️</span>
                 <span className="text-xs">点击「开始生成」后在此预览</span>
               </div>

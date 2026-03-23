@@ -994,7 +994,7 @@ const GridResultWorkspace: React.FC<GridResultWorkspaceProps> = ({ styleKey, onS
             <select
               value={selectedProjectId}
               onChange={e => void handleSelectProject(e.target.value)}
-              className="h-10 w-full bg-gray-800 border border-gray-700 text-gray-200 text-sm px-3 rounded-xl focus:outline-none focus:border-amber-500"
+              className="h-10 w-full bg-gray-800 border border-gray-700 text-gray-200 text-sm px-3 rounded-lg focus:outline-none focus:border-indigo-500"
             >
               <option value="">选择项目</option>
               {projects.map(project => (
@@ -1009,7 +1009,7 @@ const GridResultWorkspace: React.FC<GridResultWorkspaceProps> = ({ styleKey, onS
               value={selectedHistoryId ?? ''}
               onChange={e => e.target.value && void handleSelectHistory(Number(e.target.value))}
               disabled={!selectedProjectId}
-              className="h-10 w-full bg-gray-800 border border-gray-700 text-gray-200 text-sm px-3 rounded-xl focus:outline-none focus:border-amber-500 disabled:opacity-60"
+              className="h-10 w-full bg-gray-800 border border-gray-700 text-gray-200 text-sm px-3 rounded-lg focus:outline-none focus:border-indigo-500 disabled:opacity-60"
             >
               <option value="">选择集数</option>
               {episodesWithRecord.map(({ episode, record }) => (
@@ -1025,7 +1025,7 @@ const GridResultWorkspace: React.FC<GridResultWorkspaceProps> = ({ styleKey, onS
             <select
               value={styleKey}
               onChange={e => onStyleChange(e.target.value)}
-              className="h-10 w-full bg-gray-800 border border-gray-700 text-gray-200 text-sm px-3 rounded-xl focus:outline-none focus:border-amber-500"
+              className="h-10 w-full bg-gray-800 border border-gray-700 text-gray-200 text-sm px-3 rounded-lg focus:outline-none focus:border-indigo-500"
             >
               {Object.entries(STYLE_MAP).map(([key, label]) => (
                 <option key={key} value={key}>{label}</option>
@@ -1038,7 +1038,7 @@ const GridResultWorkspace: React.FC<GridResultWorkspaceProps> = ({ styleKey, onS
             <select
               value={imageSettings.aspectRatio}
               onChange={e => useSettingsStore.getState().setImageSettings({ aspectRatio: e.target.value as ImageGenSettings['aspectRatio'] })}
-              className="h-10 w-full bg-gray-800 border border-gray-700 text-gray-200 text-sm px-3 rounded-xl focus:outline-none focus:border-amber-500"
+              className="h-10 w-full bg-gray-800 border border-gray-700 text-gray-200 text-sm px-3 rounded-lg focus:outline-none focus:border-indigo-500"
             >
               {effectiveAspectRatios.map(ratio => (
                 <option key={ratio} value={ratio}>{ratio}</option>
@@ -1051,7 +1051,7 @@ const GridResultWorkspace: React.FC<GridResultWorkspaceProps> = ({ styleKey, onS
             <select
               value={imageSettings.imageResolution}
               onChange={e => useSettingsStore.getState().setImageSettings({ imageResolution: e.target.value as ImageGenSettings['imageResolution'] })}
-              className="h-10 w-full bg-gray-800 border border-gray-700 text-gray-200 text-sm px-3 rounded-xl focus:outline-none focus:border-amber-500"
+              className="h-10 w-full bg-gray-800 border border-gray-700 text-gray-200 text-sm px-3 rounded-lg focus:outline-none focus:border-indigo-500"
             >
               {effectiveResolutions.map(item => (
                 <option key={item.value} value={item.value}>{item.label}</option>
@@ -1063,7 +1063,7 @@ const GridResultWorkspace: React.FC<GridResultWorkspaceProps> = ({ styleKey, onS
             <button
               onClick={() => setSelectedItems(new Set(selectableSourceRows.map(row => row.index)))}
               disabled={selectableSourceRows.length === 0}
-              className="text-sm font-medium text-amber-400 hover:text-amber-300 whitespace-nowrap disabled:opacity-40"
+              className="text-sm font-medium text-indigo-400 hover:text-indigo-300 whitespace-nowrap disabled:opacity-40"
             >
               全选
             </button>
@@ -1080,7 +1080,7 @@ const GridResultWorkspace: React.FC<GridResultWorkspaceProps> = ({ styleKey, onS
             {generating ? (
               <button
                 onClick={() => void handleGenerate(3, 3)}
-                className="h-10 text-sm bg-red-700 hover:bg-red-600 text-white px-4 rounded-xl whitespace-nowrap"
+                className="h-10 text-sm bg-red-700 hover:bg-red-600 text-white px-4 rounded-lg whitespace-nowrap"
               >
                 取消生成
               </button>
@@ -1089,21 +1089,21 @@ const GridResultWorkspace: React.FC<GridResultWorkspaceProps> = ({ styleKey, onS
                 <button
                   onClick={() => void handleGenerate(2, 2)}
                   disabled={selectedSourceShots.length === 0}
-                  className="h-10 text-sm bg-purple-700 hover:bg-purple-600 text-white px-5 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                  className="h-10 text-sm bg-indigo-700 hover:bg-indigo-600 text-white px-5 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
                 >
                   4宫格生图
                 </button>
                 <button
                   onClick={() => void handleGenerate(3, 2)}
                   disabled={selectedSourceShots.length === 0}
-                  className="h-10 text-sm bg-purple-700 hover:bg-purple-600 text-white px-5 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                  className="h-10 text-sm bg-indigo-700 hover:bg-indigo-600 text-white px-5 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
                 >
                   6宫格生图
                 </button>
                 <button
                   onClick={() => void handleGenerate(3, 3)}
                   disabled={selectedSourceShots.length === 0}
-                  className="h-10 text-sm bg-purple-700 hover:bg-purple-600 text-white px-5 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                  className="h-10 text-sm bg-indigo-700 hover:bg-indigo-600 text-white px-5 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
                 >
                   9宫格生图
                 </button>
@@ -1113,7 +1113,7 @@ const GridResultWorkspace: React.FC<GridResultWorkspaceProps> = ({ styleKey, onS
         </div>
 
         {occupiedSourceRefSet.size > 0 && (
-          <div className="mt-1.5 text-xs text-amber-400">
+          <div className="mt-1.5 text-xs text-indigo-400">
             当前集已有宫格结果，已占用的源分镜会冻结；未占用的源分镜仍可继续选择生成
           </div>
         )}
@@ -1128,7 +1128,7 @@ const GridResultWorkspace: React.FC<GridResultWorkspaceProps> = ({ styleKey, onS
 
         {(status || error) && (
           <div className="mt-1.5 flex flex-wrap items-center gap-4 text-xs">
-            {status && <div className="text-amber-400">{status}</div>}
+            {status && <div className="text-indigo-400">{status}</div>}
             {error && <div className="text-red-400">{error}</div>}
           </div>
         )}
@@ -1184,7 +1184,7 @@ const GridResultWorkspace: React.FC<GridResultWorkspaceProps> = ({ styleKey, onS
                             {rowGroup === 'shot-image' ? '有分镜图' : '无分镜图'}
                           </span>
                         </div>
-                        <div className="text-xs text-amber-500">{row.shotType || '未标注景别'}</div>
+                        <div className="text-xs text-indigo-500">{row.shotType || '未标注景别'}</div>
                         <div className="text-xs text-gray-500 truncate">{row.scene || row.prompt}</div>
                       </div>
                     </div>
@@ -1234,7 +1234,7 @@ const GridResultWorkspace: React.FC<GridResultWorkspaceProps> = ({ styleKey, onS
                         minute: '2-digit',
                       })}
                     </div>
-                    <div className={`text-[11px] ${result.validationPassed ? 'text-emerald-400' : 'text-amber-400'}`}>
+                    <div className={`text-[11px] ${result.validationPassed ? 'text-emerald-400' : 'text-indigo-400'}`}>
                       {result.validationPassed ? '结构化通过' : '结构化降级'}
                     </div>
                   </div>
@@ -1257,11 +1257,11 @@ const GridResultWorkspace: React.FC<GridResultWorkspaceProps> = ({ styleKey, onS
                     <img
                       src={selectedResult.mediaUrl}
                       alt={`grid-result-${selectedResult.id}`}
-                      className="w-full rounded-xl border border-gray-800 cursor-zoom-in"
+                      className="w-full rounded-lg border border-gray-800 cursor-zoom-in"
                       onClick={() => setLightboxSrc(selectedResult.mediaUrl ?? null)}
                     />
                   ) : (
-                    <div className="w-full aspect-video rounded-xl border border-dashed border-gray-800 flex items-center justify-center text-sm text-gray-600">
+                    <div className="w-full aspect-video rounded-lg border border-dashed border-gray-800 flex items-center justify-center text-sm text-gray-600">
                       暂无宫格图
                     </div>
                   )}
@@ -1278,7 +1278,7 @@ const GridResultWorkspace: React.FC<GridResultWorkspaceProps> = ({ styleKey, onS
                     <button
                       onClick={() => void handleRegenerateResult()}
                       disabled={!regenerating && deleting}
-                      className="mr-2 text-xs px-3 py-1.5 rounded-lg border border-amber-700/50 bg-amber-900/20 text-amber-300 hover:bg-amber-900/30 disabled:opacity-50"
+                      className="mr-2 text-xs px-3 py-1.5 rounded-lg border border-indigo-700/50 bg-indigo-900/20 text-indigo-300 hover:bg-indigo-900/30 disabled:opacity-50"
                     >
                       {regenerating ? '取消生成' : '重新生成'}
                     </button>
@@ -1299,7 +1299,7 @@ const GridResultWorkspace: React.FC<GridResultWorkspaceProps> = ({ styleKey, onS
                           key={`${selectedResult.id}-${ref}`}
                           className={`px-2 py-1 rounded-full border text-xs ${
                             selectedSourceRefSet.has(ref)
-                              ? 'border-amber-600/60 bg-amber-900/30 text-amber-300'
+                              ? 'border-indigo-600/60 bg-indigo-900/30 text-indigo-300'
                               : 'border-gray-700 bg-gray-800 text-gray-300'
                           }`}
                         >
@@ -1343,8 +1343,8 @@ const GridResultWorkspace: React.FC<GridResultWorkspaceProps> = ({ styleKey, onS
                   )}
 
                   {!selectedResult.validationPassed && selectedResult.rawModelOutput && (
-                    <div className="rounded-xl border border-amber-700/40 bg-amber-900/10 p-3">
-                      <div className="text-xs text-amber-300 mb-1">结构化降级输出</div>
+                    <div className="rounded-lg border border-indigo-700/40 bg-indigo-900/10 p-3">
+                      <div className="text-xs text-indigo-300 mb-1">结构化降级输出</div>
                       <pre className="whitespace-pre-wrap text-xs text-gray-400">{selectedResult.rawModelOutput}</pre>
                     </div>
                   )}
@@ -1365,7 +1365,7 @@ const GridResultWorkspace: React.FC<GridResultWorkspaceProps> = ({ styleKey, onS
           className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
           onClick={() => setLightboxSrc(null)}
         >
-          <img src={lightboxSrc} alt="预览" className="max-w-full max-h-full rounded-xl shadow-2xl" />
+          <img src={lightboxSrc} alt="预览" className="max-w-full max-h-full rounded-lg shadow-2xl" />
           <button
             className="absolute top-4 right-4 text-white text-2xl w-10 h-10 flex items-center justify-center bg-black/50 rounded-full hover:bg-black/70"
             onClick={() => setLightboxSrc(null)}

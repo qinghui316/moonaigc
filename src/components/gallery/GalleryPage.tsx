@@ -62,7 +62,7 @@ const GalleryPage: React.FC = () => {
   const hasMore = items.length < total
 
   return (
-    <div className="flex flex-col h-full bg-gray-950 text-white">
+    <div className="flex flex-col h-full bg-gray-950 text-gray-200">
       {/* 顶部筛选栏 */}
       <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-800 shrink-0 flex-wrap">
         <span className="text-sm text-gray-300 font-medium">图片画廊</span>
@@ -81,7 +81,7 @@ const GalleryPage: React.FC = () => {
             <button
               key={t}
               onClick={() => setFilterType(t)}
-              className={`px-3 py-1.5 text-xs transition-colors ${filterType === t ? 'bg-amber-600 text-white' : 'bg-gray-800 text-gray-400 hover:text-gray-200'}`}
+              className={`px-3 py-1.5 text-xs transition-colors ${filterType === t ? 'bg-indigo-600 text-white' : 'bg-gray-800 text-gray-400 hover:text-gray-200'}`}
             >
               {t === 'all' ? '全部' : t === 'shot' ? '分镜图' : t === 'grid' ? '宫格图' : '素材图'}
             </button>
@@ -154,7 +154,7 @@ const GalleryPage: React.FC = () => {
           className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4"
           onClick={() => setLightboxSrc(null)}
         >
-          <img src={lightboxSrc} alt="放大" className="max-h-full max-w-full rounded-xl" />
+          <img src={lightboxSrc} alt="放大" className="max-h-full max-w-full rounded-lg" />
           <button
             className="absolute top-4 right-4 text-white text-2xl hover:text-gray-300"
             onClick={() => setLightboxSrc(null)}

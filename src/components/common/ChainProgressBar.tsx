@@ -13,8 +13,8 @@ const ChainProgressBar: React.FC<ChainProgressBarProps> = ({ label, current, tot
   return (
     <div className="mx-4 mt-3 mb-1 bg-gray-800/80 border border-gray-700 rounded-lg px-3 py-2.5 shrink-0">
       <div className="flex items-center justify-between mb-1.5">
-        <span className="text-xs text-amber-400 flex items-center gap-1.5">
-          <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse inline-block" />
+        <span className="text-xs text-indigo-400 flex items-center gap-1.5">
+          <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse inline-block" />
           链式生成中 — {label} {detail} ({current}/{total})
         </span>
         <button
@@ -26,7 +26,7 @@ const ChainProgressBar: React.FC<ChainProgressBarProps> = ({ label, current, tot
       </div>
       <div className="w-full h-1.5 bg-gray-700 rounded-full overflow-hidden">
         <div
-          className="h-full bg-orange-500 rounded-full transition-all duration-500"
+          className="h-full bg-indigo-500 rounded-full transition-all duration-500"
           style={{ width: `${pct}%` }}
         />
       </div>

@@ -67,7 +67,7 @@ const ParamPanel: React.FC<ParamPanelProps> = ({ params, onChange, collapsed, on
             {(['basic', 'camera', 'lighting', 'style'] as const).map(t => (
               <button key={t} onClick={() => setSubTab(t)}
                 className={`flex-1 py-1 text-xs rounded-md font-medium transition-colors ${
-                  subTab === t ? 'bg-amber-600 text-white' : 'text-gray-400 hover:text-gray-200'
+                  subTab === t ? 'bg-indigo-600 text-white' : 'text-gray-400 hover:text-gray-200'
                 }`}>
                 {t === 'basic' ? '基础' : t === 'camera' ? '运镜' : t === 'lighting' ? '光影' : '风格'}
               </button>
@@ -77,24 +77,24 @@ const ParamPanel: React.FC<ParamPanelProps> = ({ params, onChange, collapsed, on
           {subTab === 'basic' && (
             <div className="space-y-3">
               {/* STC Toggle */}
-              <div className={`rounded-xl p-3 border transition-colors ${
+              <div className={`rounded-lg p-3 border transition-colors ${
                 params.enableSTC
-                  ? 'border-amber-500/50 bg-gradient-to-br from-amber-950/40 to-yellow-950/20'
-                  : 'border-amber-800/30 bg-gradient-to-br from-amber-950/20 to-yellow-950/10'
+                  ? 'border-indigo-500/50 bg-gradient-to-br from-indigo-950/40 to-indigo-950/20'
+                  : 'border-indigo-800/30 bg-gradient-to-br from-indigo-950/20 to-indigo-950/10'
               }`}>
                 <div className="flex items-center justify-between mb-1">
-                  <span className="text-xs font-semibold text-amber-300">🎭 叙事结构构建（STC）</span>
+                  <span className="text-xs font-semibold text-indigo-300">🎭 叙事结构构建（STC）</span>
                   <button
                     onClick={() => onChange({ enableSTC: !params.enableSTC })}
                     className={`relative w-9 h-5 rounded-full transition-colors ${
-                      params.enableSTC ? 'bg-amber-500' : 'bg-gray-600'
+                      params.enableSTC ? 'bg-indigo-500' : 'bg-gray-600'
                     }`}>
                     <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${
                       params.enableSTC ? 'translate-x-3.5' : 'translate-x-0'
                     }`} />
                   </button>
                 </div>
-                <p className="text-xs leading-relaxed" style={{ color: params.enableSTC ? '#b45309' : '#78716c', fontWeight: params.enableSTC ? 500 : 400 }}>
+                <p className="text-xs leading-relaxed" style={{ color: params.enableSTC ? '#4338CA' : '#78716c', fontWeight: params.enableSTC ? 500 : 400 }}>
                   {params.enableSTC
                     ? '已启用 BS2 好莱坞节拍 · AI 将主动构建冲突弧线，适合从零创作场景。'
                     : '已关闭 · 直接视觉化模式，忠实还原剧本画面，不干预叙事结构。'}
@@ -108,7 +108,7 @@ const ParamPanel: React.FC<ParamPanelProps> = ({ params, onChange, collapsed, on
                     <button key={r} onClick={() => onChange({ aspectRatio: r })}
                       className={`px-2.5 py-1 text-xs rounded border transition-colors ${
                         params.aspectRatio === r
-                          ? 'border-amber-500 bg-amber-900/30 text-amber-300'
+                          ? 'border-indigo-500 bg-indigo-900/30 text-indigo-300'
                           : 'border-gray-700 text-gray-400 hover:border-gray-600'
                       }`}>
                       {r}
@@ -125,7 +125,7 @@ const ParamPanel: React.FC<ParamPanelProps> = ({ params, onChange, collapsed, on
                       <input type="radio" name="quality" value={q.value}
                         checked={params.quality === q.value}
                         onChange={() => onChange({ quality: q.value })}
-                        className="accent-amber-500" />
+                        className="accent-indigo-500" />
                       <span className="text-xs text-gray-300 group-hover:text-white">{q.label}</span>
                     </label>
                   ))}
@@ -138,7 +138,7 @@ const ParamPanel: React.FC<ParamPanelProps> = ({ params, onChange, collapsed, on
                   <button onClick={() => onChange({ shotCount: '智能' })}
                     className={`px-2.5 py-1.5 text-xs rounded border transition-colors whitespace-nowrap ${
                       params.shotCount === '智能'
-                        ? 'border-amber-500 bg-amber-900/30 text-amber-300'
+                        ? 'border-indigo-500 bg-indigo-900/30 text-indigo-300'
                         : 'border-gray-700 text-gray-400'
                     }`}>
                     智能
@@ -147,7 +147,7 @@ const ParamPanel: React.FC<ParamPanelProps> = ({ params, onChange, collapsed, on
                     <button key={n} onClick={() => onChange({ shotCount: String(n) })}
                       className={`px-2.5 py-1.5 text-xs rounded border transition-colors ${
                         params.shotCount === String(n)
-                          ? 'border-amber-500 bg-amber-900/30 text-amber-300'
+                          ? 'border-indigo-500 bg-indigo-900/30 text-indigo-300'
                           : 'border-gray-700 text-gray-400 hover:border-gray-600'
                       }`}>
                       {n}
@@ -156,7 +156,7 @@ const ParamPanel: React.FC<ParamPanelProps> = ({ params, onChange, collapsed, on
                   <input type="number" min={4} max={50} placeholder="自定义"
                     value={params.shotCount !== '智能' && ![8,10,12,15,20].includes(Number(params.shotCount)) ? params.shotCount : ''}
                     onChange={e => onChange({ shotCount: e.target.value })}
-                    className="w-16 bg-gray-800 border border-gray-700 text-gray-200 text-xs px-2 py-1.5 rounded focus:outline-none focus:border-amber-500"
+                    className="w-16 bg-gray-800 border border-gray-700 text-gray-200 text-xs px-2 py-1.5 rounded focus:outline-none focus:border-indigo-500"
                   />
                 </div>
               </div>
@@ -173,7 +173,7 @@ const ParamPanel: React.FC<ParamPanelProps> = ({ params, onChange, collapsed, on
                     <button key={m.value} onClick={() => onChange({ narrativeMode: m.value })}
                       className={`p-2 rounded border text-left transition-colors ${
                         params.narrativeMode === m.value
-                          ? 'border-amber-500 bg-amber-900/20 text-amber-300'
+                          ? 'border-indigo-500 bg-indigo-900/20 text-indigo-300'
                           : 'border-gray-700 text-gray-400 hover:border-gray-600'
                       }`}>
                       <div className="text-xs font-medium">{m.label}</div>
@@ -187,19 +187,19 @@ const ParamPanel: React.FC<ParamPanelProps> = ({ params, onChange, collapsed, on
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input type="checkbox" checked={params.enableBGM}
                     onChange={e => onChange({ enableBGM: e.target.checked })}
-                    className="accent-amber-500" />
+                    className="accent-indigo-500" />
                   <span className="text-xs text-gray-300">🎵 BGM建议</span>
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input type="checkbox" checked={params.enableSubtitle}
                     onChange={e => onChange({ enableSubtitle: e.target.checked })}
-                    className="accent-amber-500" />
+                    className="accent-indigo-500" />
                   <span className="text-xs text-gray-300">💬 字幕提示</span>
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input type="checkbox" checked={params.enableFidelity}
                     onChange={e => onChange({ enableFidelity: e.target.checked })}
-                    className="accent-amber-500" />
+                    className="accent-indigo-500" />
                   <span className="text-xs text-gray-300">🔒 保真模式</span>
                 </label>
               </div>
@@ -218,13 +218,13 @@ const ParamPanel: React.FC<ParamPanelProps> = ({ params, onChange, collapsed, on
                     <input type="checkbox"
                       checked={params.cameraTechs.includes(s.value)}
                       onChange={() => toggleCameraTech(s.value)}
-                      className="accent-amber-500 shrink-0" />
+                      className="accent-indigo-500 shrink-0" />
                     <span className="text-xs text-gray-300 group-hover:text-white">{s.label}</span>
                   </label>
                 ))}
               </div>
               {params.cameraTechs.length > 0 && (
-                <div className="mt-2 text-xs text-amber-400 bg-amber-900/20 px-2 py-1 rounded">
+                <div className="mt-2 text-xs text-indigo-400 bg-indigo-900/20 px-2 py-1 rounded">
                   已选 {params.cameraTechs.length} 项运镜技法
                 </div>
               )}
@@ -243,13 +243,13 @@ const ParamPanel: React.FC<ParamPanelProps> = ({ params, onChange, collapsed, on
                     <input type="checkbox"
                       checked={params.lightingTechs.includes(s.value)}
                       onChange={() => toggleLightingTech(s.value)}
-                      className="accent-amber-500 shrink-0" />
+                      className="accent-indigo-500 shrink-0" />
                     <span className="text-xs text-gray-300 group-hover:text-white">{s.label}</span>
                   </label>
                 ))}
               </div>
               {params.lightingTechs.length > 0 && (
-                <div className="mt-2 text-xs text-amber-400 bg-amber-900/20 px-2 py-1 rounded">
+                <div className="mt-2 text-xs text-indigo-400 bg-indigo-900/20 px-2 py-1 rounded">
                   已选 {params.lightingTechs.length} 项光影风格
                 </div>
               )}
@@ -265,7 +265,7 @@ const ParamPanel: React.FC<ParamPanelProps> = ({ params, onChange, collapsed, on
                     <input type="radio" name="visualStyle" value={s.value}
                       checked={params.visualStyle === s.value}
                       onChange={() => onChange({ visualStyle: s.value })}
-                      className="accent-amber-500" />
+                      className="accent-indigo-500" />
                     <span className="text-xs text-gray-300 group-hover:text-white">{s.label}</span>
                   </label>
                 ))}

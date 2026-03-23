@@ -467,7 +467,7 @@ const ScriptWorkPage: React.FC<ScriptWorkPageProps> = ({ onNavigate, onLoadEpiso
         {/* 项目头部 */}
         <div className="px-4 py-3 border-b border-gray-800 shrink-0">
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-xs text-amber-400 bg-amber-900/20 px-1.5 py-0.5 rounded border border-amber-800/30">{genreNames}</span>
+            <span className="text-xs text-indigo-400 bg-indigo-900/20 px-1.5 py-0.5 rounded border border-indigo-800/30">{genreNames}</span>
             <span className="text-xs text-gray-500">{currentProject.totalEpisodes}集</span>
           </div>
           <h3 className="text-gray-100 font-medium text-sm truncate">{currentProject.name}</h3>
@@ -479,7 +479,7 @@ const ScriptWorkPage: React.FC<ScriptWorkPageProps> = ({ onNavigate, onLoadEpiso
             onClick={() => currentProject.creativePlan ? setRegenTarget('plan') : handleGenCreativePlan()}
             disabled={isGenerating}
             className="w-full text-xs py-2 rounded-lg border transition-colors flex items-center gap-1.5 justify-center
-              bg-gray-800 text-gray-300 border-gray-700 hover:border-amber-700 hover:text-amber-400 disabled:opacity-40"
+              bg-gray-800 text-gray-300 border-gray-700 hover:border-indigo-700 hover:text-indigo-400 disabled:opacity-40"
           >
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -491,7 +491,7 @@ const ScriptWorkPage: React.FC<ScriptWorkPageProps> = ({ onNavigate, onLoadEpiso
             onClick={() => currentProject.characterDoc ? setRegenTarget('chars') : handleGenCharacters()}
             disabled={isGenerating || !currentProject.creativePlan}
             className="w-full text-xs py-2 rounded-lg border transition-colors flex items-center gap-1.5 justify-center
-              bg-gray-800 text-gray-300 border-gray-700 hover:border-amber-700 hover:text-amber-400 disabled:opacity-40"
+              bg-gray-800 text-gray-300 border-gray-700 hover:border-indigo-700 hover:text-indigo-400 disabled:opacity-40"
           >
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -509,7 +509,7 @@ const ScriptWorkPage: React.FC<ScriptWorkPageProps> = ({ onNavigate, onLoadEpiso
                   disabled={isGenerating}
                   className={`flex-1 text-xs py-1 rounded border transition-colors ${
                     dirMode === 'single'
-                      ? 'bg-amber-600/20 text-amber-400 border-amber-600/40'
+                      ? 'bg-indigo-600/20 text-indigo-400 border-indigo-600/40'
                       : 'bg-gray-800 text-gray-500 border-gray-700 hover:border-gray-600 disabled:opacity-40'
                   }`}
                 >
@@ -520,7 +520,7 @@ const ScriptWorkPage: React.FC<ScriptWorkPageProps> = ({ onNavigate, onLoadEpiso
                   disabled={isGenerating}
                   className={`flex-1 text-xs py-1 rounded border transition-colors ${
                     dirMode === 'chain'
-                      ? 'bg-amber-600/20 text-amber-400 border-amber-600/40'
+                      ? 'bg-indigo-600/20 text-indigo-400 border-indigo-600/40'
                       : 'bg-gray-800 text-gray-500 border-gray-700 hover:border-gray-600 disabled:opacity-40'
                   }`}
                 >
@@ -537,7 +537,7 @@ const ScriptWorkPage: React.FC<ScriptWorkPageProps> = ({ onNavigate, onLoadEpiso
             }
             disabled={!canGenDir}
             className="w-full text-xs py-2 rounded-lg border transition-colors flex items-center gap-1.5 justify-center
-              bg-gray-800 text-gray-300 border-gray-700 hover:border-amber-700 hover:text-amber-400 disabled:opacity-40"
+              bg-gray-800 text-gray-300 border-gray-700 hover:border-indigo-700 hover:text-indigo-400 disabled:opacity-40"
           >
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
@@ -551,7 +551,7 @@ const ScriptWorkPage: React.FC<ScriptWorkPageProps> = ({ onNavigate, onLoadEpiso
               onClick={handleGenAllScripts}
               disabled={isGenerating || !currentProject.creativePlan || pendingScripts.length === 0}
               className="w-full text-xs py-2 rounded-lg border transition-colors flex items-center gap-1.5 justify-center
-                bg-gray-800 text-gray-300 border-gray-700 hover:border-blue-700 hover:text-blue-400 disabled:opacity-40"
+                bg-gray-800 text-gray-300 border-gray-700 hover:border-indigo-700 hover:text-indigo-400 disabled:opacity-40"
             >
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -583,7 +583,7 @@ const ScriptWorkPage: React.FC<ScriptWorkPageProps> = ({ onNavigate, onLoadEpiso
                   key={ep.id}
                   onClick={() => handleSelectEpisode(ep.id)}
                   className={`w-full text-left px-4 py-2.5 border-b border-gray-800/50 transition-colors hover:bg-gray-800/50 ${
-                    activeEp?.id === ep.id ? 'bg-gray-800/70 border-l-2 border-l-amber-500' : ''
+                    activeEp?.id === ep.id ? 'bg-gray-800/70 border-l-2 border-l-indigo-500' : ''
                   }`}
                 >
                   <div className="flex items-center gap-1.5 mb-0.5">
@@ -592,7 +592,7 @@ const ScriptWorkPage: React.FC<ScriptWorkPageProps> = ({ onNavigate, onLoadEpiso
                     {ep.mark === 'money' && <span className="text-xs">💰</span>}
                     <span className={`text-xs ml-auto px-1 py-0.5 rounded ${
                       ep.status === 'storyboarded' ? 'text-emerald-400 bg-emerald-900/20'
-                        : ep.status === 'scripted' ? 'text-blue-400 bg-blue-900/20'
+                        : ep.status === 'scripted' ? 'text-indigo-400 bg-indigo-900/20'
                           : 'text-gray-600 bg-gray-800/50'
                     }`}>
                       {ep.status === 'storyboarded' ? '已分镜' : ep.status === 'scripted' ? '已成稿' : '待创作'}
@@ -614,7 +614,7 @@ const ScriptWorkPage: React.FC<ScriptWorkPageProps> = ({ onNavigate, onLoadEpiso
             onClick={() => !tabLocked && setRightTab('plan')}
             className={`text-xs px-4 py-2.5 border-b-2 transition-colors ${
               rightTab === 'plan'
-                ? 'border-amber-500 text-amber-400'
+                ? 'border-indigo-500 text-indigo-400'
                 : 'border-transparent text-gray-500 hover:text-gray-300'
             } ${tabLocked && rightTab !== 'plan' ? 'pointer-events-none opacity-40' : ''}`}
           >
@@ -624,7 +624,7 @@ const ScriptWorkPage: React.FC<ScriptWorkPageProps> = ({ onNavigate, onLoadEpiso
             onClick={() => !tabLocked && setRightTab('chars')}
             className={`text-xs px-4 py-2.5 border-b-2 transition-colors ${
               rightTab === 'chars'
-                ? 'border-amber-500 text-amber-400'
+                ? 'border-indigo-500 text-indigo-400'
                 : 'border-transparent text-gray-500 hover:text-gray-300'
             } ${tabLocked && rightTab !== 'chars' ? 'pointer-events-none opacity-40' : ''}`}
           >
@@ -635,7 +635,7 @@ const ScriptWorkPage: React.FC<ScriptWorkPageProps> = ({ onNavigate, onLoadEpiso
               onClick={() => !tabLocked && setRightTab('episode')}
               className={`text-xs px-4 py-2.5 border-b-2 transition-colors max-w-[200px] truncate ${
                 rightTab === 'episode'
-                  ? 'border-amber-500 text-amber-400'
+                  ? 'border-indigo-500 text-indigo-400'
                   : 'border-transparent text-gray-500 hover:text-gray-300'
               } ${tabLocked && rightTab !== 'episode' ? 'pointer-events-none opacity-40' : ''}`}
             >
@@ -654,8 +654,8 @@ const ScriptWorkPage: React.FC<ScriptWorkPageProps> = ({ onNavigate, onLoadEpiso
                 <ChainProgressBar {...chainProgress} onStop={abort} />
               )}
               <div className="flex items-center gap-2 px-4 py-3 border-b border-gray-800 shrink-0">
-                <div className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
-                <span className="text-xs text-amber-400">
+                <div className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse" />
+                <span className="text-xs text-indigo-400">
                   {generating === 'dir_chain' ? '正在链式生成分集目录…' : '正在生成分集目录…'}
                 </span>
                 {generating !== 'dir_chain' && (
@@ -673,8 +673,8 @@ const ScriptWorkPage: React.FC<ScriptWorkPageProps> = ({ onNavigate, onLoadEpiso
             {generating === 'plan' ? (
               <div className="flex-1 overflow-y-auto p-4">
                 <div className="flex items-center gap-2 mb-3">
-                  <div className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
-                  <span className="text-xs text-amber-400">正在生成创作方案…</span>
+                  <div className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse" />
+                  <span className="text-xs text-indigo-400">正在生成创作方案…</span>
                   <button onClick={abort} className="ml-auto text-xs text-red-400 hover:text-red-300">停止</button>
                 </div>
                 <pre className="text-sm text-gray-300 whitespace-pre-wrap leading-relaxed">{streamText}</pre>
@@ -694,8 +694,8 @@ const ScriptWorkPage: React.FC<ScriptWorkPageProps> = ({ onNavigate, onLoadEpiso
             {generating === 'chars' ? (
               <div className="flex-1 overflow-y-auto p-4">
                 <div className="flex items-center gap-2 mb-3">
-                  <div className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
-                  <span className="text-xs text-amber-400">正在生成角色体系…</span>
+                  <div className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse" />
+                  <span className="text-xs text-indigo-400">正在生成角色体系…</span>
                   <button onClick={abort} className="ml-auto text-xs text-red-400 hover:text-red-300">停止</button>
                 </div>
                 <pre className="text-sm text-gray-300 whitespace-pre-wrap leading-relaxed">{streamText}</pre>
@@ -718,7 +718,7 @@ const ScriptWorkPage: React.FC<ScriptWorkPageProps> = ({ onNavigate, onLoadEpiso
                   <div className="px-4 py-3 border-b border-gray-800 shrink-0 flex items-center gap-3">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <span className="text-sm text-amber-400 font-medium">第{activeEp.episodeNumber}集</span>
+                        <span className="text-sm text-indigo-400 font-medium">第{activeEp.episodeNumber}集</span>
                         {activeEp.mark === 'fire' && <span>🔥</span>}
                         {activeEp.mark === 'money' && <span>💰</span>}
                         <span className="text-sm text-gray-200 truncate">{activeEp.title}</span>
@@ -729,7 +729,7 @@ const ScriptWorkPage: React.FC<ScriptWorkPageProps> = ({ onNavigate, onLoadEpiso
                       <button
                         onClick={() => handleGenScript(activeEp)}
                         disabled={isGenerating || (!currentProject.creativePlan && currentProject.sourceMode !== 'imported')}
-                        className="text-xs px-3 py-1.5 bg-gray-800 border border-gray-700 text-gray-300 rounded-lg hover:border-amber-700 hover:text-amber-400 disabled:opacity-40 transition-colors"
+                        className="text-xs px-3 py-1.5 bg-gray-800 border border-gray-700 text-gray-300 rounded-lg hover:border-indigo-700 hover:text-indigo-400 disabled:opacity-40 transition-colors"
                       >
                         {generating === `script_${activeEp.id}` ? '生成中…' :
                           activeEp.script ?
@@ -741,7 +741,7 @@ const ScriptWorkPage: React.FC<ScriptWorkPageProps> = ({ onNavigate, onLoadEpiso
                         <button
                           onClick={() => handleGoStoryboard(activeEp)}
                           disabled={isGenerating}
-                          className="text-xs px-3 py-1.5 bg-amber-600 text-white rounded-lg hover:bg-amber-500 disabled:opacity-40 transition-colors"
+                          className="text-xs px-3 py-1.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-500 disabled:opacity-40 transition-colors"
                         >
                           进入分镜生成 →
                         </button>

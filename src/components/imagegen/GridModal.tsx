@@ -260,7 +260,7 @@ const GridModal: React.FC<GridModalProps> = ({ shots, styleKey, projectId, episo
   return (
     <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4" onClick={onClose}>
       <div
-        className="bg-gray-900 rounded-xl border border-gray-700 w-full max-w-2xl max-h-[90vh] overflow-y-auto"
+        className="bg-gray-900 rounded-lg border border-gray-700 w-full max-w-2xl max-h-[90vh] overflow-y-auto"
         onClick={e => e.stopPropagation()}
       >
         <div className="flex items-center justify-between p-4 border-b border-gray-700">
@@ -300,13 +300,13 @@ const GridModal: React.FC<GridModalProps> = ({ shots, styleKey, projectId, episo
               <div className="flex gap-2">
                 <button
                   onClick={() => setGenMode('compose')}
-                  className={`flex-1 py-2 text-sm rounded-lg border transition-colors ${genMode === 'compose' ? 'bg-amber-600 border-amber-600 text-white' : 'bg-gray-800 border-gray-700 text-gray-400 hover:text-gray-200'}`}
+                  className={`flex-1 py-2 text-sm rounded-lg border transition-colors ${genMode === 'compose' ? 'bg-indigo-600 border-indigo-600 text-white' : 'bg-gray-800 border-gray-700 text-gray-400 hover:text-gray-200'}`}
                 >
                   逐格合成
                 </button>
                 <button
                   onClick={() => setGenMode('direct')}
-                  className={`flex-1 py-2 text-sm rounded-lg border transition-colors ${genMode === 'direct' ? 'bg-amber-600 border-amber-600 text-white' : 'bg-gray-800 border-gray-700 text-gray-400 hover:text-gray-200'}`}
+                  className={`flex-1 py-2 text-sm rounded-lg border transition-colors ${genMode === 'direct' ? 'bg-indigo-600 border-indigo-600 text-white' : 'bg-gray-800 border-gray-700 text-gray-400 hover:text-gray-200'}`}
                 >
                   单次直出（快速）
                 </button>
@@ -328,7 +328,7 @@ const GridModal: React.FC<GridModalProps> = ({ shots, styleKey, projectId, episo
             <button
               onClick={handleGenerate}
               disabled={generating}
-              className="flex-1 py-2.5 bg-amber-600 hover:bg-amber-500 text-white text-sm font-medium rounded-lg disabled:opacity-50 transition-colors"
+              className="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-lg disabled:opacity-50 transition-colors"
             >
               {generating ? (progress || '生成中...') : '🎬 开始生成宫格'}
             </button>

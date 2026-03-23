@@ -50,7 +50,7 @@ const DirectorGrid: React.FC<DirectorGridProps> = ({ selectedId, onSelect }) => 
             onClick={() => setCategory(cat.id)}
             className={`px-2.5 py-1 text-xs rounded-full border transition-colors ${
               category === cat.id
-                ? 'border-amber-500 bg-amber-900/30 text-amber-300'
+                ? 'border-indigo-500 bg-indigo-900/30 text-indigo-300'
                 : 'border-gray-700 text-gray-400 hover:border-gray-600 hover:text-gray-300'
             }`}
           >
@@ -73,9 +73,9 @@ const DirectorGrid: React.FC<DirectorGridProps> = ({ selectedId, onSelect }) => 
           <button
             key={director.id}
             onClick={() => onSelect(director)}
-            className={`flex-shrink-0 w-32 p-2.5 rounded-xl border text-left transition-all ${
+            className={`flex-shrink-0 w-32 p-2.5 rounded-lg border text-left transition-all ${
               selectedId === director.id
-                ? 'border-amber-500 bg-amber-900/30 shadow-lg shadow-amber-900/20'
+                ? 'border-indigo-500 bg-indigo-900/30 shadow-lg shadow-indigo-900/20'
                 : 'border-gray-700 bg-gray-800/50 hover:border-gray-600 hover:bg-gray-800'
             }`}
           >
@@ -87,7 +87,7 @@ const DirectorGrid: React.FC<DirectorGridProps> = ({ selectedId, onSelect }) => 
               {director.style}
             </div>
             {director.donghuaProfile && (
-              <div className="mt-1.5 text-xs bg-sky-900/30 text-sky-400 px-1.5 py-0.5 rounded border border-sky-800/30">
+              <div className="mt-1.5 text-xs bg-gray-800/60 text-gray-400 px-1.5 py-0.5 rounded border border-gray-700/50">
                 国漫IP
               </div>
             )}

@@ -79,7 +79,7 @@ const TabNav: React.FC<TabNavProps> = ({ activeTab, onChange }) => {
           onClick={() => onChange(tab.id)}
           className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-colors border-b-2 ${
             activeTab === tab.id
-              ? 'border-amber-500 text-amber-400 bg-amber-900/10'
+              ? 'border-indigo-500 text-indigo-400 bg-indigo-900/10'
               : 'border-transparent text-gray-400 hover:text-gray-200 hover:bg-gray-800/50'
           }`}
         >

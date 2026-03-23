@@ -1,12 +1,12 @@
 @import "tailwindcss";
 
 @theme {
-  --color-brand-50: #FFFBEB;
-  --color-brand-100: #FEF3C7;
-  --color-brand-400: #FBBF24;
-  --color-brand-500: #F59E0B;
-  --color-brand-600: #D97706;
-  --color-brand-700: #B45309;
+  --color-brand-50: #EEF2FF;
+  --color-brand-100: #E0E7FF;
+  --color-brand-400: #818CF8;
+  --color-brand-500: #6366F1;
+  --color-brand-600: #4F46E5;
+  --color-brand-700: #4338CA;
   --font-sans: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
 }
 
@@ -63,34 +63,42 @@
 
 /* Light theme overrides */
 [data-theme="light"] {
-  --color-gray-50: oklch(12% 0.03 264);
-  --color-gray-100: oklch(18% 0.035 264);
-  --color-gray-200: oklch(23% 0.033 260);
-  --color-gray-300: oklch(32% 0.03 260);
-  --color-gray-400: oklch(40% 0.025 258);
-  --color-gray-500: oklch(48% 0.02 258);
-  --color-gray-600: oklch(55% 0.015 258);
-  --color-gray-700: oklch(84% 0.012 258);
-  --color-gray-800: oklch(88% 0.01 258);
-  --color-gray-900: oklch(98% 0.002 260);
-  --color-gray-950: oklch(93% 0.008 260);
+  --color-gray-50:  oklch(13% 0 0);
+  --color-gray-100: oklch(18% 0 0);
+  --color-gray-200: oklch(22% 0 0);     /* 主文字 */
+  --color-gray-300: oklch(30% 0 0);     /* 次要文字 */
+  --color-gray-400: oklch(38% 0 0);     /* 弱化文字 */
+  --color-gray-500: oklch(44% 0 0);     /* 标签/说明 */
+  --color-gray-600: oklch(52% 0 0);     /* 禁用/极弱 */
+  --color-gray-700: oklch(76% 0 0);     /* 边框 */
+  --color-gray-800: oklch(90% 0 0);     /* 卡片/输入框/分隔线 */
+  --color-gray-900: oklch(96% 0 0);     /* 面板 */
+  --color-gray-950: oklch(99% 0 0);     /* 页面主背景 */
 
-  --color-amber-900: oklch(55.5% 0.163 48.998);
-  --color-amber-950: oklch(92.4% 0.12 95.746);
+  /* 强调色文字：暗色主题下 300/400 是亮色，亮色主题需反转为深色 */
+  --color-indigo-300: oklch(46% 0.20 266);   /* ≈ 默认 indigo-700 */
+  --color-indigo-400: oklch(50% 0.19 266);   /* ≈ 默认 indigo-600 */
+  --color-indigo-500: oklch(54% 0.22 265);   /* ≈ 默认 indigo-600 偏亮 */
+
+  --color-emerald-300: oklch(52% 0.14 163);  /* ≈ 默认 emerald-700 */
+  --color-emerald-400: oklch(56% 0.14 163);  /* ≈ 默认 emerald-600 */
+
+  --color-red-300: oklch(50% 0.19 27);       /* ≈ 默认 red-700 */
+  --color-red-400: oklch(54% 0.19 27);       /* ≈ 默认 red-600 */
 }
 
 [data-theme="light"] body,
 [data-theme="light"] html,
 [data-theme="light"] #root {
-  background-color: #dfe4ea;
+  background-color: #ffffff;
   color: #1e293b;
 }
 
 [data-theme="light"] ::-webkit-scrollbar-thumb {
-  background: #b0b8c4;
+  background: #d1d5db;
 }
 [data-theme="light"] ::-webkit-scrollbar-thumb:hover {
-  background: #8892a0;
+  background: #b0b8c4;
 }
 
 /* Streaming cursor animation */

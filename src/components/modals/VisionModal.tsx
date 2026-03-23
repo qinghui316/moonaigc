@@ -60,9 +60,9 @@ const VisionModal: React.FC<VisionModalProps> = ({ onClose, onFillPlot }) => {
 
   return (
     <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-gray-900 border border-gray-700 rounded-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl">
+      <div className="bg-gray-900 border border-gray-700 rounded-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl">
         <div className="flex items-center justify-between p-4 border-b border-gray-800">
-          <h3 className="text-amber-400 font-semibold">👁️ 视觉反推</h3>
+          <h3 className="text-indigo-400 font-semibold">👁️ 视觉反推</h3>
           <button onClick={onClose} className="text-gray-400 hover:text-white">✕</button>
         </div>
 
@@ -72,7 +72,7 @@ const VisionModal: React.FC<VisionModalProps> = ({ onClose, onFillPlot }) => {
             {(['image', 'video'] as const).map(m => (
               <button key={m} onClick={() => setActiveMode(m)}
                 className={`flex-1 py-1.5 text-sm rounded-md transition-colors ${
-                  activeMode === m ? 'bg-amber-600 text-white' : 'text-gray-400 hover:text-gray-200'
+                  activeMode === m ? 'bg-indigo-600 text-white' : 'text-gray-400 hover:text-gray-200'
                 }`}>
                 {m === 'image' ? '🖼️ 图片反推' : '🎬 视频反推'}
               </button>
@@ -82,7 +82,7 @@ const VisionModal: React.FC<VisionModalProps> = ({ onClose, onFillPlot }) => {
           {/* Upload Area */}
           <div
             onClick={() => fileRef.current?.click()}
-            className="border-2 border-dashed border-gray-700 hover:border-amber-500 rounded-xl p-8 text-center cursor-pointer transition-colors"
+            className="border-2 border-dashed border-gray-700 hover:border-indigo-500 rounded-lg p-8 text-center cursor-pointer transition-colors"
           >
             {files.length > 0 ? (
               <div className="text-sm text-gray-300">
@@ -117,7 +117,7 @@ const VisionModal: React.FC<VisionModalProps> = ({ onClose, onFillPlot }) => {
                   <p className="text-sm text-gray-300">{result.plot_summary}</p>
                   {onFillPlot && (
                     <button onClick={() => onFillPlot(result.plot_summary)}
-                      className="mt-2 text-xs text-amber-400 hover:text-amber-300">
+                      className="mt-2 text-xs text-indigo-400 hover:text-indigo-300">
                       → 填入情节框
                     </button>
                   )}
@@ -125,12 +125,12 @@ const VisionModal: React.FC<VisionModalProps> = ({ onClose, onFillPlot }) => {
               )}
               <div className="grid grid-cols-3 gap-2 text-xs">
                 {[
-                  { label: '角色', items: result.characters, color: 'amber' },
-                  { label: '场景', items: result.scenes, color: 'sky' },
-                  { label: '道具', items: result.props, color: 'emerald' },
-                ].map(({ label, items, color }) => (
-                  <div key={label} className={`bg-${color}-900/20 border border-${color}-800/30 rounded-lg p-2`}>
-                    <div className={`text-${color}-400 font-medium mb-1`}>{label} ({items?.length ?? 0})</div>
+                  { label: '角色', items: result.characters },
+                  { label: '场景', items: result.scenes },
+                  { label: '道具', items: result.props },
+                ].map(({ label, items }) => (
+                  <div key={label} className="bg-gray-800/60 border border-gray-700/50 rounded-lg p-2">
+                    <div className="text-indigo-400 font-medium mb-1">{label} ({items?.length ?? 0})</div>
                     {items?.slice(0, 3).map((item, i) => (
                       <div key={i} className="text-gray-400 truncate">{item.name}</div>
                     ))}
@@ -138,7 +138,7 @@ const VisionModal: React.FC<VisionModalProps> = ({ onClose, onFillPlot }) => {
                 ))}
               </div>
               <button onClick={handleApplyToMaterials}
-                className="w-full py-2 text-sm bg-emerald-600/20 text-emerald-400 border border-emerald-700/50 rounded-lg hover:bg-emerald-600/30 transition-colors">
+                className="w-full py-2 text-sm bg-indigo-600/20 text-indigo-400 border border-indigo-700/50 rounded-lg hover:bg-indigo-600/30 transition-colors">
                 ✨ 自动填入素材库
               </button>
             </div>
@@ -150,7 +150,7 @@ const VisionModal: React.FC<VisionModalProps> = ({ onClose, onFillPlot }) => {
             关闭
           </button>
           <button onClick={handleAnalyze} disabled={loading || !files.length}
-            className="flex-1 py-2 text-sm bg-amber-600 hover:bg-amber-500 text-white rounded-lg transition-colors disabled:opacity-50">
+            className="flex-1 py-2 text-sm bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg transition-colors disabled:opacity-50">
             {loading ? progress || '分析中...' : '🚀 开始分析'}
           </button>
         </div>

@@ -735,12 +735,12 @@ const ImageGenPage: React.FC<{ selectedRowIndex?: number | null }> = ({ selected
   }, [selectedRow])
 
   return (
-    <div className="flex flex-col h-full bg-gray-950 text-white">
+    <div className="flex flex-col h-full bg-gray-950 text-gray-200">
       <div className="flex items-center gap-2 px-4 py-3 border-b border-gray-800 shrink-0">
         <button
           onClick={() => setPageMode('shots')}
           className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
-            pageMode === 'shots' ? 'bg-amber-600 text-white' : 'bg-gray-800 text-gray-400 hover:text-gray-200'
+            pageMode === 'shots' ? 'bg-indigo-600 text-white' : 'bg-gray-800 text-gray-400 hover:text-gray-200'
           }`}
         >
           普通镜头生图
@@ -748,7 +748,7 @@ const ImageGenPage: React.FC<{ selectedRowIndex?: number | null }> = ({ selected
         <button
           onClick={() => setPageMode('grid')}
           className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
-            pageMode === 'grid' ? 'bg-purple-700 text-white' : 'bg-gray-800 text-gray-400 hover:text-gray-200'
+            pageMode === 'grid' ? 'bg-indigo-700 text-white' : 'bg-gray-800 text-gray-400 hover:text-gray-200'
           }`}
         >
           宫格生图模式
@@ -766,13 +766,13 @@ const ImageGenPage: React.FC<{ selectedRowIndex?: number | null }> = ({ selected
         <div className="flex rounded-lg overflow-hidden border border-gray-700 shrink-0">
           <button
             onClick={() => setSourceMode('project')}
-            className={`px-3 py-1.5 text-xs font-medium transition-colors ${sourceMode === 'project' ? 'bg-amber-600 text-white' : 'bg-gray-800 text-gray-400 hover:text-gray-200'}`}
+            className={`px-3 py-1.5 text-xs font-medium transition-colors ${sourceMode === 'project' ? 'bg-indigo-600 text-white' : 'bg-gray-800 text-gray-400 hover:text-gray-200'}`}
           >
             项目剧集
           </button>
           <button
             onClick={() => setSourceMode('history')}
-            className={`px-3 py-1.5 text-xs font-medium transition-colors ${sourceMode === 'history' ? 'bg-amber-600 text-white' : 'bg-gray-800 text-gray-400 hover:text-gray-200'}`}
+            className={`px-3 py-1.5 text-xs font-medium transition-colors ${sourceMode === 'history' ? 'bg-indigo-600 text-white' : 'bg-gray-800 text-gray-400 hover:text-gray-200'}`}
           >
             历史记录
           </button>
@@ -783,7 +783,7 @@ const ImageGenPage: React.FC<{ selectedRowIndex?: number | null }> = ({ selected
           <select
             value={selectedHistoryId ?? ''}
             onChange={e => e.target.value && loadHistory(Number(e.target.value))}
-            className="bg-gray-800 border border-gray-700 text-gray-200 text-sm px-3 py-1.5 rounded-lg focus:outline-none focus:border-amber-500 flex-1 max-w-xs"
+            className="bg-gray-800 border border-gray-700 text-gray-200 text-sm px-3 py-1.5 rounded-lg focus:outline-none focus:border-indigo-500 flex-1 max-w-xs"
           >
             <option value="">— 选择历史分镜 —</option>
             {history.slice(0, 20).map(h => (
@@ -796,7 +796,7 @@ const ImageGenPage: React.FC<{ selectedRowIndex?: number | null }> = ({ selected
             <select
               value={selectedProjectId}
               onChange={e => handleSelectProject(e.target.value)}
-              className="bg-gray-800 border border-gray-700 text-gray-200 text-sm px-3 py-1.5 rounded-lg focus:outline-none focus:border-amber-500 max-w-[160px]"
+              className="bg-gray-800 border border-gray-700 text-gray-200 text-sm px-3 py-1.5 rounded-lg focus:outline-none focus:border-indigo-500 max-w-[160px]"
             >
               <option value="">— 选择项目 —</option>
               {projects.map(p => (
@@ -807,7 +807,7 @@ const ImageGenPage: React.FC<{ selectedRowIndex?: number | null }> = ({ selected
               <select
                 value={selectedHistoryId ?? ''}
                 onChange={e => e.target.value && loadHistory(Number(e.target.value))}
-                className="bg-gray-800 border border-gray-700 text-gray-200 text-sm px-3 py-1.5 rounded-lg focus:outline-none focus:border-amber-500 flex-1 max-w-xs disabled:opacity-60"
+                className="bg-gray-800 border border-gray-700 text-gray-200 text-sm px-3 py-1.5 rounded-lg focus:outline-none focus:border-indigo-500 flex-1 max-w-xs disabled:opacity-60"
               >
                 <option value="">— 选择集数 —</option>
                 {episodesWithRecord.map(({ episode, record }) => (
@@ -863,20 +863,20 @@ const ImageGenPage: React.FC<{ selectedRowIndex?: number | null }> = ({ selected
           <div className="flex items-center gap-2 px-3 py-2 border-b border-gray-800 shrink-0">
             <button
               onClick={() => setSelectedItems(rows.length > 0 ? new Set(rows.map(r => r.index)) : new Set())}
-              className="text-xs text-amber-400 hover:text-amber-300"
+              className="text-xs text-indigo-400 hover:text-indigo-300"
             >全选</button>
             <button onClick={() => setSelectedItems(new Set())} className="text-xs text-gray-500 hover:text-gray-300">清除</button>
             <button
               onClick={handleBatchGenerate}
               disabled={batchGenerating || selectedItems.size === 0}
-              className="ml-auto text-xs bg-amber-600 hover:bg-amber-500 text-white px-2 py-1 rounded disabled:opacity-50"
+              className="ml-auto text-xs bg-indigo-600 hover:bg-indigo-500 text-white px-2 py-1 rounded disabled:opacity-50"
             >
               {batchGenerating ? (batchStatus || '生成中...') : `批量生图(${selectedItems.size})`}
             </button>
             <button
               onClick={() => setShowGridModal(true)}
               disabled={rows.length === 0}
-              className="text-xs bg-purple-700 hover:bg-purple-600 text-white px-2 py-1 rounded disabled:opacity-50"
+              className="text-xs bg-indigo-700 hover:bg-indigo-600 text-white px-2 py-1 rounded disabled:opacity-50"
               title="宫格生成"
             >
               宫格
@@ -891,7 +891,7 @@ const ImageGenPage: React.FC<{ selectedRowIndex?: number | null }> = ({ selected
                 key={row.index}
                 onClick={() => handleSelectRow(row)}
                 className={`flex items-start gap-2 p-2.5 cursor-pointer border-b border-gray-800 hover:bg-gray-800/60 transition-colors ${
-                  selectedRow?.index === row.index ? 'bg-gray-800/80 border-l-2 border-l-amber-500' : ''
+                  selectedRow?.index === row.index ? 'bg-gray-800/80 border-l-2 border-l-indigo-500' : ''
                 }`}
               >
                 <input
@@ -911,7 +911,7 @@ const ImageGenPage: React.FC<{ selectedRowIndex?: number | null }> = ({ selected
                   <div className="flex items-center gap-1 mb-0.5">
                     <span className="text-xs text-gray-500">#{row.index + 1}</span>
                     <span className="text-xs text-gray-400">{row.time}</span>
-                    <span className="text-xs text-amber-500/80">{row.shotType}</span>
+                    <span className="text-xs text-indigo-500/80">{row.shotType}</span>
                     {generatedImages[row.index] && (
                       <span className="ml-auto text-green-400 text-xs">✓</span>
                     )}
@@ -924,7 +924,7 @@ const ImageGenPage: React.FC<{ selectedRowIndex?: number | null }> = ({ selected
                     <p className="text-xs text-gray-500 truncate">{row.scene}</p>
                   )}
                   {generating[row.index] && (
-                    <div className="text-xs text-amber-400 animate-pulse mt-1">生成中...</div>
+                    <div className="text-xs text-indigo-400 animate-pulse mt-1">生成中...</div>
                   )}
                 </div>
               </div>
@@ -976,7 +976,7 @@ const ImageGenPage: React.FC<{ selectedRowIndex?: number | null }> = ({ selected
                       if (!selectedRow) return
                       void persistShotPrompt(selectedRow.index, editedPrompt)
                     }}
-                    className="flex-1 min-h-0 w-full bg-gray-800 border border-gray-700 text-gray-200 text-xs px-3 py-2 rounded-lg focus:outline-none focus:border-amber-500 resize-none"
+                    className="flex-1 min-h-0 w-full bg-gray-800 border border-gray-700 text-gray-200 text-xs px-3 py-2 rounded-lg focus:outline-none focus:border-indigo-500 resize-none"
                   />
                 </div>
 
@@ -987,13 +987,13 @@ const ImageGenPage: React.FC<{ selectedRowIndex?: number | null }> = ({ selected
                     <div className="flex gap-1.5">
                       <button
                         onClick={() => setShowRefPicker(true)}
-                        className="text-xs text-amber-500 hover:text-amber-400 px-2 py-0.5 rounded border border-amber-800 hover:border-amber-600 transition-colors"
+                        className="text-xs text-indigo-500 hover:text-indigo-400 px-2 py-0.5 rounded border border-indigo-800 hover:border-indigo-600 transition-colors"
                       >
                         + 素材库
                       </button>
                       <button
                         onClick={() => localUploadInputRef.current?.click()}
-                        className="text-xs text-blue-400 hover:text-blue-300 px-2 py-0.5 rounded border border-blue-800 hover:border-blue-600 transition-colors"
+                        className="text-xs text-indigo-400 hover:text-indigo-300 px-2 py-0.5 rounded border border-indigo-800 hover:border-indigo-600 transition-colors"
                       >
                         + 本地上传
                       </button>
@@ -1030,7 +1030,7 @@ const ImageGenPage: React.FC<{ selectedRowIndex?: number | null }> = ({ selected
                       <div key={ref.key} className={`relative flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs shrink-0 ${
                         ref.source === '自动'
                           ? 'bg-gray-800'
-                          : 'bg-amber-900/30 border border-amber-800/50'
+                          : 'bg-indigo-900/30 border border-indigo-800/50'
                       }`}>
                         {ref.source === '自动' && ref.tag ? (
                           <input
@@ -1047,7 +1047,7 @@ const ImageGenPage: React.FC<{ selectedRowIndex?: number | null }> = ({ selected
                         />
                         <div>
                           <div className="text-gray-200 leading-tight">{ref.name}</div>
-                          <div className={`text-[10px] ${ref.source === '自动' ? 'text-gray-500' : 'text-amber-600'}`}>
+                          <div className={`text-[10px] ${ref.source === '自动' ? 'text-gray-500' : 'text-indigo-600'}`}>
                             {ref.typeLabel} · {ref.source}
                           </div>
                         </div>
@@ -1059,7 +1059,7 @@ const ImageGenPage: React.FC<{ selectedRowIndex?: number | null }> = ({ selected
                         ) : null}
                       </div>
                     ) : (
-                      <div key={ref.key} className="relative flex items-center gap-1.5 bg-blue-900/30 border border-blue-800/50 rounded-lg px-2 py-1.5 text-xs shrink-0">
+                      <div key={ref.key} className="relative flex items-center gap-1.5 bg-indigo-900/30 border border-indigo-800/50 rounded-lg px-2 py-1.5 text-xs shrink-0">
                         <img
                           src={ref.imageUrl}
                           alt={ref.name}
@@ -1068,7 +1068,7 @@ const ImageGenPage: React.FC<{ selectedRowIndex?: number | null }> = ({ selected
                         />
                         <div>
                           <div className="text-gray-200 leading-tight truncate max-w-[60px]">{ref.name}</div>
-                          <div className="text-blue-400 text-[10px]">{ref.source}</div>
+                          <div className="text-indigo-400 text-[10px]">{ref.source}</div>
                         </div>
                         <button
                           onClick={() => setLocalUploads(prev => prev.filter(item => item.id !== ref.id))}
@@ -1089,14 +1089,14 @@ const ImageGenPage: React.FC<{ selectedRowIndex?: number | null }> = ({ selected
                   <button
                     onClick={handleRefine}
                     disabled={refining || !!generating[selectedRow.index]}
-                    className="flex-1 py-2 bg-purple-700 hover:bg-purple-600 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
+                    className="flex-1 py-2 bg-indigo-700 hover:bg-indigo-600 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
                   >
                     {refining ? '✨ 精炼中...' : '✨ AI 精炼'}
                   </button>
                   <button
                     onClick={() => handleGenerate(selectedRow.index)}
                     disabled={!!generating[selectedRow.index] || refining}
-                    className="flex-1 py-2 bg-amber-600 hover:bg-amber-500 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
+                    className="flex-1 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
                   >
                     {generating[selectedRow.index] ? '🎨 生成中...' : '🎨 开始生图'}
                   </button>
@@ -1152,7 +1152,7 @@ const ImageGenPage: React.FC<{ selectedRowIndex?: number | null }> = ({ selected
               return (
                 <button
                   type="button"
-                  className="px-2 py-0.5 text-xs rounded-full border transition-colors bg-amber-600 border-amber-600 text-white"
+                  className="px-2 py-0.5 text-xs rounded-full border transition-colors bg-indigo-600 border-indigo-600 text-white"
                 >
                   分镜图（{count}）
                 </button>
@@ -1196,7 +1196,7 @@ const ImageGenPage: React.FC<{ selectedRowIndex?: number | null }> = ({ selected
           className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4"
           onClick={() => setLightboxSrc(null)}
         >
-          <img src={lightboxSrc} alt="放大" className="max-h-full max-w-full rounded-xl" />
+          <img src={lightboxSrc} alt="放大" className="max-h-full max-w-full rounded-lg" />
           <button className="absolute top-4 right-4 text-white text-2xl hover:text-gray-300">✕</button>
         </div>
       )}

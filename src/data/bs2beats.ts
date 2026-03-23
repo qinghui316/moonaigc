@@ -16,7 +16,7 @@ export const BS2_BEATS: BS2Beat[] = [
     nameZh: '开场画面',
     task: '用一个静止的画面/镜头，立刻传达出故事的情绪基调和主角所处的世界状态，视觉上要能回应结局画面。',
     pct: 0,
-    colorClass: 'bg-sky-500',
+    colorClass: 'bg-indigo-400',
     modes: ['full'],
   },
   {
@@ -25,7 +25,7 @@ export const BS2_BEATS: BS2Beat[] = [
     nameZh: '铺垫',
     task: '展示主角在旧世界的日常，埋下将在高潮被呼应的道具/话语/关系；救猫咪时刻必须在这里出现——主角做一件让观众立刻喜欢他的事。',
     pct: 1,
-    colorClass: 'bg-blue-500',
+    colorClass: 'bg-indigo-500',
     modes: ['mini', 'full'],
   },
   {
@@ -34,7 +34,7 @@ export const BS2_BEATS: BS2Beat[] = [
     nameZh: '催化剂',
     task: '一个外部事件砸向主角，彻底打破旧世界的平衡。这个事件必须直接针对主角的原始驱动力，让他别无选择。',
     pct: 10,
-    colorClass: 'bg-orange-500',
+    colorClass: 'bg-indigo-500',
     modes: ['mini', 'full'],
   },
   {
@@ -61,7 +61,7 @@ export const BS2_BEATS: BS2Beat[] = [
     nameZh: 'B故事',
     task: '引入B故事（通常是爱情线/导师/对立角色），此人将在后续传递故事主题；B故事第一幕必须与A故事形成反差或镜像。',
     pct: 22,
-    colorClass: 'bg-teal-500',
+    colorClass: 'bg-indigo-400',
     modes: ['full'],
   },
   {
@@ -124,7 +124,7 @@ export const BS2_BEATS: BS2Beat[] = [
     nameZh: '结局',
     task: '高塔攻克五步：聚集盟友→执行计划→计划失败靠内在成长解决→挖掘道德前提→建立新世界；必须呼应开场画面形成视觉闭环。',
     pct: 85,
-    colorClass: 'bg-purple-500',
+    colorClass: 'bg-indigo-500',
     modes: ['mini', 'full'],
   },
 ]
@@ -137,7 +137,7 @@ export const BURST_BEATS: BS2Beat[] = [
     nameZh: '开场/钩子',
     task: '用一个极强视觉钩子在 0.5 秒内抓住眼球——奇异的构图、反预期的动作、强烈的色彩冲击；不需要交代背景，直接引爆好奇心。',
     pct: 0,
-    colorClass: 'bg-orange-500',
+    colorClass: 'bg-indigo-500',
     modes: ['burst'],
   },
   {
@@ -155,7 +155,7 @@ export const BURST_BEATS: BS2Beat[] = [
     nameZh: '视觉奇观/反转',
     task: '爆发式收尾：一个让观众想二刷的视觉奇观或情节反转；必须呼应开场钩子，给观众"原来如此"或"完全没想到"的强烈后劲。',
     pct: 80,
-    colorClass: 'bg-purple-500',
+    colorClass: 'bg-indigo-500',
     modes: ['burst'],
   },
 ]
@@ -168,7 +168,7 @@ export const MOOD_BEATS: BS2Beat[] = [
     nameZh: '起',
     task: '建立视觉基调与情绪锚点：用色彩、光影、空间构图传达核心情绪氛围。',
     pct: 0,
-    colorClass: 'bg-sky-400',
+    colorClass: 'bg-indigo-400',
     modes: ['mood'],
   },
   {
@@ -177,7 +177,7 @@ export const MOOD_BEATS: BS2Beat[] = [
     nameZh: '承',
     task: '深化情绪积累：展开核心意象的变奏与延伸，光影与空间发生微妙变化。',
     pct: 25,
-    colorClass: 'bg-teal-400',
+    colorClass: 'bg-indigo-400',
     modes: ['mood'],
   },
   {
@@ -186,7 +186,7 @@ export const MOOD_BEATS: BS2Beat[] = [
     nameZh: '转',
     task: '情绪转折或意象反转：色彩温度明显偏移，画面构图打破前段节奏。',
     pct: 55,
-    colorClass: 'bg-amber-500',
+    colorClass: 'bg-indigo-500',
     modes: ['mood'],
   },
   {
@@ -195,7 +195,7 @@ export const MOOD_BEATS: BS2Beat[] = [
     nameZh: '合',
     task: '意境收束：画面回归或升华至静止状态，与开场情绪呼应或深化，留下余韵。',
     pct: 80,
-    colorClass: 'bg-purple-500',
+    colorClass: 'bg-indigo-500',
     modes: ['mood'],
   },
 ]

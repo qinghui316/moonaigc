@@ -268,10 +268,10 @@ const ProjectPage: React.FC<ProjectPageProps> = ({ onNavigate }) => {
   return (
     <div className="h-full flex flex-col overflow-hidden">
       <div className="flex items-center justify-between px-4 py-3 border-b border-gray-800 shrink-0">
-        <h2 className="text-amber-400 font-semibold">项目管理</h2>
+        <h2 className="text-indigo-400 font-semibold">项目管理</h2>
         <button
           onClick={() => setShowForm(true)}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-amber-600/20 text-amber-400 border border-amber-700/50 rounded-lg hover:bg-amber-600/30 transition-colors"
+          className="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-indigo-600/20 text-indigo-400 border border-indigo-700/50 rounded-lg hover:bg-indigo-600/30 transition-colors"
         >
           <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -288,7 +288,7 @@ const ProjectPage: React.FC<ProjectPageProps> = ({ onNavigate }) => {
             <p className="text-gray-600 text-xs mt-1 mb-4">创建项目，开始你的微短剧创作之旅</p>
             <button
               onClick={() => setShowForm(true)}
-              className="px-4 py-2 text-sm bg-amber-600/20 text-amber-400 border border-amber-700/50 rounded-lg hover:bg-amber-600/30 transition-colors"
+              className="px-4 py-2 text-sm bg-indigo-600/20 text-indigo-400 border border-indigo-700/50 rounded-lg hover:bg-indigo-600/30 transition-colors"
             >
               新建第一个项目
             </button>
@@ -298,7 +298,7 @@ const ProjectPage: React.FC<ProjectPageProps> = ({ onNavigate }) => {
             {projects.map(p => (
               <div
                 key={p.id}
-                className="bg-gray-800/50 border border-gray-700 rounded-xl p-4 hover:border-gray-600 transition-colors group cursor-pointer"
+                className="bg-gray-800/50 border border-gray-700 rounded-lg p-4 hover:border-gray-600 transition-colors group cursor-pointer"
                 onClick={() => handleOpen(p)}
               >
                 <div className="flex items-start justify-between gap-3">
@@ -309,7 +309,7 @@ const ProjectPage: React.FC<ProjectPageProps> = ({ onNavigate }) => {
                         <span className={`text-xs px-1.5 py-0.5 rounded shrink-0 ${
                           p.importStatus === 'character_done' ? 'bg-green-900/40 text-green-400' :
                           p.importStatus === 'failed' ? 'bg-red-900/40 text-red-400' :
-                          'bg-blue-900/40 text-blue-400'
+                          'bg-indigo-900/40 text-indigo-400'
                         }`}>
                           {p.importStatus === 'character_done' ? '📄 导入完成' :
                            p.importStatus === 'failed' ? '❌ 导入失败' :
@@ -321,7 +321,7 @@ const ProjectPage: React.FC<ProjectPageProps> = ({ onNavigate }) => {
                       {p.genre.map(g => {
                         const item = GENRE_LIST.find(gl => gl.id === g)
                         return (
-                          <span key={g} className="text-xs bg-amber-900/30 text-amber-400 border border-amber-800/40 px-1.5 py-0.5 rounded">
+                          <span key={g} className="text-xs bg-indigo-900/30 text-indigo-400 border border-indigo-800/40 px-1.5 py-0.5 rounded">
                             {item?.name ?? g}
                           </span>
                         )
@@ -353,7 +353,7 @@ const ProjectPage: React.FC<ProjectPageProps> = ({ onNavigate }) => {
       {/* 新建项目弹窗 */}
       {showForm && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-gray-900 border border-gray-700 rounded-2xl w-full max-w-lg max-h-[90vh] flex flex-col">
+          <div className="bg-gray-900 border border-gray-700 rounded-lg w-full max-w-lg max-h-[90vh] flex flex-col">
             <div className="flex items-center justify-between px-5 py-4 border-b border-gray-800">
               <h3 className="text-gray-100 font-semibold">新建项目</h3>
               <button onClick={() => { setShowForm(false); setImportProgress(''); setImportAudience(''); setImportTone(''); setImportEndingType('') }} className="text-gray-500 hover:text-gray-300">
@@ -367,13 +367,13 @@ const ProjectPage: React.FC<ProjectPageProps> = ({ onNavigate }) => {
             <div className="flex gap-1 px-5 pt-4">
               <button
                 onClick={() => setCreateMode('ai')}
-                className={`flex-1 py-2 text-sm rounded-lg border transition-colors ${createMode === 'ai' ? 'bg-amber-600/30 text-amber-300 border-amber-600/50' : 'bg-gray-800 text-gray-400 border-gray-700 hover:border-gray-600'}`}
+                className={`flex-1 py-2 text-sm rounded-lg border transition-colors ${createMode === 'ai' ? 'bg-indigo-600/30 text-indigo-300 border-indigo-600/50' : 'bg-gray-800 text-gray-400 border-gray-700 hover:border-gray-600'}`}
               >
                 ✨ AI 创建项目
               </button>
               <button
                 onClick={() => setCreateMode('import')}
-                className={`flex-1 py-2 text-sm rounded-lg border transition-colors ${createMode === 'import' ? 'bg-blue-600/30 text-blue-300 border-blue-600/50' : 'bg-gray-800 text-gray-400 border-gray-700 hover:border-gray-600'}`}
+                className={`flex-1 py-2 text-sm rounded-lg border transition-colors ${createMode === 'import' ? 'bg-indigo-600/30 text-indigo-300 border-indigo-600/50' : 'bg-gray-800 text-gray-400 border-gray-700 hover:border-gray-600'}`}
               >
                 📄 导入已有剧本
               </button>
@@ -388,7 +388,7 @@ const ProjectPage: React.FC<ProjectPageProps> = ({ onNavigate }) => {
                   value={form.name}
                   onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
                   placeholder="例：战神奶爸归来"
-                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-amber-600"
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-indigo-600"
                 />
               </div>
 
@@ -407,7 +407,7 @@ const ProjectPage: React.FC<ProjectPageProps> = ({ onNavigate }) => {
                       onClick={() => toggleGenre(g.id)}
                       className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${
                         form.genre.includes(g.id)
-                          ? 'bg-amber-600/30 text-amber-300 border-amber-600/60'
+                          ? 'bg-indigo-600/30 text-indigo-300 border-indigo-600/60'
                           : 'bg-gray-800 text-gray-400 border-gray-700 hover:border-gray-500'
                       }`}
                     >
@@ -428,7 +428,7 @@ const ProjectPage: React.FC<ProjectPageProps> = ({ onNavigate }) => {
                         onClick={() => setForm(f => ({ ...f, audience: o }))}
                         className={`flex-1 text-sm py-1.5 rounded-lg border transition-colors ${
                           form.audience === o
-                            ? 'bg-amber-600/30 text-amber-300 border-amber-600/60'
+                            ? 'bg-indigo-600/30 text-indigo-300 border-indigo-600/60'
                             : 'bg-gray-800 text-gray-400 border-gray-700 hover:border-gray-600'
                         }`}
                       >
@@ -444,7 +444,7 @@ const ProjectPage: React.FC<ProjectPageProps> = ({ onNavigate }) => {
                         onClick={() => setImportAudience(o.value)}
                         className={`text-xs px-3 py-1.5 rounded-lg border transition-colors ${
                           importAudience === o.value
-                            ? (o.value === '' ? 'bg-gray-700 text-gray-300 border-gray-500' : 'bg-amber-600/30 text-amber-300 border-amber-600/60')
+                            ? (o.value === '' ? 'bg-gray-700 text-gray-300 border-gray-500' : 'bg-indigo-600/30 text-indigo-300 border-indigo-600/60')
                             : 'bg-gray-800 text-gray-500 border-gray-700 hover:border-gray-600'
                         }`}
                       >
@@ -466,7 +466,7 @@ const ProjectPage: React.FC<ProjectPageProps> = ({ onNavigate }) => {
                         onClick={() => setForm(f => ({ ...f, tone: o }))}
                         className={`text-sm px-3 py-1.5 rounded-lg border transition-colors ${
                           form.tone === o
-                            ? 'bg-amber-600/30 text-amber-300 border-amber-600/60'
+                            ? 'bg-indigo-600/30 text-indigo-300 border-indigo-600/60'
                             : 'bg-gray-800 text-gray-400 border-gray-700 hover:border-gray-600'
                         }`}
                       >
@@ -482,7 +482,7 @@ const ProjectPage: React.FC<ProjectPageProps> = ({ onNavigate }) => {
                         onClick={() => setImportTone(o.value)}
                         className={`text-xs px-3 py-1.5 rounded-lg border transition-colors ${
                           importTone === o.value
-                            ? (o.value === '' ? 'bg-gray-700 text-gray-300 border-gray-500' : 'bg-amber-600/30 text-amber-300 border-amber-600/60')
+                            ? (o.value === '' ? 'bg-gray-700 text-gray-300 border-gray-500' : 'bg-indigo-600/30 text-indigo-300 border-indigo-600/60')
                             : 'bg-gray-800 text-gray-500 border-gray-700 hover:border-gray-600'
                         }`}
                       >
@@ -504,7 +504,7 @@ const ProjectPage: React.FC<ProjectPageProps> = ({ onNavigate }) => {
                         onClick={() => setForm(f => ({ ...f, endingType: o }))}
                         className={`text-sm px-3 py-1.5 rounded-lg border transition-colors ${
                           form.endingType === o
-                            ? 'bg-amber-600/30 text-amber-300 border-amber-600/60'
+                            ? 'bg-indigo-600/30 text-indigo-300 border-indigo-600/60'
                             : 'bg-gray-800 text-gray-400 border-gray-700 hover:border-gray-600'
                         }`}
                       >
@@ -520,7 +520,7 @@ const ProjectPage: React.FC<ProjectPageProps> = ({ onNavigate }) => {
                         onClick={() => setImportEndingType(o.value)}
                         className={`text-xs px-3 py-1.5 rounded-lg border transition-colors ${
                           importEndingType === o.value
-                            ? (o.value === '' ? 'bg-gray-700 text-gray-300 border-gray-500' : 'bg-amber-600/30 text-amber-300 border-amber-600/60')
+                            ? (o.value === '' ? 'bg-gray-700 text-gray-300 border-gray-500' : 'bg-indigo-600/30 text-indigo-300 border-indigo-600/60')
                             : 'bg-gray-800 text-gray-500 border-gray-700 hover:border-gray-600'
                         }`}
                       >
@@ -542,7 +542,7 @@ const ProjectPage: React.FC<ProjectPageProps> = ({ onNavigate }) => {
                       onClick={() => { setForm(f => ({ ...f, totalEpisodes: o.value })); setCustomEpisodes('') }}
                       className={`text-xs px-3 py-1.5 rounded-lg border transition-colors ${
                         form.totalEpisodes === o.value && !customEpisodes
-                          ? 'bg-amber-600/30 text-amber-300 border-amber-600/60'
+                          ? 'bg-indigo-600/30 text-indigo-300 border-indigo-600/60'
                           : 'bg-gray-800 text-gray-400 border-gray-700 hover:border-gray-600'
                       }`}
                     >
@@ -561,7 +561,7 @@ const ProjectPage: React.FC<ProjectPageProps> = ({ onNavigate }) => {
                     }}
                     placeholder="自定义"
                     className={`w-20 text-xs px-2 py-1.5 rounded-lg border transition-colors bg-gray-800 focus:outline-none ${
-                      customEpisodes ? 'text-amber-300 border-amber-600/60' : 'text-gray-400 border-gray-700'
+                      customEpisodes ? 'text-indigo-300 border-indigo-600/60' : 'text-gray-400 border-gray-700'
                     }`}
                   />
                 </div>
@@ -578,7 +578,7 @@ const ProjectPage: React.FC<ProjectPageProps> = ({ onNavigate }) => {
                     onChange={e => setForm(f => ({ ...f, worldSetting: e.target.value }))}
                     placeholder="例：现代都市，男主是退役特种兵，回乡后发现家族企业被人窃取，带着失散多年的儿子开始复仇之路……"
                     rows={3}
-                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-amber-600 resize-none"
+                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-indigo-600 resize-none"
                   />
                 </div>
               )}
@@ -593,7 +593,7 @@ const ProjectPage: React.FC<ProjectPageProps> = ({ onNavigate }) => {
                       onChange={e => setImportText(e.target.value)}
                       placeholder="粘贴你的剧本文本，可以是完整剧本、故事大纲、小说梗概……"
                       rows={6}
-                      className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-blue-600 resize-none"
+                      className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-indigo-600 resize-none"
                     />
                     <p className="text-xs text-gray-600 mt-1">{importText.length} 字</p>
                   </div>
@@ -603,13 +603,13 @@ const ProjectPage: React.FC<ProjectPageProps> = ({ onNavigate }) => {
                     <div className="flex gap-2">
                       <button
                         onClick={() => setAdaptMode('faithful')}
-                        className={`flex-1 py-2 text-sm rounded-lg border transition-colors ${adaptMode === 'faithful' ? 'bg-blue-600/30 text-blue-300 border-blue-600/50' : 'bg-gray-800 text-gray-400 border-gray-700'}`}
+                        className={`flex-1 py-2 text-sm rounded-lg border transition-colors ${adaptMode === 'faithful' ? 'bg-indigo-600/30 text-indigo-300 border-indigo-600/50' : 'bg-gray-800 text-gray-400 border-gray-700'}`}
                       >
                         📜 忠于原有剧本
                       </button>
                       <button
                         onClick={() => setAdaptMode('blockbuster')}
-                        className={`flex-1 py-2 text-sm rounded-lg border transition-colors ${adaptMode === 'blockbuster' ? 'bg-purple-600/30 text-purple-300 border-purple-600/50' : 'bg-gray-800 text-gray-400 border-gray-700'}`}
+                        className={`flex-1 py-2 text-sm rounded-lg border transition-colors ${adaptMode === 'blockbuster' ? 'bg-indigo-600/30 text-indigo-300 border-indigo-600/50' : 'bg-gray-800 text-gray-400 border-gray-700'}`}
                       >
                         🚀 爆款结构改编
                       </button>
@@ -624,13 +624,13 @@ const ProjectPage: React.FC<ProjectPageProps> = ({ onNavigate }) => {
                     <div className="flex gap-2 mb-2">
                       <button
                         onClick={() => setEpisodeCountMode('auto')}
-                        className={`flex-1 py-1.5 text-sm rounded-lg border transition-colors ${episodeCountMode === 'auto' ? 'bg-blue-600/30 text-blue-300 border-blue-600/50' : 'bg-gray-800 text-gray-400 border-gray-700'}`}
+                        className={`flex-1 py-1.5 text-sm rounded-lg border transition-colors ${episodeCountMode === 'auto' ? 'bg-indigo-600/30 text-indigo-300 border-indigo-600/50' : 'bg-gray-800 text-gray-400 border-gray-700'}`}
                       >
                         AI 自动判断
                       </button>
                       <button
                         onClick={() => setEpisodeCountMode('manual')}
-                        className={`flex-1 py-1.5 text-sm rounded-lg border transition-colors ${episodeCountMode === 'manual' ? 'bg-blue-600/30 text-blue-300 border-blue-600/50' : 'bg-gray-800 text-gray-400 border-gray-700'}`}
+                        className={`flex-1 py-1.5 text-sm rounded-lg border transition-colors ${episodeCountMode === 'manual' ? 'bg-indigo-600/30 text-indigo-300 border-indigo-600/50' : 'bg-gray-800 text-gray-400 border-gray-700'}`}
                       >
                         手动指定集数
                       </button>
@@ -641,7 +641,7 @@ const ProjectPage: React.FC<ProjectPageProps> = ({ onNavigate }) => {
                           <button
                             key={o.value}
                             onClick={() => { setImportEpisodes(o.value); setImportCustomEpisodes('') }}
-                            className={`text-xs px-3 py-1.5 rounded-lg border transition-colors ${importEpisodes === o.value && !importCustomEpisodes ? 'bg-amber-600/30 text-amber-300 border-amber-600/60' : 'bg-gray-800 text-gray-400 border-gray-700'}`}
+                            className={`text-xs px-3 py-1.5 rounded-lg border transition-colors ${importEpisodes === o.value && !importCustomEpisodes ? 'bg-indigo-600/30 text-indigo-300 border-indigo-600/60' : 'bg-gray-800 text-gray-400 border-gray-700'}`}
                           >
                             {o.label}
                           </button>
@@ -656,14 +656,14 @@ const ProjectPage: React.FC<ProjectPageProps> = ({ onNavigate }) => {
                             if (!isNaN(v) && v > 0) setImportEpisodes(v)
                           }}
                           placeholder="自定义"
-                          className="w-20 text-xs px-2 py-1.5 rounded-lg border bg-gray-800 text-gray-400 border-gray-700 focus:outline-none focus:border-amber-600"
+                          className="w-20 text-xs px-2 py-1.5 rounded-lg border bg-gray-800 text-gray-400 border-gray-700 focus:outline-none focus:border-indigo-600"
                         />
                       </div>
                     )}
                   </div>
 
                   {importProgress && (
-                    <div className="text-xs text-blue-400 bg-blue-900/20 border border-blue-800/30 rounded-lg px-3 py-2">
+                    <div className="text-xs text-indigo-400 bg-indigo-900/20 border border-indigo-800/30 rounded-lg px-3 py-2">
                       ⏳ {importProgress}
                     </div>
                   )}
@@ -681,7 +681,7 @@ const ProjectPage: React.FC<ProjectPageProps> = ({ onNavigate }) => {
                 <button
                   onClick={handleCreate}
                   disabled={saving || !form.name.trim() || form.genre.length === 0}
-                  className="flex-1 py-2 text-sm bg-amber-600 text-white rounded-lg hover:bg-amber-500 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                  className="flex-1 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                 >
                   {saving ? '创建中…' : '创建并进入工作台'}
                 </button>
@@ -689,7 +689,7 @@ const ProjectPage: React.FC<ProjectPageProps> = ({ onNavigate }) => {
                 <button
                   onClick={handleImport}
                   disabled={saving || !form.name.trim() || !importText.trim()}
-                  className="flex-1 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-500 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                  className="flex-1 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                   title={!form.name.trim() ? '请填写项目名称' : !importText.trim() ? '请粘贴原始文本' : ''}
                 >
                   {saving ? (importProgress || '处理中…') : '📄 导入并生成'}
