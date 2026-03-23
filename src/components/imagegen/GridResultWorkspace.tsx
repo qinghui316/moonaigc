@@ -10,7 +10,7 @@ import { IMAGE_PLATFORMS } from '../../data/platforms'
 import { GLOBAL_NEGATIVE_PROMPT, GLOBAL_NEGATIVE_PROMPT_INLINE, STYLE_NEGATIVE_PROMPTS } from '../../data/negativePrompts'
 import { GRID_NEGATIVE_PROMPT } from '../../services/gridGen'
 import { buildRefImageDescs, collectRefImages, loadRefImageBase64s } from '../../services/refImageCollector'
-import { buildNineGridImagePrompt, generateNineGridStoryboard, type GridSourceShot } from '../../services/gridStoryboard'
+import { buildGridImagePrompt, generateGridStoryboard, type GridSourceShot } from '../../services/gridStoryboard'
 import { callImageGenAPI, fetchAssetImageAsBase64, uploadExternalImageUrl } from '../../services/imageGen'
 import {
   createGridResult,
@@ -526,7 +526,11 @@ const GridResultWorkspace: React.FC<GridResultWorkspaceProps> = ({ styleKey, onS
     }
   }, [collectCharacterMaterialRefs, shotStore.shotImages])
 
-  const handleGenerate = useCallback(async () => {
+  const handleGenerate = useCallback(async (cols: number, rows: number) => {
+    const count = cols * rows
+    const layout = `${cols}x${rows}`
+    const gridLabel = count === 4 ? '4 宫格' : count === 6 ? '6 宫格' : '9 宫格'
+
     if (generating) {
       generateAbortRef.current?.abort()
       return
@@ -553,7 +557,7 @@ const GridResultWorkspace: React.FC<GridResultWorkspaceProps> = ({ styleKey, onS
     }
 
     if (currentSelectionGroup === 'mixed') {
-      setError('已有分镜图和无分镜图的源分镜不能混选生成 9 宫格')
+      setError('已有分镜图和无分镜图的源分镜不能混选生成宫格')
       return
     }
     if (!currentSelectionGroup) {
@@ -563,7 +567,7 @@ const GridResultWorkspace: React.FC<GridResultWorkspaceProps> = ({ styleKey, onS
 
     setGenerating(true)
     setError('')
-    setStatus('生成 9 宫格分镜中...')
+    setStatus(`生成 ${gridLabel} 分镜中...`)
     const abortController = new AbortController()
     generateAbortRef.current = abortController
     let createdResultId: number | null = null
@@ -638,13 +642,15 @@ const GridResultWorkspace: React.FC<GridResultWorkspaceProps> = ({ styleKey, onS
         : '无参考图'
 
       */
-      const storyboard = await generateNineGridStoryboard(
+      const storyboard = await generateGridStoryboard(
         sourceShots,
         refImages,
         refDescs,
         STYLE_MAP[styleKey] ?? styleKey,
         imageSettings.aspectRatio,
         textSettings,
+        cols,
+        rows,
         abortController.signal,
       )
 
@@ -652,7 +658,7 @@ const GridResultWorkspace: React.FC<GridResultWorkspaceProps> = ({ styleKey, onS
         projectId: currentHistory.projectId,
         episodeId: currentHistory.episodeId,
         historyId: currentHistory.id,
-        layout: '3x3',
+        layout,
         aspectRatio: imageSettings.aspectRatio,
         sourceShotRefs: sourceShots.map(shot => shot.ref),
         usedReferenceImages,
@@ -689,15 +695,15 @@ const GridResultWorkspace: React.FC<GridResultWorkspaceProps> = ({ styleKey, onS
       })
       createdResultId = created.id
 
-      setStatus('生成 9 宫格图片中...')
+      setStatus(`生成 ${gridLabel} 图片中...`)
 
       const panelPrompts = storyboard.draft?.panels.map(panel => panel.image_prompt_text) ?? []
-      const finalPrompt = buildNineGridImagePrompt({
+      const finalPrompt = buildGridImagePrompt({
         aspectRatio: imageSettings.aspectRatio,
         refBlock,
         panelPrompts,
         fallbackRaw: storyboard.rawText,
-      })
+      }, cols, rows)
       const styleNeg = STYLE_NEGATIVE_PROMPTS[styleKey] ?? ''
       const negativePrompt = imageSettings.platformId !== 'doubao-image'
         ? `${GLOBAL_NEGATIVE_PROMPT_INLINE}${styleNeg ? `, ${styleNeg}` : ''}, ${GRID_NEGATIVE_PROMPT}`
@@ -854,12 +860,13 @@ const GridResultWorkspace: React.FC<GridResultWorkspaceProps> = ({ styleKey, onS
       const refBlock = buildReferenceBlock(selectedResult.usedReferenceImages ?? [])
 
       const panelPrompts = normalizeGridPanels(selectedResult.panels).map(panel => panel.imagePromptText).filter(Boolean)
-      const finalPrompt = buildNineGridImagePrompt({
+      const [regenCols, regenRows] = (selectedResult.layout ?? '3x3').split('x').map(Number)
+      const finalPrompt = buildGridImagePrompt({
         aspectRatio: imageSettings.aspectRatio,
         refBlock,
         panelPrompts,
         fallbackRaw: selectedResult.rawModelOutput,
-      })
+      }, regenCols || 3, regenRows || 3)
       const styleNeg = STYLE_NEGATIVE_PROMPTS[styleKey] ?? ''
       const negativePrompt = imageSettings.platformId !== 'doubao-image'
         ? `${GLOBAL_NEGATIVE_PROMPT_INLINE}${styleNeg ? `, ${styleNeg}` : ''}, ${GRID_NEGATIVE_PROMPT}`
@@ -1013,7 +1020,7 @@ const GridResultWorkspace: React.FC<GridResultWorkspaceProps> = ({ styleKey, onS
             </select>
           </label>
 
-          <label className="min-w-0 flex-1">
+          <label className="min-w-[140px] flex-1">
             <span className="mb-1 block text-[11px] font-medium text-gray-500">视觉风格</span>
             <select
               value={styleKey}
@@ -1070,13 +1077,38 @@ const GridResultWorkspace: React.FC<GridResultWorkspaceProps> = ({ styleKey, onS
             <div className="text-[13px] text-gray-500 whitespace-nowrap">
               已选 {selectedItems.size} 条源分镜
             </div>
-            <button
-              onClick={() => void handleGenerate()}
-              disabled={!generating && selectedSourceShots.length === 0}
-              className="h-10 text-sm bg-purple-700 hover:bg-purple-600 text-white px-4 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
-            >
-              {generating ? '取消生成' : '生成 9 宫格'}
-            </button>
+            {generating ? (
+              <button
+                onClick={() => void handleGenerate(3, 3)}
+                className="h-10 text-sm bg-red-700 hover:bg-red-600 text-white px-4 rounded-xl whitespace-nowrap"
+              >
+                取消生成
+              </button>
+            ) : (
+              <div className="flex gap-2">
+                <button
+                  onClick={() => void handleGenerate(2, 2)}
+                  disabled={selectedSourceShots.length === 0}
+                  className="h-10 text-sm bg-purple-700 hover:bg-purple-600 text-white px-5 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                >
+                  4宫格生图
+                </button>
+                <button
+                  onClick={() => void handleGenerate(3, 2)}
+                  disabled={selectedSourceShots.length === 0}
+                  className="h-10 text-sm bg-purple-700 hover:bg-purple-600 text-white px-5 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                >
+                  6宫格生图
+                </button>
+                <button
+                  onClick={() => void handleGenerate(3, 3)}
+                  disabled={selectedSourceShots.length === 0}
+                  className="h-10 text-sm bg-purple-700 hover:bg-purple-600 text-white px-5 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                >
+                  9宫格生图
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
@@ -1091,7 +1123,7 @@ const GridResultWorkspace: React.FC<GridResultWorkspaceProps> = ({ styleKey, onS
             ? '当前选择：有分镜图组。将传入分镜图和角色设计图，不传场景图和道具图。'
             : currentSelectionGroup === 'legacy'
               ? '当前选择：无分镜图组。将沿用原有素材参考图逻辑。'
-              : '源分镜分为“有分镜图”和“无分镜图”两组，同次 9 宫格生成不能混选。'}
+              : '源分镜分为”有分镜图”和”无分镜图”两组，同次宫格生成不能混选。'}
         </div>
 
         {(status || error) && (
@@ -1106,7 +1138,7 @@ const GridResultWorkspace: React.FC<GridResultWorkspaceProps> = ({ styleKey, onS
         <div className="w-96 border-r border-gray-800 flex flex-col overflow-hidden shrink-0">
           <div className="px-4 py-3 border-b border-gray-800">
             <div className="text-sm text-gray-200 font-medium">源分镜列表</div>
-            <div className="mt-1 text-xs text-gray-500">选择要参与本次 9 宫格生成的原始分镜</div>
+            <div className="mt-1 text-xs text-gray-500">选择要参与本次宫格生成的原始分镜</div>
           </div>
           <div className="flex-1 overflow-y-auto">
             {sourceRows.length === 0 ? (
@@ -1320,7 +1352,7 @@ const GridResultWorkspace: React.FC<GridResultWorkspaceProps> = ({ styleKey, onS
               </div>
 
               <div>
-                <div className="text-sm text-gray-300 font-medium mb-2">9 宫格分镜结果</div>
+                <div className="text-sm text-gray-300 font-medium mb-2">宫格分镜结果</div>
                 <GridResultTable panels={normalizeGridPanels(selectedResult.panels)} />
               </div>
             </div>

@@ -26,12 +26,12 @@ const Header: React.FC<HeaderProps> = ({ onSettingsClick }) => {
           <h1 className="text-amber-400 font-bold text-base leading-tight tracking-wide">
             MoonAIGC
           </h1>
-          <p className="text-gray-500 text-xs leading-tight">导演级分镜生成引擎</p>
+          <p className="text-gray-500 text-xs leading-tight">短剧分镜 Agent 工作台</p>
         </div>
       </div>
 
       <div className="flex items-center gap-2">
-        <span className="hidden sm:inline text-gray-600 text-xs">Save the Cat BS2 · 五维视听叙事</span>
+        <span className="hidden sm:inline text-gray-600 text-xs">面向短剧 / 微短剧创作</span>
 
         {activePlatform && (
           <button

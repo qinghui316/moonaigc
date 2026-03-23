@@ -594,6 +594,7 @@ const ImageGenPage: React.FC<{ selectedRowIndex?: number | null }> = ({ selected
       try {
         const materialBase64s = await loadRefImageBase64s(refInfos)
         const refImageIds = refs.map(r => r.imageFileId)
+        console.log(`[BatchDebug] 镜头${idx}: refs=${refs.length}个(${refs.map(r => r.name).join(',')}), base64=${materialBase64s.length}个, localRefs=${rowLocalRefs.length}个, refImageIds=`, refImageIds)
         // 将前一镜图片追加到参考图末尾
         const chainRefs = [
           ...materialBase64s,
@@ -754,9 +755,10 @@ const ImageGenPage: React.FC<{ selectedRowIndex?: number | null }> = ({ selected
         </button>
       </div>
 
-      {pageMode === 'grid' ? (
+      <div className="flex flex-1 min-h-0 overflow-hidden flex-col" style={{ display: pageMode === 'grid' ? 'flex' : 'none' }}>
         <GridResultWorkspace styleKey={styleKey} onStyleChange={setImageStyleKey} />
-      ) : (
+      </div>
+      <div className="flex flex-1 min-h-0 overflow-hidden flex-col" style={{ display: pageMode === 'shots' ? 'flex' : 'none' }}>
         <>
       {/* 顶部：选择分镜来源 */}
       <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-800 shrink-0 flex-wrap">
@@ -1227,7 +1229,7 @@ const ImageGenPage: React.FC<{ selectedRowIndex?: number | null }> = ({ selected
         onConfirm={refs => setManualRefs(refs)}
       />
         </>
-      )}
+      </div>
     </div>
   )
 }
