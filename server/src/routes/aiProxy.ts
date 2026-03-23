@@ -205,7 +205,7 @@ router.post('/image', async (req: Request, res: Response) => {
 
     // 有参考图时在 prompt 最前面拼接指令，提示模型严格遵循参考图
     const hasRefImagesFlag = (refImages && refImages.length > 0) || (refImageIds && refImageIds.length > 0)
-    const basePrompt = hasRefImagesFlag ? `Strictly follow the reference images for character/scene/prop appearance. ${prompt}` : prompt
+    const basePrompt = hasRefImagesFlag ? `严格遵循参考图中角色/场景/道具的外观特征。${prompt}` : prompt
 
     // 豆包官方像素映射表（来源：火山引擎官方文档）
     // 包含 1K/2K/3K/4K 四档，覆盖全部宽高比

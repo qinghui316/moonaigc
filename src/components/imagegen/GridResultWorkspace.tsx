@@ -481,14 +481,6 @@ const GridResultWorkspace: React.FC<GridResultWorkspaceProps> = ({ styleKey, onS
 
     const characterRefs = collectCharacterMaterialRefs(rows)
     const usedReferenceImages = [
-      ...shotRefs.map(ref => ({
-        kind: ref.kind,
-        name: ref.name,
-        typeLabel: ref.typeLabel,
-        imageUrl: ref.imageUrl,
-        imageFileId: ref.imageFileId,
-        sourceShotRefs: ref.sourceShotRefs,
-      })),
       ...characterRefs.map(ref => ({
         kind: 'material' as const,
         name: ref.name,
@@ -497,18 +489,25 @@ const GridResultWorkspace: React.FC<GridResultWorkspaceProps> = ({ styleKey, onS
         imageFileId: ref.imageFileId,
         sourceShotRefs: ref.sourceShotRefs,
       })),
+      ...shotRefs.map(ref => ({
+        kind: ref.kind,
+        name: ref.name,
+        typeLabel: ref.typeLabel,
+        imageUrl: ref.imageUrl,
+        imageFileId: ref.imageFileId,
+        sourceShotRefs: ref.sourceShotRefs,
+      })),
     ]
 
     const refDescs = [
-      ...shotRefs.map(ref => ref.desc),
       ...characterRefs.map(ref => `角色-${ref.name}${ref.desc ? `，${ref.desc.replace(/\s+/g, ' ').trim().slice(0, 60)}` : ''}`),
+      ...shotRefs.map(ref => ref.desc),
     ]
 
     return {
       strategy: 'shot_image_priority' as const,
       usedReferenceImages,
       refImages: [
-        ...shotRefs.map(ref => ref.payload),
         ...await loadRefImageBase64s(characterRefs.map(ref => ({
           tag: `@${ref.name}`,
           name: ref.name,
@@ -517,11 +516,12 @@ const GridResultWorkspace: React.FC<GridResultWorkspaceProps> = ({ styleKey, onS
           imageUrl: ref.imageUrl,
           imageFileId: ref.imageFileId,
         }))),
+        ...shotRefs.map(ref => ref.payload),
       ],
       refDescs,
       refImageIds: [
-        ...shotRefs.map(ref => ref.imageFileId).filter((id): id is number => typeof id === 'number'),
         ...characterRefs.map(ref => ref.imageFileId),
+        ...shotRefs.map(ref => ref.imageFileId).filter((id): id is number => typeof id === 'number'),
       ],
     }
   }, [collectCharacterMaterialRefs, shotStore.shotImages])
@@ -661,7 +661,18 @@ const GridResultWorkspace: React.FC<GridResultWorkspaceProps> = ({ styleKey, onS
         panels: storyboard.draft?.panels.map(panel => {
           const sourceSeedancePrompts = panel.source_shot_refs
             .map(ref => {
-              const prompt = sourceShotPromptMap.get(ref)
+              // 优先精确匹配
+              let prompt = sourceShotPromptMap.get(ref)
+              // 回退：从 ref 中提取数字做索引查找（LLM 返回 "源分镜1" 但 map key 带时间后缀）
+              if (!prompt) {
+                const m = ref.match(/源分镜(\d+)/)
+                if (m) {
+                  const idx = parseInt(m[1], 10) - 1
+                  if (idx >= 0 && idx < sourceShots.length) {
+                    prompt = sourceShots[idx].prompt.trim()
+                  }
+                }
+              }
               return prompt ? { sourceShotRef: ref, prompt } : null
             })
             .filter((item): item is { sourceShotRef: string; prompt: string } => item !== null)

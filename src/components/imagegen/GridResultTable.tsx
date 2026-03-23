@@ -15,50 +15,86 @@ const GridResultTable: React.FC<GridResultTableProps> = ({ panels }) => {
     )
   }
 
+  // 从所有 panels 的 sourceSeedancePrompts 中提取去重的源分镜列表（按出现顺序）
+  const uniqueSourceShots: Array<{ ref: string; prompt: string }> = []
+  const seenRefs = new Set<string>()
+  for (const panel of panels) {
+    if (panel.sourceSeedancePrompts) {
+      for (const item of panel.sourceSeedancePrompts) {
+        if (!seenRefs.has(item.sourceShotRef)) {
+          seenRefs.add(item.sourceShotRef)
+          uniqueSourceShots.push({ ref: item.sourceShotRef, prompt: item.prompt })
+        }
+      }
+    }
+  }
+
+  const hasSourcePrompts = uniqueSourceShots.length > 0
+
+  // 回退：旧数据无 sourceSeedancePrompts，显示原 9 面板
+  if (!hasSourcePrompts) {
+    return (
+      <div className="overflow-auto border border-gray-800 rounded-xl">
+        <table className="w-full text-xs border-collapse min-w-[960px]">
+          <thead className="sticky top-0 z-10">
+            <tr>
+              <th className="text-gray-500 font-medium text-left px-2 py-2 border-b border-gray-700 bg-gray-900 w-16">面板</th>
+              <th className="text-gray-400 font-medium text-left px-2 py-2 border-b border-gray-700 bg-gray-900 w-24">时间段</th>
+              <th className="text-gray-400 font-medium text-left px-2 py-2 border-b border-gray-700 bg-gray-900 w-40">来源分镜</th>
+              <th className="text-gray-400 font-medium text-left px-2 py-2 border-b border-gray-700 bg-gray-900">SEEDANCE提示词</th>
+            </tr>
+          </thead>
+          <tbody>
+            {panels.map(panel => (
+              <tr key={panel.id} className="border-b border-gray-800 hover:bg-gray-800/40 transition-colors">
+                <td className="px-2 py-2 text-gray-300 font-medium">#{panel.panelOrder}</td>
+                <td className="px-2 py-2 text-gray-300">{panel.timeRange}</td>
+                <td className="px-2 py-2 text-gray-400">
+                  <div className="flex flex-wrap gap-1">
+                    {panel.sourceShotRefs.map(ref => (
+                      <span
+                        key={`${panel.id}-${ref}`}
+                        className="px-1.5 py-0.5 rounded bg-amber-900/40 border border-amber-700/40 text-amber-300"
+                      >
+                        {ref}
+                      </span>
+                    ))}
+                  </div>
+                </td>
+                <td className="px-2 py-2 align-top text-gray-300">
+                  <div dangerouslySetInnerHTML={{ __html: highlightAtTags(panel.seedancePrompt) }} />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    )
+  }
+
+  // 按源分镜展示原始 SEEDANCE 提示词
   return (
     <div className="overflow-auto border border-gray-800 rounded-xl">
-      <table className="w-full text-xs border-collapse min-w-[960px]">
+      <table className="w-full text-xs border-collapse">
         <thead className="sticky top-0 z-10">
           <tr>
-            <th className="text-gray-500 font-medium text-left px-2 py-2 border-b border-gray-700 bg-gray-900 w-16">面板</th>
-            <th className="text-gray-400 font-medium text-left px-2 py-2 border-b border-gray-700 bg-gray-900 w-24">时间段</th>
-            <th className="text-gray-400 font-medium text-left px-2 py-2 border-b border-gray-700 bg-gray-900 w-40">来源分镜</th>
+            <th className="text-gray-400 font-medium text-left px-2 py-2 border-b border-gray-700 bg-gray-900 w-24">源分镜</th>
             <th className="text-gray-400 font-medium text-left px-2 py-2 border-b border-gray-700 bg-gray-900">SEEDANCE提示词</th>
           </tr>
         </thead>
         <tbody>
-          {panels.map(panel => (
-            <tr key={panel.id} className="border-b border-gray-800 hover:bg-gray-800/40 transition-colors">
-              <td className="px-2 py-2 text-gray-300 font-medium">#{panel.panelOrder}</td>
-              <td className="px-2 py-2 text-gray-300">{panel.timeRange}</td>
-              <td className="px-2 py-2 text-gray-400">
-                <div className="flex flex-wrap gap-1">
-                  {panel.sourceShotRefs.map(ref => (
-                    <span
-                      key={`${panel.id}-${ref}`}
-                      className="px-1.5 py-0.5 rounded bg-amber-900/40 border border-amber-700/40 text-amber-300"
-                    >
-                      {ref}
-                    </span>
-                  ))}
-                </div>
+          {uniqueSourceShots.map(item => (
+            <tr key={item.ref} className="border-b border-gray-800 hover:bg-gray-800/40 transition-colors">
+              <td className="px-2 py-2 align-top">
+                <span className="px-1.5 py-0.5 rounded bg-amber-900/40 border border-amber-700/40 text-amber-300">
+                  {item.ref}
+                </span>
               </td>
               <td className="px-2 py-2 align-top text-gray-300">
-                {panel.sourceSeedancePrompts && panel.sourceSeedancePrompts.length > 0 ? (
-                  <div className="space-y-2">
-                    {panel.sourceSeedancePrompts.map(item => (
-                      <div
-                        key={`${panel.id}-${item.sourceShotRef}`}
-                        className="rounded-lg border border-gray-800 bg-gray-900/60 p-2"
-                      >
-                        <div className="mb-1 text-[11px] text-amber-300">{item.sourceShotRef}</div>
-                        <div dangerouslySetInnerHTML={{ __html: highlightAtTags(item.prompt) }} />
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div dangerouslySetInnerHTML={{ __html: highlightAtTags(panel.seedancePrompt) }} />
-                )}
+                <div
+                  className="whitespace-pre-wrap"
+                  dangerouslySetInnerHTML={{ __html: highlightAtTags(item.prompt) }}
+                />
               </td>
             </tr>
           ))}

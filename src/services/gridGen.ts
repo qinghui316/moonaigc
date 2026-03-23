@@ -159,7 +159,7 @@ export function selectShotsForGrid(
 }
 
 export const GRID_NEGATIVE_PROMPT =
-  'no text, no typography, no dialogue bubbles, no speech bubbles, no captions, no subtitles, no watermark, no logo, no readable signage, no mirrored duplicate, no repeated panel'
+  '不含文字, 不含对话气泡, 不含字幕, 不含水印, 不含镜像重复, 不含重复面板'
 
 function clampLine(text: string, max = 240): string {
   const compact = text.replace(/\s+/g, ' ').trim()

@@ -231,18 +231,18 @@ export function buildNineGridImagePrompt(input: {
   fallbackRaw?: string
 }): string {
   const panelLines = input.panelPrompts.length > 0
-    ? input.panelPrompts.map((prompt, index) => `Panel ${index + 1}: ${prompt}`).join('\n')
+    ? input.panelPrompts.map((prompt, index) => `面板${index + 1}：${prompt}`).join('\n')
     : (input.fallbackRaw ?? '')
 
-  return `Grid spec:
-strict 3x3 grid, exactly 9 equal-sized rectangular panels, aligned rows and columns, uniform spacing between panels, no merged panels, no spanning panels, no collage, no irregular panel shapes.
+  return `画面规格：
+严格3x3九宫格布局，恰好9个等大矩形面板，行列对齐，面板间距均匀，不合并面板，不跨格，不拼贴，不使用不规则面板形状。
 
-Global references:
+全局参考图：
 ${input.refBlock || '无参考图'}
 
-Global anchors:
-All panels belong to one coherent storyboard sheet. Maintain the same character identity, hairstyle, costume, environment architecture, key props, lighting logic, and color continuity across all panels. no text, no subtitles, no dialogue bubbles, no speech bubbles, no captions, no watermark, no logo, no readable signage, no comic page layout.
+全局一致性约束：
+所有面板属于同一组连贯的分镜画面。保持角色身份、发型、服装、环境建筑、关键道具、光影逻辑和色彩连续性一致。不含文字、不含字幕、不含对话气泡、不含说话气泡、不含标注、不含水印、不含logo、不含可读标识、不使用漫画页面排版。
 
-Panels:
+分镜面板：
 ${panelLines}`
 }

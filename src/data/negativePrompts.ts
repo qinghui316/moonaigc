@@ -1,43 +1,35 @@
 // 全局负向提示词（对齐 6.5）
 export const GLOBAL_NEGATIVE_PROMPT =
-  'ugly, deformed, disfigured, poor quality, low quality, blurry, out of focus, bad anatomy, ' +
-  'extra limbs, missing limbs, floating limbs, disconnected limbs, mutated hands, malformed hands, ' +
-  'bad proportions, gross proportions, text, watermark, signature, username, ' +
-  'speech bubbles, dialogue bubbles, chinese characters, japanese characters, korean characters, ' +
-  'subtitles, captions, labels, typography, words, letters, numbers on image, ' +
-  'cropped, out of frame, worst quality, jpeg artifacts, noisy, pixelated, ' +
-  'nsfw, nude, naked, sexual content, violence, gore, disturbing content'
+  '不含文字, 不含水印, 不含字幕, 不含对话气泡, 不含变形, 不含模糊, 不含不雅内容'
 
 // 用于拼接到正向 prompt 末尾（Gemini/Custom 平台无独立负向词字段）
 export const GLOBAL_NEGATIVE_PROMPT_INLINE =
-  ', no text, no watermark, no signature, no speech bubbles, no chinese characters, ' +
-  'no subtitles, no captions, no typography, no deformation, no ugly face, no bad anatomy, ' +
-  'no extra limbs, no missing limbs, no blurry, no low quality, no nsfw'
+  '，不含文字，不含水印，不含字幕，不含对话气泡，不含变形，不含模糊，不含不雅内容'
 
 // 风格特有负向词
 export const STYLE_NEGATIVE_PROMPTS: Record<string, string> = {
-  cinematic: 'cartoon, anime, flat lighting, overexposed, underexposed, toy, plastic',
-  anime: 'realistic, photorealistic, 3d render, ugly, bad proportions, bad face',
-  cyberpunk: 'daylight, natural, countryside, clean, minimal, bright pastel',
-  oil_painting: 'photo, digital, 3d render, smooth, plastic',
-  '3d_render': 'flat, 2d, sketch, hand-drawn, watercolor, low poly',
-  vintage: 'sharp, vivid colors, digital, modern, neon',
-  watercolor: 'hard edges, sharp, digital, photorealistic, dark',
-  pixel_art: 'smooth, anti-aliased, realistic, photograph',
-  comic: 'realistic, soft, photographic, blurry, gradient',
-  claymation: 'photorealistic, 2d, digital, flat, smooth',
-  ukiyoe: '3d, photorealistic, western, modern, digital art',
-  surreal: 'realistic, mundane, boring, plain',
-  minimalist: 'cluttered, busy, complex, detailed, noisy',
-  noir: 'color, bright, cheerful, vivid, saturated',
-  fantasy: 'realistic, modern, mundane, dark, gritty',
-  steampunk: 'digital, modern, plastic, futuristic, clean',
-  donghua_xianxia: 'western art, realistic, photographic, low quality, bad anatomy',
-  ink_wash: 'digital, photorealistic, bright colors, sharp edges, western art',
-  pixar_3d: 'photorealistic, 2d, flat, dark, horror, gritty',
-  kdrama: 'anime, cartoon, harsh lighting, ugly, low quality',
-  documentary: 'posed, studio lighting, cartoon, animated, unrealistic',
-  concept_art: 'photo, low poly, cartoon, blurry, unfinished',
-  french_illus: 'photorealistic, 3d, dark, gritty, complex',
-  paper_cut: 'photorealistic, 3d, soft edges, gradient, complex texture',
+  cinematic: '卡通, 动漫, 塑料感',
+  anime: '写实, 3D渲染, 面部崩坏',
+  cyberpunk: '自然光, 田园, 明亮粉彩',
+  oil_painting: '照片, 3D渲染, 塑料感',
+  '3d_render': '平面, 手绘, 水彩',
+  vintage: '数字感, 霓虹, 鲜艳色彩',
+  watercolor: '硬边缘, 写实, 暗色',
+  pixel_art: '平滑, 写实, 照片',
+  comic: '写实, 照片, 渐变',
+  claymation: '写实, 平面, 数字感',
+  ukiyoe: '3D, 写实, 数字艺术',
+  surreal: '写实, 平淡, 单调',
+  minimalist: '杂乱, 复杂, 噪点',
+  noir: '彩色, 鲜艳, 高饱和',
+  fantasy: '写实, 现代, 灰暗',
+  steampunk: '数字感, 现代, 塑料感',
+  donghua_xianxia: '西方画风, 写实, 低质量',
+  ink_wash: '数字感, 写实, 鲜艳色彩',
+  pixar_3d: '写实, 平面, 恐怖',
+  kdrama: '动漫, 卡通, 低质量',
+  documentary: '摆拍, 棚拍, 卡通',
+  concept_art: '照片, 卡通, 模糊',
+  french_illus: '写实, 3D, 灰暗',
+  paper_cut: '写实, 3D, 渐变',
 }
